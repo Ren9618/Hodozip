@@ -173,19 +173,32 @@
 <section class="section" id="download">
   <div class="container">
     <h2 class="section-title">ダウンロード</h2>
-    <p class="section-lead">最新版は <a class="inline-link" href="https://github.com/Ren9618/Hodozip/releases/latest">GitHub Releases</a> から入手できます。配布形式は 2 種類あります。</p>
+    <p class="section-lead">最新版は <a class="inline-link" href="https://github.com/Ren9618/Hodozip/releases/latest">GitHub Releases</a> から入手できます。配布形式は 3 種類あります。</p>
     <div class="dl-grid">
       <article class="card dl-card">
         <div class="dl-head">
+          <h3>インストーラー版</h3>
+          <span class="badge">推奨</span>
+        </div>
+        <p class="dl-file">Hodozip-0.4.0-setup.exe</p>
+        <ul class="dl-list">
+          <li>管理者権限不要で、ユーザーごとに <code>%LOCALAPPDATA%\Programs\Hodozip</code> へインストールします</li>
+          <li>スタートメニューのショートカットを作成し、任意で右クリックメニューと「プログラムから開く」への登録を行います</li>
+          <li>アンインストールは Windows の「設定」→「アプリ」から行えます</li>
+        </ul>
+        <a class="btn btn-primary" href="https://github.com/Ren9618/Hodozip/releases/latest">Release から入手</a>
+      </article>
+      <article class="card dl-card">
+        <div class="dl-head">
           <h3>zip 版</h3>
-          <span class="badge">標準</span>
+          <span class="badge">ポータブル</span>
         </div>
         <p class="dl-file">Hodozip-0.4.0-win-x64.zip</p>
         <ul class="dl-list">
           <li>解凍して <code>Hodozip.exe</code> を起動するだけで使えます（インストール不要）</li>
           <li>アーカイブのドラッグ＆ドロップやパス指定で解凍</li>
         </ul>
-        <a class="btn btn-primary" href="https://github.com/Ren9618/Hodozip/releases/latest">Release から入手</a>
+        <a class="btn btn-ghost" href="https://github.com/Ren9618/Hodozip/releases/latest">Release から入手</a>
       </article>
       <article class="card dl-card">
         <div class="dl-head">
@@ -202,7 +215,7 @@
       </article>
     </div>
     <aside class="callout">
-      <p><strong>SmartScreen の警告について:</strong> Hodozip は未署名のため、初回起動時に Windows SmartScreen が「Windows によって PC が保護されました」という警告を表示することがあります。その場合は「詳細情報」を選び、「実行」をクリックすると起動できます。</p>
+      <p><strong>SmartScreen の警告について:</strong> Hodozip は未署名のため、インストーラーの実行時や初回起動時に Windows SmartScreen が「Windows によって PC が保護されました」という警告を表示することがあります。その場合は「詳細情報」を選び、「実行」をクリックすると起動できます。</p>
     </aside>
   </div>
 </section>
@@ -216,6 +229,12 @@
 
     <article class="howto-block">
       <h3>1. インストールして起動する</h3>
+      <h4>インストーラー版（推奨）</h4>
+      <ol>
+        <li><code>Hodozip-0.4.0-setup.exe</code> をダウンロードして実行します。未署名のため、SmartScreen の警告が表示された場合は「詳細情報」→「実行」を選びます。</li>
+        <li>インストール先は <code>%LOCALAPPDATA%\Programs\Hodozip</code> 固定です。「シェル統合」で右クリックメニューと「プログラムから開く」への登録を選べます（いずれも任意、既定で有効）。</li>
+        <li>インストール後、スタートメニューの「Hodozip」から起動します。アンインストールは「設定」→「アプリ」→「インストールされているアプリ」から行えます。</li>
+      </ol>
       <h4>zip 版（インストール不要）</h4>
       <ol>
         <li>ダウンロードした zip ファイルを解凍します。</li>
@@ -244,7 +263,7 @@
         <li>検索欄に <code>zip</code> と入力して「.zip」を選びます。</li>
         <li>一覧から「Hodozip」を選択します。</li>
       </ol>
-      <p>または、<code>.zip</code> を右クリック →「プログラムから開く」→「別のプログラムを選択」→「Hodozip」→「常にこのアプリを使って開く」を選びます。関連付けの候補には、MSIX 版が登録されます。</p>
+      <p>または、<code>.zip</code> を右クリック →「プログラムから開く」→「別のプログラムを選択」→「Hodozip」→「常にこのアプリを使って開く」を選びます。関連付けの候補には、インストーラー版または MSIX 版が登録されます。</p>
     </article>
 
     <article class="howto-block">

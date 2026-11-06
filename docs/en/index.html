@@ -173,19 +173,32 @@
 <section class="section" id="download">
   <div class="container">
     <h2 class="section-title">Download</h2>
-    <p class="section-lead">Get the latest version from <a class="inline-link" href="https://github.com/Ren9618/Hodozip/releases/latest">GitHub Releases</a>. Two distributions are available.</p>
+    <p class="section-lead">Get the latest version from <a class="inline-link" href="https://github.com/Ren9618/Hodozip/releases/latest">GitHub Releases</a>. Three distributions are available.</p>
     <div class="dl-grid">
       <article class="card dl-card">
         <div class="dl-head">
+          <h3>Installer build</h3>
+          <span class="badge">Recommended</span>
+        </div>
+        <p class="dl-file">Hodozip-0.4.0-setup.exe</p>
+        <ul class="dl-list">
+          <li>Installs per user into <code>%LOCALAPPDATA%\Programs\Hodozip</code> without administrator rights</li>
+          <li>Creates a Start menu shortcut and optionally registers the context menu and "Open with" candidates</li>
+          <li>Uninstall from Windows Settings → Apps</li>
+        </ul>
+        <a class="btn btn-primary" href="https://github.com/Ren9618/Hodozip/releases/latest">Get it from Releases</a>
+      </article>
+      <article class="card dl-card">
+        <div class="dl-head">
           <h3>zip build</h3>
-          <span class="badge">Standard</span>
+          <span class="badge">Portable</span>
         </div>
         <p class="dl-file">Hodozip-0.4.0-win-x64.zip</p>
         <ul class="dl-list">
           <li>Extract the archive and launch <code>Hodozip.exe</code>; no installation required</li>
           <li>Extract by dragging and dropping an archive or by passing a path</li>
         </ul>
-        <a class="btn btn-primary" href="https://github.com/Ren9618/Hodozip/releases/latest">Get it from Releases</a>
+        <a class="btn btn-ghost" href="https://github.com/Ren9618/Hodozip/releases/latest">Get it from Releases</a>
       </article>
       <article class="card dl-card">
         <div class="dl-head">
@@ -202,7 +215,7 @@
       </article>
     </div>
     <aside class="callout">
-      <p><strong>About SmartScreen warnings:</strong> Hodozip is unsigned, so Windows SmartScreen may show a "Windows protected your PC" warning on first launch. Choose "More info" and then "Run anyway" to start it.</p>
+      <p><strong>About SmartScreen warnings:</strong> Hodozip is unsigned, so Windows SmartScreen may show a "Windows protected your PC" warning when you run the installer or launch the app for the first time. Choose "More info" and then "Run anyway" to start it.</p>
     </aside>
   </div>
 </section>
@@ -216,6 +229,12 @@
 
     <article class="howto-block">
       <h3>1. Install and launch</h3>
+      <h4>Installer build (recommended)</h4>
+      <ol>
+        <li>Download and run <code>Hodozip-0.4.0-setup.exe</code>. It is unsigned; if SmartScreen shows a warning, choose "More info" → "Run".</li>
+        <li>The install location is fixed to <code>%LOCALAPPDATA%\Programs\Hodozip</code>. Under "Shell integration" you can optionally register the context menu and "Open with" candidates (both enabled by default).</li>
+        <li>Launch Hodozip from the Start menu after installation. Uninstall it from Settings → Apps → Installed apps.</li>
+      </ol>
       <h4>zip build (no installation)</h4>
       <ol>
         <li>Extract the downloaded zip file.</li>
@@ -244,7 +263,7 @@
         <li>Search for <code>zip</code> and select ".zip".</li>
         <li>Choose "Hodozip" from the list.</li>
       </ol>
-      <p>Alternatively, right-click a <code>.zip</code> file → "Open with" → "Choose another app" → "Hodozip" → "Always use this app". The MSIX build registers itself as an association candidate.</p>
+      <p>Alternatively, right-click a <code>.zip</code> file → "Open with" → "Choose another app" → "Hodozip" → "Always use this app". The installer or MSIX build registers itself as an association candidate.</p>
     </article>
 
     <article class="howto-block">
