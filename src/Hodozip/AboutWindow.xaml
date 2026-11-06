@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="Hodozip.AboutWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid x:Name="RootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="28,24,28,8" Spacing="3">
+            <TextBlock
+                FontSize="28"
+                FontWeight="SemiBold"
+                Text="バージョン情報" />
+            <TextBlock
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="Hodozip について" />
+        </StackPanel>
+
+        <ScrollViewer
+            Grid.Row="1"
+            Padding="28,8,28,12"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel
+                MaxWidth="700"
+                HorizontalAlignment="Center"
+                Spacing="16">
+                <Border
+                    Padding="22"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                    <StackPanel Spacing="6">
+                        <TextBlock
+                            FontSize="30"
+                            FontWeight="SemiBold"
+                            Text="Hodozip" />
+                        <TextBlock
+                            x:Name="VersionText"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock
+                            Margin="0,6,0,0"
+                            Text="ZIP を、ほどく。ドラッグ＆ドロップと自動判定で、解凍先に迷わない解凍ソフトです。"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Padding="22"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                    <StackPanel Spacing="8">
+                        <TextBlock
+                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                            Text="ライセンス" />
+                        <TextBlock Text="MIT License" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="Copyright (c) 2026 Ren9618" />
+                        <Expander Header="MIT ライセンス全文">
+                            <ScrollViewer
+                                MaxHeight="260"
+                                VerticalScrollBarVisibility="Auto">
+                                <TextBlock
+                                    x:Name="LicenseText"
+                                    FontFamily="Consolas"
+                                    FontSize="12"
+                                    IsTextSelectionEnabled="True"
+                                    TextWrapping="Wrap" />
+                            </ScrollViewer>
+                        </Expander>
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Padding="22"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                    <StackPanel Spacing="10">
+                        <TextBlock
+                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                            Text="使用ライブラリ" />
+                        <Grid ColumnSpacing="18" RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Text="SharpCompress" />
+                            <TextBlock
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="MIT License（ZIP 解凍エンジン）"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Text="Microsoft Windows App SDK" />
+                            <TextBlock
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="MIT License（WinUI 3 実行基盤）"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Grid.Row="2"
+                                Grid.Column="0"
+                                Text=".NET" />
+                            <TextBlock
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="MIT License（実行環境）"
+                                TextWrapping="Wrap" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Padding="22"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                    <StackPanel Spacing="6">
+                        <TextBlock
+                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                            Text="プライバシー" />
+                        <TextBlock
+                            Text="Hodozip はテレメトリを送信せず、アプリ本体はネットワーク通信を行いません。寄付ボタンを押したときだけ、既定のブラウザで支援ページを開きます。"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel
+            Grid.Row="2"
+            Margin="28,8,28,20"
+            HorizontalAlignment="Right"
+            Orientation="Horizontal"
+            Spacing="8">
+            <Button
+                Click="DonateButton_Click"
+                Content="開発を支援する" />
+            <Button
+                Click="CloseButton_Click"
+                Content="閉じる"
+                Style="{StaticResource AccentButtonStyle}" />
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,77 @@
+## Visual Studio / .NET
+
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# Build results
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+publish/
+artifacts/
+
+# Test results and coverage
+[Tt]est[Rr]esult*/
+TestResults/
+*.trx
+coverage/
+coverage.*
+*.coverage
+*.coveragexml
+
+# NuGet
+*.nupkg
+*.snupkg
+!**/packages/build/
+**/packages/*.nupkg
+**/packages/*.nuspec
+.nuget/
+packages/
+
+# Visual Studio cache / IntelliSense
+*.VC.db
+*.VC.VC.opendb
+*.ipch
+*.aps
+*.obj
+*.pch
+*.idb
+*.ilk
+*.pdb
+*.cache
+*.log
+
+# Windows App SDK / MSIX output
+AppPackages/
+BundleArtifacts/
+*.appx
+*.appxbundle
+*.appxupload
+*.msix
+*.msixbundle
+*.msixupload
+*.cer
+*.pfx
+
+# Rider
+.idea/
+*.sln.iml
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
