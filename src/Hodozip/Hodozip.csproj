@@ -32,4 +32,21 @@
     <ProjectReference Include="..\Hodozip.Core\Hodozip.Core.csproj" />
   </ItemGroup>
 
+  <!--
+    WinUI 3 の unpackaged アプリでは、XAML コンパイラが生成する .xbf と
+    プロジェクトの .pri が既定の publish 項目に含まれない。
+    これらが欠けると publish 版の起動時に Microsoft.UI.Xaml.dll がクラッシュするため、
+    ビルド出力から publish 先へ明示的にコピーする。
+  -->
+  <Target Name="IncludeWinUIArtifactsInPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <_WinUIArtifacts Include="$(TargetDir)*.xbf" />
+      <_WinUIArtifacts Include="$(TargetDir)$(AssemblyName).pri" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(_WinUIArtifacts)"
+      DestinationFolder="$(PublishDir)"
+      SkipUnchangedFiles="true" />
+  </Target>
+
 </Project>
