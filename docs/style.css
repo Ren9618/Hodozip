@@ -1,0 +1,596 @@
+/* ==========================================================================
+   Hodozip 公式サイト スタイルシート
+   - フレームワーク / 外部フォント / 外部 CDN 不使用
+   - ライト / ダークは prefers-color-scheme で自動切替
+   ========================================================================== */
+
+:root {
+  color-scheme: light dark;
+
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --border: #e3e7ec;
+  --text: #1b2430;
+  --muted: #5a6572;
+
+  --accent: #3a5bd9;
+  --accent-strong: #2c46ad;
+  --accent-soft: rgba(58, 91, 217, 0.09);
+  --accent-contrast: #ffffff;
+
+  --warn-fg: #9a5b0b;
+  --warn-bg: #fbf0dc;
+
+  --code-bg: #eef1f5;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12161d;
+    --surface: #1a2029;
+    --border: #2b333f;
+    --text: #e8ebf1;
+    --muted: #9aa5b2;
+
+    --accent: #90a5f5;
+    --accent-strong: #b7c4fb;
+    --accent-soft: rgba(144, 165, 245, 0.14);
+    --accent-contrast: #10131a;
+
+    --warn-fg: #f0bd63;
+    --warn-bg: rgba(240, 189, 99, 0.1);
+
+    --code-bg: #212833;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   基本
+   -------------------------------------------------------------------------- */
+
+* {
+  box-sizing: border-box;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", Meiryo, sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0;
+}
+
+ul, ol {
+  margin: 0.5em 0;
+  padding-left: 1.4em;
+}
+
+li + li {
+  margin-top: 0.3em;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+kbd {
+  display: inline-block;
+  padding: 0.05em 0.45em;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 0.85em;
+}
+
+code {
+  font-family: ui-monospace, Consolas, "Cascadia Mono", Menlo, monospace;
+  font-size: 0.88em;
+  background: var(--code-bg);
+  border-radius: 4px;
+  padding: 0.1em 0.4em;
+}
+
+pre {
+  margin: 0.7em 0;
+  padding: 12px 15px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow-x: auto;
+  line-height: 1.6;
+  font-size: 0.87rem;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+}
+
+.container {
+  max-width: 980px;
+  margin-inline: auto;
+  padding-inline: clamp(16px, 4vw, 24px);
+}
+
+.inline-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.note {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* --------------------------------------------------------------------------
+   ボタン
+   -------------------------------------------------------------------------- */
+
+.btn {
+  display: inline-block;
+  padding: 0.75em 1.5em;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-primary {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.btn-primary:hover {
+  background: var(--accent-strong);
+}
+
+.btn-ghost {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.btn-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* --------------------------------------------------------------------------
+   ヒーロー
+   -------------------------------------------------------------------------- */
+
+.hero {
+  padding: clamp(52px, 9vw, 96px) 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.hero-eyebrow {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.84rem;
+  letter-spacing: 0.05em;
+}
+
+.hero-title {
+  margin: 0.4em 0 0;
+  font-size: clamp(2.5rem, 7vw, 3.9rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.hero-tagline {
+  margin-top: 0.15em;
+  color: var(--accent);
+  font-size: clamp(1.3rem, 3.4vw, 1.85rem);
+  font-weight: 700;
+}
+
+.hero-lead {
+  margin-top: 0.9em;
+  max-width: 36em;
+  color: var(--muted);
+  font-size: clamp(1rem, 2vw, 1.12rem);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 1.7em;
+}
+
+.hero-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 1.9em 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hero-chips li {
+  padding: 0.3em 0.85em;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.hero-chips .chip-accent {
+  border-color: transparent;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   セクション共通
+   -------------------------------------------------------------------------- */
+
+.section {
+  padding: clamp(46px, 8vw, 84px) 0;
+}
+
+main .section + .section {
+  border-top: 1px solid var(--border);
+}
+
+main .section:first-child {
+  border-top: 0;
+}
+
+.section-title {
+  margin: 0 0 0.9em;
+  font-size: clamp(1.45rem, 3vw, 1.8rem);
+  font-weight: 800;
+}
+
+.section-title::after {
+  content: "";
+  display: block;
+  width: 2.2rem;
+  height: 3px;
+  margin-top: 0.5em;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.section-lead {
+  color: var(--muted);
+  margin-bottom: 1.6em;
+  max-width: 40em;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: var(--shadow);
+}
+
+/* --------------------------------------------------------------------------
+   特徴
+   -------------------------------------------------------------------------- */
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.feature h3 {
+  margin: 14px 0 6px;
+  font-size: 1.02rem;
+}
+
+.feature p {
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.7;
+}
+
+.feature-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.feature-icon svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.features-note {
+  margin-top: 18px;
+}
+
+/* --------------------------------------------------------------------------
+   スクリーンショット
+   -------------------------------------------------------------------------- */
+
+.shot-frame {
+  display: grid;
+  place-items: center;
+  margin: 0;
+  aspect-ratio: 16 / 9;
+  border: 1.5px dashed var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.shot-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6em;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.shot-icon svg {
+  width: 38px;
+  height: 38px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 実画像に差し替えたあとの見た目（<figure class="shot-frame has-image"> を使う） */
+.shot-frame.has-image {
+  aspect-ratio: auto;
+  border-style: solid;
+  padding: 10px;
+}
+
+.shot-frame.has-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+#screenshots .note {
+  margin-top: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   ダウンロード
+   -------------------------------------------------------------------------- */
+
+.dl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 16px;
+}
+
+.dl-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dl-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dl-head h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.badge {
+  padding: 0.28em 0.8em;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badge-warn {
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+}
+
+.dl-file {
+  color: var(--muted);
+  font-family: ui-monospace, Consolas, "Cascadia Mono", Menlo, monospace;
+  font-size: 0.85rem;
+}
+
+.dl-list {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
+.dl-card .btn {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.callout {
+  margin-top: 28px;
+  padding: 16px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  font-size: 0.93rem;
+}
+
+.callout p {
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   使い方
+   -------------------------------------------------------------------------- */
+
+.howto-block {
+  margin-top: 20px;
+  padding: clamp(18px, 3vw, 28px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+.howto-block:first-of-type {
+  margin-top: 0;
+}
+
+.howto-block h3 {
+  margin: 0 0 0.6em;
+  font-size: 1.15rem;
+}
+
+.howto-block h4 {
+  margin: 1.4em 0 0.4em;
+  font-size: 1rem;
+}
+
+.howto-block p {
+  margin: 0.6em 0;
+  color: var(--muted);
+  font-size: 0.94rem;
+}
+
+.howto-block li {
+  color: var(--muted);
+  font-size: 0.94rem;
+}
+
+.howto-block li strong,
+.howto-block h3 strong {
+  color: var(--text);
+}
+
+#howto .note {
+  margin-top: 0.8em;
+}
+
+/* --------------------------------------------------------------------------
+   開発を支援する
+   -------------------------------------------------------------------------- */
+
+#support {
+  text-align: center;
+}
+
+#support .section-lead {
+  margin-inline: auto;
+  margin-bottom: 0;
+}
+
+.support-actions {
+  justify-content: center;
+}
+
+/* --------------------------------------------------------------------------
+   フッター
+   -------------------------------------------------------------------------- */
+
+.footer {
+  padding: 34px 0 42px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.87rem;
+}
+
+.footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.6em 1.8em;
+}
+
+.footer-item {
+  margin: 0;
+}
+
+.footer-item strong {
+  color: var(--text);
+}
+
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6em 1.4em;
+}
+
+.footer-copy {
+  margin-left: auto;
+}
+
+/* --------------------------------------------------------------------------
+   狭い画面
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 560px) {
+  .footer-copy {
+    margin-left: 0;
+  }
+
+  .hero-chips li {
+    white-space: normal;
+  }
+}
