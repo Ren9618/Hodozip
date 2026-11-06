@@ -10,6 +10,14 @@ Hodozip（ホドジップ）は、往年の解凍ソフトの使い勝手を現�
 - 実装: C# / .NET 8 / WinUI 3（Windows App SDK）
 - Phase 1 は unpackaged（MSIX 未使用）の x64 アプリです。
 
+## ダウンロード
+
+[GitHub Releases](https://github.com/Ren9618/Hodozip/releases) から最新版をダウンロードできます。
+
+- 最新版: [Hodozip v0.1.0](https://github.com/Ren9618/Hodozip/releases/tag/v0.1.0)（`Hodozip-0.1.0-win-x64.zip`）
+- 使い方: zip を解凍し、`Hodozip.exe` を起動して ZIP ファイルをドラッグ＆ドロップするか、`Hodozip.exe <ファイル.zip>` で起動します。アーカイブと同じ場所へ解凍されます。
+- 注意: 本バージョンは未署名のため、Windows SmartScreen の警告が表示される場合があります。「詳細情報」→「実行」で起動できます。
+
 ## 特徴
 
 ### ダブルクリックですぐ解凍
