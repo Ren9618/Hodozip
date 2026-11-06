@@ -1,0 +1,7 @@
+[package]
+name = "hodozip-gpu-spike"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cozip = { git = "https://github.com/bea4dev/cozip", rev = "85a1e17b74882506c2f2f12a2b092ee72e9a3d7f" }

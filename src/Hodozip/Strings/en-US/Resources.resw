@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="Common_OpenFolder" xml:space="preserve"><value>Open folder</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Common_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Common_About" xml:space="preserve"><value>About</value></data>
+  <data name="Common_Support" xml:space="preserve"><value>Support development</value></data>
+
+  <data name="Main_Tagline" xml:space="preserve"><value>Unpack archives in a snap. Just drag and drop to extract.</value></data>
+  <data name="Main_DropHere" xml:space="preserve"><value>Drop an archive here</value></data>
+  <data name="Main_Or" xml:space="preserve"><value>or</value></data>
+  <data name="Main_SelectFile" xml:space="preserve"><value>Select a file</value></data>
+  <data name="Main_SupportedFormats" xml:space="preserve"><value>Supports ZIP / 7z / RAR / MSI / TAR / TAR.GZ / TAR.BZ2 / TAR.XZ / TAR.ZST / GZ / BZ2 / XZ / ZST. Single-folder archives are not nested twice; scattered files go into a folder named after the archive.</value></data>
+  <data name="Main_PreviousResult" xml:space="preserve"><value>Last result</value></data>
+  <data name="Main_FilePickErrorTitle" xml:space="preserve"><value>Could not select the file</value></data>
+  <data name="Main_DropCaption" xml:space="preserve"><value>Drop here to extract</value></data>
+  <data name="Main_NotArchiveTitle" xml:space="preserve"><value>Not an archive</value></data>
+  <data name="Main_DropFileMessage" xml:space="preserve"><value>Please drop a file.</value></data>
+  <data name="Main_UnsupportedTitle" xml:space="preserve"><value>Unsupported format</value></data>
+  <data name="Main_UnsupportedDropMessage" xml:space="preserve"><value>Drop an archive such as ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST.</value></data>
+  <data name="Main_MultipleTitle" xml:space="preserve"><value>Multiple archives were dropped</value></data>
+  <data name="Main_MultipleMessage" xml:space="preserve"><value>The first one will be extracted. Drop the rest one at a time.</value></data>
+  <data name="Main_ReadErrorTitle" xml:space="preserve"><value>Could not read the file</value></data>
+  <data name="Main_FileNotFoundTitle" xml:space="preserve"><value>File not found</value></data>
+  <data name="Main_UnsupportedFileMessage" xml:space="preserve"><value>Specify an archive such as ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST.</value></data>
+  <data name="Main_ExtractingTitle" xml:space="preserve"><value>Extraction in progress</value></data>
+  <data name="Main_ExtractingMessage" xml:space="preserve"><value>Please wait until the current extraction finishes before selecting the next file.</value></data>
+  <data name="Main_CompletedTitle" xml:space="preserve"><value>Extraction completed</value></data>
+  <data name="Main_CancelledTitle" xml:space="preserve"><value>Extraction cancelled</value></data>
+  <data name="Main_FailedTitle" xml:space="preserve"><value>Extraction failed</value></data>
+  <data name="Main_ResultDestination" xml:space="preserve"><value>Destination: {0}</value></data>
+  <data name="Main_ResultFiles" xml:space="preserve"><value>Files: {0} (skipped: {1})</value></data>
+  <data name="Main_ResultIssues" xml:space="preserve"><value>Warnings: {0} / Errors: {1}</value></data>
+
+  <data name="Progress_Extracting" xml:space="preserve"><value>Extracting…</value></data>
+  <data name="Progress_Destination" xml:space="preserve"><value>Destination: {0}</value></data>
+  <data name="Progress_File" xml:space="preserve"><value>File: {0}</value></data>
+  <data name="Progress_CompletedWarnings" xml:space="preserve"><value>Completed (warnings: {0} / skipped: {1})</value></data>
+  <data name="Progress_Completed" xml:space="preserve"><value>Completed ({0} files / skipped: {1})</value></data>
+  <data name="Progress_Cancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="Progress_ErrorStatus" xml:space="preserve"><value>Error: {0}</value></data>
+  <data name="Progress_ErrorTitle" xml:space="preserve"><value>Error</value></data>
+  <data name="Progress_CancelledTitle" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="Progress_FailedMessage" xml:space="preserve"><value>Extraction failed.</value></data>
+  <data name="Progress_Cancelling" xml:space="preserve"><value>Cancelling…</value></data>
+  <data name="Progress_AutoClose" xml:space="preserve"><value>Closing automatically in {0} seconds.</value></data>
+  <data name="Progress_UnexpectedError" xml:space="preserve"><value>An unexpected error occurred during extraction: {0}</value></data>
+  <data name="Progress_CancelledMessage" xml:space="preserve"><value>Extraction was cancelled.</value></data>
+
+  <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_WindowTitle" xml:space="preserve"><value>{0} - Settings</value></data>
+  <data name="Settings_Subtitle" xml:space="preserve"><value>Configure how Hodozip works.</value></data>
+  <data name="Settings_Destination" xml:space="preserve"><value>Destination</value></data>
+  <data name="Settings_SameAsArchive" xml:space="preserve"><value>Same location as the archive</value></data>
+  <data name="Settings_DestinationNote" xml:space="preserve"><value>The destination folder is chosen automatically based on the archive contents.</value></data>
+  <data name="Settings_FolderCollision" xml:space="preserve"><value>When the destination folder already exists</value></data>
+  <data name="Settings_AskEveryTime" xml:space="preserve"><value>Ask every time</value></data>
+  <data name="Settings_MergeExisting" xml:space="preserve"><value>Extract into the existing folder</value></data>
+  <data name="Settings_AutoRenameFolder" xml:space="preserve"><value>Create a new folder (numbered)</value></data>
+  <data name="Settings_FolderCollisionNote" xml:space="preserve"><value>With "Ask every time", you choose whether to merge into the existing folder or create a numbered folder before extraction starts.</value></data>
+  <data name="Settings_Overwrite" xml:space="preserve"><value>When a file with the same name already exists</value></data>
+  <data name="Settings_AlwaysOverwrite" xml:space="preserve"><value>Always overwrite</value></data>
+  <data name="Settings_AlwaysSkip" xml:space="preserve"><value>Always skip</value></data>
+  <data name="Settings_RenameSave" xml:space="preserve"><value>Save with a different name</value></data>
+  <data name="Settings_OverwriteNote" xml:space="preserve"><value>With "Ask every time", a confirmation dialog compares the old and new size and modification time.</value></data>
+  <data name="Settings_Behavior" xml:space="preserve"><value>Behavior</value></data>
+  <data name="Settings_OpenFolderAfter" xml:space="preserve"><value>Open the folder after extraction</value></data>
+  <data name="Settings_CloseAfter" xml:space="preserve"><value>Close automatically after extraction when launched by double-click</value></data>
+  <data name="Settings_CloseAfterNote" xml:space="preserve"><value>Applies when launched from a file association or the command line. The window stays open on errors.</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_LanguageSystem" xml:space="preserve"><value>Follow system settings</value></data>
+  <data name="Settings_LanguageJapanese" xml:space="preserve"><value>日本語</value></data>
+  <data name="Settings_LanguageEnglish" xml:space="preserve"><value>English</value></data>
+  <data name="Settings_LanguageNote" xml:space="preserve"><value>Language changes take effect the next time Hodozip starts.</value></data>
+  <data name="Settings_Parallelism" xml:space="preserve"><value>Parallel extraction</value></data>
+  <data name="Settings_ParallelismAuto" xml:space="preserve"><value>Auto (match CPU cores)</value></data>
+  <data name="Settings_ParallelismSequential" xml:space="preserve"><value>1 (sequential)</value></data>
+  <data name="Settings_ParallelismThreads" xml:space="preserve"><value>{0} threads</value></data>
+  <data name="Settings_ParallelismNote" xml:space="preserve"><value>Extracts multiple files in a ZIP at the same time. Some formats are processed sequentially.</value></data>
+  <data name="Settings_LegacyMenu" xml:space="preserve"><value>Classic context menu</value></data>
+  <data name="Settings_LegacyNote" xml:space="preserve"><value>Adds "Extract with Hodozip" to the Windows 10-style right-click menu (under "Show more options" on Windows 11). Available only in the unpackaged version.</value></data>
+  <data name="Settings_LegacyToggle" xml:space="preserve"><value>Register in the classic context menu</value></data>
+  <data name="Settings_LegacyOn" xml:space="preserve"><value>Register</value></data>
+  <data name="Settings_LegacyOff" xml:space="preserve"><value>Unregister</value></data>
+  <data name="Settings_Support" xml:space="preserve"><value>Support development</value></data>
+  <data name="Settings_SupportNote" xml:space="preserve"><value>Hodozip is free and open source. Your support goes toward future development and maintenance.</value></data>
+  <data name="Settings_ContextMenuTitle" xml:space="preserve"><value>Context menu</value></data>
+  <data name="Settings_RegisterFailedTitle" xml:space="preserve"><value>Registration failed</value></data>
+  <data name="Settings_Save" xml:space="preserve"><value>Save</value></data>
+
+  <data name="About_Title" xml:space="preserve"><value>About</value></data>
+  <data name="About_WindowTitle" xml:space="preserve"><value>{0} - About</value></data>
+  <data name="About_Version" xml:space="preserve"><value>Version {0}</value></data>
+  <data name="About_Subtitle" xml:space="preserve"><value>About Hodozip</value></data>
+  <data name="About_Tagline" xml:space="preserve"><value>Unpack archives in a snap. Drag and drop with automatic destination detection, so you never have to guess where files will go.</value></data>
+  <data name="About_SupportedFormats" xml:space="preserve"><value>Supported formats</value></data>
+  <data name="About_SupportedFormatsNote" xml:space="preserve"><value>Only formats that have passed actual extraction tests are listed as supported.</value></data>
+  <data name="About_License" xml:space="preserve"><value>License</value></data>
+  <data name="About_LicenseFull" xml:space="preserve"><value>Full MIT license</value></data>
+  <data name="About_Libraries" xml:space="preserve"><value>Libraries</value></data>
+  <data name="About_SharpCompress" xml:space="preserve"><value>MIT License (archive extraction engine)</value></data>
+  <data name="About_WindowsAppSdk" xml:space="preserve"><value>MIT License (WinUI 3 runtime)</value></data>
+  <data name="About_DotNet" xml:space="preserve"><value>MIT License (runtime)</value></data>
+  <data name="About_Privacy" xml:space="preserve"><value>Privacy</value></data>
+  <data name="About_PrivacyText" xml:space="preserve"><value>Hodozip sends no telemetry, and the app itself does not communicate over the network. It opens the support page in your default browser only when you press a donation button.</value></data>
+  <data name="About_Copyright" xml:space="preserve"><value>Copyright (c) 2026 Ren9618</value></data>
+
+  <data name="Overwrite_Title" xml:space="preserve"><value>Confirm overwrite</value></data>
+  <data name="Overwrite_Exists" xml:space="preserve"><value>"{0}" already exists.</value></data>
+  <data name="Overwrite_Item" xml:space="preserve"><value>Item</value></data>
+  <data name="Overwrite_ExistingFile" xml:space="preserve"><value>Existing file</value></data>
+  <data name="Overwrite_NewFile" xml:space="preserve"><value>New file</value></data>
+  <data name="Overwrite_Size" xml:space="preserve"><value>Size</value></data>
+  <data name="Overwrite_Modified" xml:space="preserve"><value>Modified</value></data>
+  <data name="Overwrite_Destination" xml:space="preserve"><value>Destination</value></data>
+  <data name="Overwrite_Action" xml:space="preserve"><value>Overwrite</value></data>
+  <data name="Overwrite_Skip" xml:space="preserve"><value>Skip</value></data>
+  <data name="Overwrite_Rename" xml:space="preserve"><value>Save with a different name</value></data>
+  <data name="Overwrite_All" xml:space="preserve"><value>Overwrite all</value></data>
+  <data name="Overwrite_SkipAll" xml:space="preserve"><value>Skip all</value></data>
+
+  <data name="FolderCollision_Title" xml:space="preserve"><value>Confirm folder collision</value></data>
+  <data name="FolderCollision_Exists" xml:space="preserve"><value>The destination folder "{0}" already exists.</value></data>
+  <data name="FolderCollision_FileConflict" xml:space="preserve"><value>A file with the same name exists, so extracting into the existing folder is not available.</value></data>
+  <data name="FolderCollision_SaveDefault" xml:space="preserve"><value>Save this choice as the default</value></data>
+  <data name="FolderCollision_Merge" xml:space="preserve"><value>Extract into existing</value></data>
+  <data name="FolderCollision_New" xml:space="preserve"><value>New folder</value></data>
+  <data name="FolderCollision_Cancel" xml:space="preserve"><value>Cancel</value></data>
+
+  <data name="Password_Title" xml:space="preserve"><value>Enter password</value></data>
+  <data name="Password_Message" xml:space="preserve"><value>This archive is password-protected. Enter the password.</value></data>
+  <data name="Password_ErrorWithAttempt" xml:space="preserve"><value>{0} (attempt {1} of 5)</value></data>
+  <data name="Password_Attempt" xml:space="preserve"><value>Attempt {0} of 5</value></data>
+  <data name="Password_Placeholder" xml:space="preserve"><value>Password</value></data>
+  <data name="Password_Ok" xml:space="preserve"><value>OK</value></data>
+  <data name="Password_Cancel" xml:space="preserve"><value>Cancel</value></data>
+
+  <data name="Donation_Title" xml:space="preserve"><value>Support development</value></data>
+  <data name="Donation_Message" xml:space="preserve"><value>Would you like to support Hodozip development? Your support is used for development and maintenance.</value></data>
+  <data name="Donation_Note" xml:space="preserve"><value>Pressing a button opens the support page in your default browser. No payment is processed inside the app.</value></data>
+  <data name="Donation_GitHub" xml:space="preserve"><value>GitHub Sponsors</value></data>
+  <data name="Donation_Stripe" xml:space="preserve"><value>Support via Stripe</value></data>
+  <data name="Donation_Cancel" xml:space="preserve"><value>Cancel</value></data>
+
+  <data name="Legacy_PackagedUnsupported" xml:space="preserve"><value>Because of Windows restrictions, the MSIX version cannot register the classic context menu. Only the new Windows 11 right-click menu is available.</value></data>
+  <data name="Legacy_DllMissing" xml:space="preserve"><value>Hodozip.ContextMenu.dll was not found: {0}</value></data>
+  <data name="Legacy_Registered" xml:space="preserve"><value>Registered in the classic context menu.</value></data>
+  <data name="Legacy_NotRegistered" xml:space="preserve"><value>Not registered in the classic context menu.</value></data>
+  <data name="Legacy_PackagedCannotRegister" xml:space="preserve"><value>The MSIX version cannot register the classic context menu.</value></data>
+  <data name="Legacy_ClsidCreateFailed" xml:space="preserve"><value>Could not create the CLSID registry key.</value></data>
+  <data name="Legacy_InprocCreateFailed" xml:space="preserve"><value>Could not create the InprocServer32 registry key.</value></data>
+  <data name="Legacy_HandlerCreateFailed" xml:space="preserve"><value>Could not create the context menu registration key: {0}</value></data>
+  <data name="Legacy_RegisteredCount" xml:space="preserve"><value>Registered in the classic context menu ({0} extensions).</value></data>
+  <data name="Legacy_RegisterFailed" xml:space="preserve"><value>Failed to register the classic context menu: {0}</value></data>
+  <data name="Legacy_PackagedNotRegistered" xml:space="preserve"><value>The MSIX version is not registered in the classic context menu.</value></data>
+  <data name="Legacy_Unregistered" xml:space="preserve"><value>Removed from the classic context menu.</value></data>
+  <data name="Legacy_UnregisterFailed" xml:space="preserve"><value>Failed to remove the classic context menu: {0}</value></data>
+
+  <data name="Issue_ArchiveNotFound" xml:space="preserve"><value>The archive was not found.</value></data>
+  <data name="Issue_DestinationCreateFailed" xml:space="preserve"><value>Could not create the destination folder: {0}</value></data>
+  <data name="Issue_Unexpected" xml:space="preserve"><value>An error occurred during extraction: {0}</value></data>
+  <data name="Issue_PasswordIncorrect" xml:space="preserve"><value>The password is incorrect, so the archive could not be extracted.</value></data>
+  <data name="Issue_PasswordRequired" xml:space="preserve"><value>A password is required.</value></data>
+  <data name="Issue_PasswordMismatch" xml:space="preserve"><value>The password is incorrect.</value></data>
+  <data name="Issue_OpenFailed" xml:space="preserve"><value>Could not open the archive: {0}</value></data>
+  <data name="Issue_ReadFailed" xml:space="preserve"><value>Could not read the archive contents: {0}</value></data>
+  <data name="Issue_UnsafeName" xml:space="preserve"><value>Fixed an unsafe file name: {0}</value></data>
+  <data name="Issue_SymlinkSkipped" xml:space="preserve"><value>A symbolic link entry was skipped for safety.</value></data>
+  <data name="Issue_OutputPathFailed" xml:space="preserve"><value>Could not build the output path: {0}</value></data>
+  <data name="Issue_OutsideRoot" xml:space="preserve"><value>Rejected an entry that would write outside the destination.</value></data>
+  <data name="Issue_FileBlocksFolder" xml:space="preserve"><value>A file with the same name exists, so the folder could not be created.</value></data>
+  <data name="Issue_CreateFolderFailed" xml:space="preserve"><value>Could not create the folder: {0}</value></data>
+  <data name="Issue_FolderBlocksFile" xml:space="preserve"><value>A folder with the same name exists, so the file could not be written.</value></data>
+  <data name="Issue_OutputParentMissing" xml:space="preserve"><value>Could not determine the output folder.</value></data>
+  <data name="Issue_WriteFailed" xml:space="preserve"><value>Could not write the file: {0}</value></data>
+  <data name="Issue_ExpansionWarning" xml:space="preserve"><value>The extracted size is {0:N0} times the compressed size. It may be a zip bomb.</value></data>
+  <data name="Issue_Cancelled" xml:space="preserve"><value>Extraction was cancelled.</value></data>
+  <data name="Issue_AbsolutePath" xml:space="preserve"><value>Rejected an entry that points to an absolute path.</value></data>
+  <data name="Issue_DriveLetter" xml:space="preserve"><value>Rejected an entry that contains a drive letter.</value></data>
+  <data name="Issue_ParentTraversal" xml:space="preserve"><value>Rejected an entry that contains ".." and points outside the destination.</value></data>
+  <data name="Issue_NullCharacter" xml:space="preserve"><value>Rejected an entry that contains a null character.</value></data>
+  <data name="Issue_UniqueNameFailed" xml:space="preserve"><value>Could not find an available file name: {0}</value></data>
+  <data name="Issue_UniqueFolderFailed" xml:space="preserve"><value>Could not find an available folder name: {0}</value></data>
+  <data name="Issue_CompressionNotSpecified" xml:space="preserve"><value>No compression method was specified.</value></data>
+  <data name="Issue_UnsafeNameFixed" xml:space="preserve"><value>Fixed an unsafe file name: {0}</value></data>
+  <data name="Issue_MsiEmpty" xml:space="preserve"><value>The MSI contains no files.</value></data>
+  <data name="Issue_MsiFailed" xml:space="preserve"><value>Could not extract the MSI: {0}</value></data>
+  <data name="Issue_MsiCabinetFailed" xml:space="preserve"><value>Could not extract the MSI cabinet.</value></data>
+  <data name="Issue_MsiFileReadFailed" xml:space="preserve"><value>Could not read a file from the MSI: {0}</value></data>
+  <data name="Issue_MsiFileMissing" xml:space="preserve"><value>The file was not found inside the MSI (it may use an external source).</value></data>
+  <data name="Issue_MsiInvalidPath" xml:space="preserve"><value>The file path in the MSI is invalid.</value></data>
+  <data name="Issue_MsiEmbeddedCabinetMissing" xml:space="preserve"><value>The embedded cabinet was not found: {0}</value></data>
+  <data name="Issue_MsiEmbeddedCabinetReadFailed" xml:space="preserve"><value>Could not read the embedded cabinet: {0}</value></data>
+  <data name="Issue_MsiEmbeddedCabinetExpandFailed" xml:space="preserve"><value>Could not extract the embedded cabinet: {0}</value></data>
+  <data name="Issue_MsiExternalCabinetInvalid" xml:space="preserve"><value>The external cabinet path is invalid: {0}</value></data>
+  <data name="Issue_MsiExternalCabinetMissing" xml:space="preserve"><value>The external cabinet was not found: {0}</value></data>
+  <data name="Issue_MsiCabinetExpandFailed" xml:space="preserve"><value>Could not extract the cabinet: {0}</value></data>
+  <data name="Issue_MsiCabinetEnumFailed" xml:space="preserve"><value>Could not enumerate the cabinet contents: {0}</value></data>
+  <data name="Issue_MsiCabinetEmpty" xml:space="preserve"><value>No files could be extracted from the cabinet.</value></data>
+  <data name="Issue_MsiDirectoryTooDeep" xml:space="preserve"><value>The MSI Directory table is too deeply nested.</value></data>
+  <data name="Issue_MsiDirectoryCycle" xml:space="preserve"><value>The MSI Directory table contains a circular reference: {0}</value></data>
+  <data name="Issue_MsiExpandStartFailed" xml:space="preserve"><value>Could not start expand.exe.</value></data>
+  <data name="Issue_MsiExpandFailed" xml:space="preserve"><value>expand.exe failed with exit code {0}.</value></data>
+  <data name="Issue_MsiExpandFailedDetail" xml:space="preserve"><value>expand.exe failed with exit code {0}: {1}</value></data>
+  <data name="Issue_Generic" xml:space="preserve"><value>A problem occurred.</value></data>
+</root>

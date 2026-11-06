@@ -47,6 +47,7 @@ public sealed partial class ProgressWindow : Window
 
         Title = $"0% / {_archiveName}";
         WindowHelpers.ConfigureFixed(this, 480, 240);
+        ApplyLocalization();
 
         SetDestination(Path.GetDirectoryName(archivePath) ?? Environment.CurrentDirectory);
 
@@ -85,6 +86,7 @@ public sealed partial class ProgressWindow : Window
             FolderCollisionResolver = ResolveFolderCollisionAsync,
             PasswordProvider = ProvidePasswordAsync,
             Progress = new DispatcherProgress(DispatcherQueue, UpdateProgress),
+            MaxDegreeOfParallelism = _settings.MaxDegreeOfParallelism,
         };
 
         ExtractionResult result;
@@ -98,17 +100,17 @@ public sealed partial class ProgressWindow : Window
         }
         catch (OperationCanceledException)
         {
-            result = CreateFailureResult("解凍をキャンセルしました。", cancelled: true);
+            result = CreateFailureResult(Loc.Progress_CancelledMessage, cancelled: true, "Issue_Cancelled");
         }
         catch (Exception ex)
         {
-            result = CreateFailureResult($"解凍中に予期しないエラーが発生しました: {ex.Message}", cancelled: false);
+            result = CreateFailureResult(Loc.Progress_UnexpectedError(ex.Message), cancelled: false, "Issue_Unexpected", ex.Message);
         }
 
         DispatcherQueue.TryEnqueue(() => CompleteOnUiThread(result));
     }
 
-    private ExtractionResult CreateFailureResult(string message, bool cancelled)
+    private ExtractionResult CreateFailureResult(string message, bool cancelled, string? messageKey, params object?[] arguments)
     {
         return new ExtractionResult
         {
@@ -121,7 +123,11 @@ public sealed partial class ProgressWindow : Window
                     cancelled ? ExtractionIssueSeverity.Warning : ExtractionIssueSeverity.Error,
                     cancelled ? ExtractionIssueKind.Cancelled : ExtractionIssueKind.ArchiveError,
                     _archivePath,
-                    message),
+                    message)
+                {
+                    MessageKey = messageKey,
+                    MessageArguments = arguments,
+                },
             },
         };
     }
@@ -181,7 +187,7 @@ public sealed partial class ProgressWindow : Window
         var currentFile = progress.CurrentFile;
         CurrentFileText.Text = string.IsNullOrEmpty(currentFile)
             ? " "
-            : "ファイル: " + MiddleEllipsis.CompactMiddle(currentFile, FileNameMaxLength);
+            : Loc.Progress_File(MiddleEllipsis.CompactMiddle(currentFile, FileNameMaxLength));
         ToolTipService.SetToolTip(CurrentFileText, string.IsNullOrEmpty(currentFile) ? null : currentFile);
 
         if (progress.CurrentFileTotalBytes > 0)
@@ -200,7 +206,7 @@ public sealed partial class ProgressWindow : Window
             FileProgressBar.Value = 0;
         }
 
-        StatusText.Text = "解凍しています…";
+        StatusText.Text = Loc.Progress_Extracting;
     }
 
     private void SetDestination(string destination)
@@ -211,7 +217,7 @@ public sealed partial class ProgressWindow : Window
         }
 
         _destinationPath = destination;
-        DestinationText.Text = "解凍先: " + MiddleEllipsis.CompactMiddle(destination, PathMaxLength);
+        DestinationText.Text = Loc.Progress_Destination(MiddleEllipsis.CompactMiddle(destination, PathMaxLength));
         ToolTipService.SetToolTip(DestinationText, destination);
     }
 
@@ -236,22 +242,22 @@ public sealed partial class ProgressWindow : Window
         {
             Title = $"100% / {_archiveName}";
             StatusText.Text = warnings > 0
-                ? $"完了しました（警告 {warnings} 件 / スキップ {result.SkippedFileCount} 件）"
-                : $"完了しました（{result.ExtractedFileCount} ファイル / スキップ {result.SkippedFileCount} 件）";
+                ? Loc.Progress_CompletedWarnings(warnings, result.SkippedFileCount)
+                : Loc.Progress_Completed(result.ExtractedFileCount, result.SkippedFileCount);
             StatusText.Foreground = (Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
         }
         else if (result.Cancelled)
         {
-            Title = $"キャンセル / {_archiveName}";
-            StatusText.Text = "キャンセルしました";
+            Title = $"{Loc.Progress_CancelledTitle} / {_archiveName}";
+            StatusText.Text = Loc.Progress_Cancelled;
             StatusText.Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
         }
         else
         {
-            Title = $"エラー / {_archiveName}";
+            Title = $"{Loc.Progress_ErrorTitle} / {_archiveName}";
             var error = result.Issues.FirstOrDefault(x => x.Severity == ExtractionIssueSeverity.Error);
-            var message = error?.Message ?? "解凍できませんでした。";
-            StatusText.Text = "エラー: " + MiddleEllipsis.CompactMiddle(message, 56);
+            var message = error is null ? Loc.Progress_FailedMessage : LocalizationService.GetIssueMessage(error);
+            StatusText.Text = Loc.Progress_ErrorStatus(MiddleEllipsis.CompactMiddle(message, 56));
             ToolTipService.SetToolTip(StatusText, message);
             StatusText.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
         }
@@ -413,7 +419,7 @@ public sealed partial class ProgressWindow : Window
     {
         _autoCloseSeconds = (int)AutoCloseDelay.TotalSeconds;
         AutoCloseText.Visibility = Visibility.Visible;
-        AutoCloseText.Text = $"{_autoCloseSeconds} 秒後に自動で閉じます。";
+        AutoCloseText.Text = Loc.Progress_AutoClose(_autoCloseSeconds);
 
         _autoCloseTimer = new DispatcherTimer
         {
@@ -429,7 +435,7 @@ public sealed partial class ProgressWindow : Window
                 return;
             }
 
-            AutoCloseText.Text = $"{_autoCloseSeconds} 秒後に自動で閉じます。";
+            AutoCloseText.Text = Loc.Progress_AutoClose(_autoCloseSeconds);
         };
         _autoCloseTimer.Start();
     }
@@ -443,7 +449,7 @@ public sealed partial class ProgressWindow : Window
 
         _cancellation.Cancel();
         CancelButton.IsEnabled = false;
-        StatusText.Text = "キャンセルしています…";
+        StatusText.Text = Loc.Progress_Cancelling;
         CurrentFileText.Text = " ";
         FileProgressBar.IsIndeterminate = false;
         FileProgressBar.Value = 0;
@@ -488,6 +494,14 @@ public sealed partial class ProgressWindow : Window
         {
             UiHelpers.OpenFolder(_destinationPath);
         }
+    }
+
+    private void ApplyLocalization()
+    {
+        StatusText.Text = Loc.Progress_Extracting;
+        OpenFolderButton.Content = Loc.Common_OpenFolder;
+        CancelButton.Content = Loc.Common_Cancel;
+        CloseButton.Content = Loc.Common_Close;
     }
 
     private sealed class DispatcherProgress : IProgress<ExtractionProgress>

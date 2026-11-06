@@ -58,7 +58,10 @@ public sealed partial class SharpCompressExtractor
                     ExtractionIssueSeverity.Error,
                     ExtractionIssueKind.ArchiveError,
                     archivePath,
-                    "MSI にファイルが含まれていません。"));
+                    "MSI にファイルが含まれていません。")
+                {
+                    MessageKey = "Issue_MsiEmpty",
+                });
                 return CreateMsiResult(baseDirectory, issues);
             }
 
@@ -110,7 +113,11 @@ public sealed partial class SharpCompressExtractor
                             ExtractionIssueSeverity.Error,
                             ExtractionIssueKind.EntryFailed,
                             cabinetValue,
-                            cabinetResult.Error ?? "MSI のキャビネットを展開できませんでした。"));
+                            cabinetResult.Error ?? "MSI のキャビネットを展開できませんでした。")
+                        {
+                            MessageKey = cabinetResult.ErrorKey ?? "Issue_MsiCabinetFailed",
+                            MessageArguments = cabinetResult.ErrorArguments ?? Array.Empty<object?>(),
+                        });
                     }
                 }
 
@@ -136,7 +143,11 @@ public sealed partial class SharpCompressExtractor
                             ExtractionIssueSeverity.Error,
                             ExtractionIssueKind.EntryFailed,
                             DisplayMsiFileName(file),
-                            $"MSI のファイルを読み取れませんでした: {ex.Message}"));
+                            $"MSI のファイルを読み取れませんでした: {ex.Message}")
+                        {
+                            MessageKey = "Issue_MsiFileReadFailed",
+                            MessageArguments = new object?[] { ex.Message },
+                        });
                     }
                 }
 
@@ -146,7 +157,10 @@ public sealed partial class SharpCompressExtractor
                         ExtractionIssueSeverity.Error,
                         ExtractionIssueKind.EntryFailed,
                         DisplayMsiFileName(file),
-                        "MSI 内にファイルが見つかりません（外部ソースの可能性があります）。"));
+                        "MSI 内にファイルが見つかりません（外部ソースの可能性があります）。")
+                    {
+                        MessageKey = "Issue_MsiFileMissing",
+                    });
                     continue;
                 }
 
@@ -159,13 +173,16 @@ public sealed partial class SharpCompressExtractor
                 var fileName = ParseMsiName(file.FileName, file.Key, longName: true);
                 var relativePath = CombineRelativePath(directoryPath, fileName);
 
-                if (!PathSanitizer.TryNormalize(relativePath, out var normalizedPath, out var pathError))
+                if (!PathSanitizer.TryNormalize(relativePath, out var normalizedPath, out var pathError, out var pathErrorKey))
                 {
                     issues.Add(new ExtractionIssue(
                         ExtractionIssueSeverity.Error,
                         ExtractionIssueKind.PathTraversal,
                         DisplayMsiFileName(file),
-                        pathError ?? "MSI のファイル パスが不正です。"));
+                        pathError ?? "MSI のファイル パスが不正です。")
+                    {
+                        MessageKey = pathErrorKey ?? "Issue_MsiInvalidPath",
+                    });
                     continue;
                 }
 
@@ -176,7 +193,11 @@ public sealed partial class SharpCompressExtractor
                         ExtractionIssueSeverity.Warning,
                         ExtractionIssueKind.UnsafeName,
                         DisplayMsiFileName(file),
-                        $"安全でないファイル名を修正しました: {sanitized.Note}"));
+                        $"安全でないファイル名を修正しました: {sanitized.Note}")
+                    {
+                        MessageKey = "Issue_UnsafeNameFixed",
+                        MessageArguments = new object?[] { sanitized.Note },
+                    });
                 }
 
                 var capturedPath = extractedPath;
@@ -195,7 +216,9 @@ public sealed partial class SharpCompressExtractor
                     IsDirectory: false,
                     IsSymbolicLink: false,
                     fileSize,
-                    lastWriteTime));
+                    lastWriteTime,
+                    workItems.Count,
+                    sanitized.RelativePath));
             }
 
             if (workItems.Count == 0)
@@ -210,6 +233,7 @@ public sealed partial class SharpCompressExtractor
                 baseDirectory,
                 archiveLength,
                 issues,
+                parallelSourcePath: null,
                 cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
@@ -222,7 +246,11 @@ public sealed partial class SharpCompressExtractor
                 ExtractionIssueSeverity.Error,
                 ExtractionIssueKind.ArchiveError,
                 archivePath,
-                $"MSI を解凍できませんでした: {ex.Message}"));
+                $"MSI を解凍できませんでした: {ex.Message}")
+            {
+                MessageKey = "Issue_MsiFailed",
+                MessageArguments = new object?[] { ex.Message },
+            });
             return CreateMsiResult(baseDirectory, issues);
         }
         finally
@@ -282,7 +310,12 @@ public sealed partial class SharpCompressExtractor
             cabinetName = cabinetValue[1..];
             if (!streamNames.TryGetValue(cabinetName, out var actualStreamName))
             {
-                return new MsiCabinetResult(null, null, $"埋め込みキャビネットが見つかりません: {cabinetName}");
+                return new MsiCabinetResult(
+                    null,
+                    null,
+                    $"埋め込みキャビネットが見つかりません: {cabinetName}",
+                    "Issue_MsiEmbeddedCabinetMissing",
+                    new object?[] { cabinetName });
             }
 
             cabinetPath = Path.Combine(temporaryDirectory, $"cab{index}.cab");
@@ -290,7 +323,12 @@ public sealed partial class SharpCompressExtractor
             {
                 if (!database.TryExportStream(actualStreamName, cabinetPath, cancellationToken))
                 {
-                    return new MsiCabinetResult(null, null, $"埋め込みキャビネットを読み取れません: {cabinetName}");
+                    return new MsiCabinetResult(
+                        null,
+                        null,
+                        $"埋め込みキャビネットを読み取れません: {cabinetName}",
+                        "Issue_MsiEmbeddedCabinetReadFailed",
+                        new object?[] { cabinetName });
                 }
             }
             catch (OperationCanceledException)
@@ -299,7 +337,12 @@ public sealed partial class SharpCompressExtractor
             }
             catch (Exception ex)
             {
-                return new MsiCabinetResult(null, null, $"埋め込みキャビネットを展開できません: {ex.Message}");
+                return new MsiCabinetResult(
+                    null,
+                    null,
+                    $"埋め込みキャビネットを展開できません: {ex.Message}",
+                    "Issue_MsiEmbeddedCabinetExpandFailed",
+                    new object?[] { ex.Message });
             }
         }
         else
@@ -308,7 +351,12 @@ public sealed partial class SharpCompressExtractor
             var candidate = Path.GetFullPath(Path.Combine(msiDirectory, cabinetValue));
             if (!PathSanitizer.IsUnderRoot(msiDirectory, candidate))
             {
-                return new MsiCabinetResult(null, null, $"外部キャビネットのパスが不正です: {cabinetValue}");
+                return new MsiCabinetResult(
+                    null,
+                    null,
+                    $"外部キャビネットのパスが不正です: {cabinetValue}",
+                    "Issue_MsiExternalCabinetInvalid",
+                    new object?[] { cabinetValue });
             }
 
             if (!LongPath.FileExists(candidate))
@@ -316,7 +364,12 @@ public sealed partial class SharpCompressExtractor
                 var fallback = Path.Combine(msiDirectory, cabinetName);
                 if (!LongPath.FileExists(fallback))
                 {
-                    return new MsiCabinetResult(null, null, $"外部キャビネットが見つかりません: {cabinetValue}");
+                    return new MsiCabinetResult(
+                        null,
+                        null,
+                        $"外部キャビネットが見つかりません: {cabinetValue}",
+                        "Issue_MsiExternalCabinetMissing",
+                        new object?[] { cabinetValue });
                 }
 
                 candidate = fallback;
@@ -338,7 +391,12 @@ public sealed partial class SharpCompressExtractor
         }
         catch (Exception ex)
         {
-            return new MsiCabinetResult(null, null, $"キャビネットを展開できません: {ex.Message}");
+            return new MsiCabinetResult(
+                null,
+                null,
+                $"キャビネットを展開できません: {ex.Message}",
+                "Issue_MsiCabinetExpandFailed",
+                new object?[] { ex.Message });
         }
 
         var filesByName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -358,12 +416,21 @@ public sealed partial class SharpCompressExtractor
         }
         catch (Exception ex)
         {
-            return new MsiCabinetResult(null, null, $"キャビネットの内容を列挙できません: {ex.Message}");
+            return new MsiCabinetResult(
+                null,
+                null,
+                $"キャビネットの内容を列挙できません: {ex.Message}",
+                "Issue_MsiCabinetEnumFailed",
+                new object?[] { ex.Message });
         }
 
         if (filesByName.Count == 0)
         {
-            return new MsiCabinetResult(null, null, "キャビネットからファイルを展開できませんでした。");
+            return new MsiCabinetResult(
+                null,
+                null,
+                "キャビネットからファイルを展開できませんでした。",
+                "Issue_MsiCabinetEmpty");
         }
 
         return new MsiCabinetResult(destinationDirectory, filesByName, null);
@@ -591,7 +658,9 @@ public sealed partial class SharpCompressExtractor
     private sealed record MsiCabinetResult(
         string? DirectoryPath,
         IReadOnlyDictionary<string, string>? FilesByName,
-        string? Error);
+        string? Error,
+        string? ErrorKey = null,
+        object?[]? ErrorArguments = null);
 
     private sealed class MsiDirectoryPathResolver
     {

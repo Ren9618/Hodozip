@@ -10,6 +10,7 @@ public partial class App : Application
 
     public App()
     {
+        LocalizationService.Initialize(SettingsService.Load().Language);
         InitializeComponent();
     }
 

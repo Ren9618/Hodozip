@@ -33,7 +33,17 @@ public sealed record ExtractionIssue(
     ExtractionIssueSeverity Severity,
     ExtractionIssueKind Kind,
     string EntryPath,
-    string Message);
+    string Message)
+{
+    /// <summary>
+    /// UI が表示言語へ変換するためのリソース キー。null の場合は Message をそのまま表示する。
+    /// Core 自体は UI 言語を知らないため、日本語の Message をフォールバックとして保持する。
+    /// </summary>
+    public string? MessageKey { get; init; }
+
+    /// <summary>MessageKey の書式引数。</summary>
+    public IReadOnlyList<object?> MessageArguments { get; init; } = Array.Empty<object?>();
+}
 
 /// <summary>上書き確認に必要な新旧ファイル情報。</summary>
 public sealed record OverwriteConflict(
@@ -45,7 +55,11 @@ public sealed record OverwriteConflict(
     DateTimeOffset? NewLastWriteTime);
 
 /// <summary>パスワード入力要求。Attempt は 1 から始まる。</summary>
-public sealed record PasswordRequest(int Attempt, string? ErrorMessage);
+public sealed record PasswordRequest(int Attempt, string? ErrorMessage)
+{
+    /// <summary>UI が表示言語へ変換するためのリソース キー。</summary>
+    public string? ErrorMessageKey { get; init; }
+}
 
 /// <summary>解凍の進捗。</summary>
 public sealed record ExtractionProgress(
@@ -83,6 +97,11 @@ public sealed class ExtractionOptions
     public Func<PasswordRequest, CancellationToken, Task<string?>>? PasswordProvider { get; init; }
 
     public IProgress<ExtractionProgress>? Progress { get; init; }
+
+    /// <summary>
+    /// ZIP 解凍の最大並列度。0 は CPU コア数に合わせる自動、1 は逐次。
+    /// </summary>
+    public int MaxDegreeOfParallelism { get; init; }
 
     public long ExpansionWarningMinBytes { get; init; } = DefaultExpansionWarningMinBytes;
 

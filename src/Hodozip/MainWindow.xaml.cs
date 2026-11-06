@@ -26,6 +26,7 @@ public sealed partial class MainWindow : Window
         Title = AppInfo.ProductName;
         WindowHelpers.Configure(this, 940, 760);
         VersionText.Text = $"Version {AppInfo.Version}";
+        ApplyLocalization();
 
         _dropZoneDefaultBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"];
         _dropZoneActiveBrush = (Brush)Application.Current.Resources["AccentFillColorDefaultBrush"];
@@ -63,7 +64,7 @@ public sealed partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            ShowMessage(InfoBarSeverity.Error, "ファイルを選択できません", ex.Message);
+            ShowMessage(InfoBarSeverity.Error, Loc.Main_FilePickErrorTitle, ex.Message);
         }
     }
 
@@ -77,7 +78,7 @@ public sealed partial class MainWindow : Window
         if (e.DataView.Contains(StandardDataFormats.StorageItems))
         {
             e.AcceptedOperation = DataPackageOperation.Copy;
-            e.DragUIOverride.Caption = "ここにドロップして解凍";
+            e.DragUIOverride.Caption = Loc.Main_DropCaption;
             e.DragUIOverride.IsCaptionVisible = true;
             e.DragUIOverride.IsContentVisible = true;
         }
@@ -102,7 +103,7 @@ public sealed partial class MainWindow : Window
         {
             if (!e.DataView.Contains(StandardDataFormats.StorageItems))
             {
-                ShowMessage(InfoBarSeverity.Warning, "アーカイブではありません", "ファイルをドロップしてください。");
+                ShowMessage(InfoBarSeverity.Warning, Loc.Main_NotArchiveTitle, Loc.Main_DropFileMessage);
                 return;
             }
 
@@ -110,7 +111,7 @@ public sealed partial class MainWindow : Window
             var files = items.OfType<StorageFile>().ToList();
             if (files.Count == 0)
             {
-                ShowMessage(InfoBarSeverity.Warning, "アーカイブではありません", "ファイルをドロップしてください。");
+                ShowMessage(InfoBarSeverity.Warning, Loc.Main_NotArchiveTitle, Loc.Main_DropFileMessage);
                 return;
             }
 
@@ -122,8 +123,8 @@ public sealed partial class MainWindow : Window
             {
                 ShowMessage(
                     InfoBarSeverity.Warning,
-                    "対応していない形式です",
-                    "ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST などのアーカイブをドロップしてください。");
+                    Loc.Main_UnsupportedTitle,
+                    Loc.Main_UnsupportedDropMessage);
                 return;
             }
 
@@ -131,15 +132,15 @@ public sealed partial class MainWindow : Window
             {
                 ShowMessage(
                     InfoBarSeverity.Informational,
-                    "複数のアーカイブがドロップされました",
-                    "最初の 1 つを解凍します。残りは 1 つずつドロップしてください。");
+                    Loc.Main_MultipleTitle,
+                    Loc.Main_MultipleMessage);
             }
 
             BeginExtraction(archiveFiles[0].Path);
         }
         catch (Exception ex)
         {
-            ShowMessage(InfoBarSeverity.Error, "ファイルを読み取れません", ex.Message);
+            ShowMessage(InfoBarSeverity.Error, Loc.Main_ReadErrorTitle, ex.Message);
         }
     }
 
@@ -147,7 +148,7 @@ public sealed partial class MainWindow : Window
     {
         if (string.IsNullOrWhiteSpace(archivePath) || !File.Exists(archivePath))
         {
-            ShowMessage(InfoBarSeverity.Error, "ファイルが見つかりません", archivePath);
+            ShowMessage(InfoBarSeverity.Error, Loc.Main_FileNotFoundTitle, archivePath);
             return;
         }
 
@@ -155,8 +156,8 @@ public sealed partial class MainWindow : Window
         {
             ShowMessage(
                 InfoBarSeverity.Warning,
-                "対応していない形式です",
-                "ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST などのアーカイブを指定してください。");
+                Loc.Main_UnsupportedTitle,
+                Loc.Main_UnsupportedFileMessage);
             return;
         }
 
@@ -167,8 +168,8 @@ public sealed partial class MainWindow : Window
                 _progressWindow.Activate();
                 ShowMessage(
                     InfoBarSeverity.Informational,
-                    "解凍中です",
-                    "現在の解凍が終わってから、次のファイルを指定してください。");
+                    Loc.Main_ExtractingTitle,
+                    Loc.Main_ExtractingMessage);
                 return;
             }
 
@@ -202,19 +203,19 @@ public sealed partial class MainWindow : Window
 
         if (result.Success)
         {
-            RecentResultTitle.Text = "解凍が完了しました";
+            RecentResultTitle.Text = Loc.Main_CompletedTitle;
         }
         else if (result.Cancelled)
         {
-            RecentResultTitle.Text = "解凍をキャンセルしました";
+            RecentResultTitle.Text = Loc.Main_CancelledTitle;
         }
         else
         {
-            RecentResultTitle.Text = "解凍できませんでした";
+            RecentResultTitle.Text = Loc.Main_FailedTitle;
             var error = result.Issues.FirstOrDefault(x => x.Severity == ExtractionIssueSeverity.Error);
             if (error is not null)
             {
-                ShowMessage(InfoBarSeverity.Error, "解凍できませんでした", error.Message);
+                ShowMessage(InfoBarSeverity.Error, Loc.Main_FailedTitle, LocalizationService.GetIssueMessage(error));
             }
         }
 
@@ -222,11 +223,24 @@ public sealed partial class MainWindow : Window
         var errors = result.Issues.Count(x => x.Severity == ExtractionIssueSeverity.Error);
 
         RecentResultDetails.Text =
-            $"解凍先: {result.DestinationPath}{Environment.NewLine}" +
-            $"ファイル: {result.ExtractedFileCount} 件（スキップ {result.SkippedFileCount} 件）" +
+            Loc.Main_ResultDestination(result.DestinationPath) + Environment.NewLine +
+            Loc.Main_ResultFiles(result.ExtractedFileCount, result.SkippedFileCount) +
             (warnings + errors > 0
-                ? $"{Environment.NewLine}警告 {warnings} 件 / エラー {errors} 件"
+                ? Environment.NewLine + Loc.Main_ResultIssues(warnings, errors)
                 : string.Empty);
+    }
+
+    private void ApplyLocalization()
+    {
+        TaglineText.Text = Loc.Main_Tagline;
+        DropHereText.Text = Loc.Main_DropHere;
+        OrText.Text = Loc.Main_Or;
+        SelectFileButton.Content = Loc.Main_SelectFile;
+        SupportedFormatsText.Text = Loc.Main_SupportedFormats;
+        PreviousResultText.Text = Loc.Main_PreviousResult;
+        RecentOpenFolderButton.Content = Loc.Common_OpenFolder;
+        AboutButton.Content = Loc.Common_About;
+        SettingsButton.Content = Loc.Common_Settings;
     }
 
     private void RecentOpenFolderButton_Click(object sender, RoutedEventArgs e)

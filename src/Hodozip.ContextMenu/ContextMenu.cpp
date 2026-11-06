@@ -67,6 +67,37 @@ namespace
         return false;
     }
 
+    // シェル拡張の表示言語は、アプリ設定ではなく OS の UI 言語だけで決める。
+    // （エクスプローラーは別プロセスで動くため、アプリ側の .resw を参照できない。）
+    bool IsJapaneseUiLanguage()
+    {
+        return PRIMARYLANGID(GetUserDefaultUILanguage()) == LANG_JAPANESE;
+    }
+
+    const wchar_t* ExtractHereMenuText()
+    {
+        return IsJapaneseUiLanguage() ? L"Hodozip で解凍" : L"Extract with Hodozip";
+    }
+
+    const wchar_t* ExtractFolderMenuText()
+    {
+        return IsJapaneseUiLanguage() ? L"Hodozip でフォルダに解凍" : L"Extract to folder with Hodozip";
+    }
+
+    const wchar_t* ExtractHereHelpText()
+    {
+        return IsJapaneseUiLanguage()
+            ? L"アーカイブと同じ場所に解凍します"
+            : L"Extract to the same folder as the archive";
+    }
+
+    const wchar_t* ExtractFolderHelpText()
+    {
+        return IsJapaneseUiLanguage()
+            ? L"アーカイブ名のフォルダに解凍します"
+            : L"Extract into a folder named after the archive";
+    }
+
     std::wstring GetModulePath()
     {
         std::wstring buffer(MAX_PATH, L'\0');
@@ -208,7 +239,7 @@ namespace
 
             *ppszName = nullptr;
             return SHStrDupW(
-                _forceArchiveFolder ? L"Hodozip でフォルダに解凍" : L"Hodozip で解凍",
+                _forceArchiveFolder ? ExtractFolderMenuText() : ExtractHereMenuText(),
                 ppszName);
         }
 
@@ -467,7 +498,7 @@ namespace
                     indexMenu,
                     MF_BYPOSITION | MF_STRING,
                     idCmdFirst,
-                    L"Hodozip で解凍");
+                    ExtractHereMenuText());
                 ++commandCount;
             }
 
@@ -478,7 +509,7 @@ namespace
                     indexMenu + 1,
                     MF_BYPOSITION | MF_STRING,
                     idCmdFirst + 1,
-                    L"Hodozip でフォルダに解凍");
+                    ExtractFolderMenuText());
                 ++commandCount;
             }
 
@@ -511,7 +542,7 @@ namespace
                     return StringCchCopyW(
                         reinterpret_cast<LPWSTR>(pszName),
                         cchMax,
-                        forceArchiveFolder ? L"アーカイブ名のフォルダに解凍します" : L"アーカイブと同じ場所に解凍します");
+                        forceArchiveFolder ? ExtractFolderHelpText() : ExtractHereHelpText());
 
                 default:
                     return E_NOTIMPL;

@@ -16,6 +16,7 @@
 [Rr]elease/
 x64/
 x86/
+tools/cozip-spike/target/
 [Ww][Ii][Nn]32/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/

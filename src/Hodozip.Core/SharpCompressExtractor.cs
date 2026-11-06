@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO.Compression;
 using SharpCompress.Archives;
@@ -39,7 +40,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
 
         if (!LongPath.FileExists(archivePath))
         {
-            return Failure(baseDirectory, ExtractionIssueKind.ArchiveError, "アーカイブが見つかりません。", archivePath);
+            return Failure(baseDirectory, ExtractionIssueKind.ArchiveError, "アーカイブが見つかりません。", archivePath, "Issue_ArchiveNotFound");
         }
 
         try
@@ -48,7 +49,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         }
         catch (Exception ex)
         {
-            return Failure(baseDirectory, ExtractionIssueKind.ArchiveError, $"解凍先フォルダを作成できません: {ex.Message}", archivePath);
+            return Failure(baseDirectory, ExtractionIssueKind.ArchiveError, $"解凍先フォルダを作成できません: {ex.Message}", archivePath, "Issue_DestinationCreateFailed", ex.Message);
         }
 
         var issues = new List<ExtractionIssue>();
@@ -122,7 +123,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         }
         catch (Exception ex)
         {
-            return Failure(baseDirectory, ExtractionIssueKind.ArchiveError, $"解凍中にエラーが発生しました: {ex.Message}", archivePath);
+            return Failure(baseDirectory, ExtractionIssueKind.ArchiveError, $"解凍中にエラーが発生しました: {ex.Message}", archivePath, "Issue_Unexpected", ex.Message);
         }
         finally
         {
@@ -159,7 +160,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
             {
                 if (passwordAttempts >= MaxPasswordAttempts)
                 {
-                    return Failure(baseDirectory, ExtractionIssueKind.Password, "パスワードが正しくないため解凍できませんでした。", displayArchivePath);
+                    return Failure(baseDirectory, ExtractionIssueKind.Password, "パスワードが正しくないため解凍できませんでした。", displayArchivePath, "Issue_PasswordIncorrect");
                 }
 
                 var next = await RequestPasswordAsync(
@@ -178,7 +179,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
             }
             catch (Exception ex)
             {
-                return Failure(baseDirectory, ExtractionIssueKind.ArchiveError, $"アーカイブを開けませんでした: {ex.Message}", displayArchivePath);
+                return Failure(baseDirectory, ExtractionIssueKind.ArchiveError, $"アーカイブを開けませんでした: {ex.Message}", displayArchivePath, "Issue_OpenFailed", ex.Message);
             }
 
             try
@@ -192,7 +193,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                 {
                     if (passwordAttempts >= MaxPasswordAttempts)
                     {
-                        return Failure(baseDirectory, ExtractionIssueKind.Password, "パスワードが正しくないため解凍できませんでした。", displayArchivePath);
+                        return Failure(baseDirectory, ExtractionIssueKind.Password, "パスワードが正しくないため解凍できませんでした。", displayArchivePath, "Issue_PasswordIncorrect");
                     }
 
                     var next = await RequestPasswordAsync(
@@ -211,7 +212,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                 }
                 catch (Exception ex)
                 {
-                    return Failure(baseDirectory, ExtractionIssueKind.ArchiveError, $"アーカイブの内容を読み取れませんでした: {ex.Message}", displayArchivePath);
+                    return Failure(baseDirectory, ExtractionIssueKind.ArchiveError, $"アーカイブの内容を読み取れませんでした: {ex.Message}", displayArchivePath, "Issue_ReadFailed", ex.Message);
                 }
 
                 var firstEncrypted = entries.FirstOrDefault(x => x.IsEncrypted);
@@ -221,7 +222,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                     {
                         if (passwordAttempts >= MaxPasswordAttempts)
                         {
-                            return Failure(baseDirectory, ExtractionIssueKind.Password, "パスワードが必要です。", displayArchivePath);
+                            return Failure(baseDirectory, ExtractionIssueKind.Password, "パスワードが必要です。", displayArchivePath, "Issue_PasswordRequired");
                         }
 
                         var next = await RequestPasswordAsync(request.Options, passwordAttempts + 1, null, cancellationToken)
@@ -245,7 +246,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                     {
                         if (passwordAttempts >= MaxPasswordAttempts)
                         {
-                            return Failure(baseDirectory, ExtractionIssueKind.Password, "パスワードが正しくないため解凍できませんでした。", displayArchivePath);
+                            return Failure(baseDirectory, ExtractionIssueKind.Password, "パスワードが正しくないため解凍できませんでした。", displayArchivePath, "Issue_PasswordIncorrect");
                         }
 
                         var next = await RequestPasswordAsync(
@@ -271,6 +272,10 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                     baseDirectory,
                     archiveLength,
                     issues,
+                    parallelSourcePath: string.Equals(Path.GetExtension(openPath), ".zip", StringComparison.OrdinalIgnoreCase)
+                        && entries.All(x => !x.IsEncrypted)
+                            ? openPath
+                            : null,
                     cancellationToken).ConfigureAwait(false);
             }
             finally
@@ -287,15 +292,17 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         string baseDirectory,
         long archiveLength,
         List<ExtractionIssue> issues,
+        string? parallelSourcePath,
         CancellationToken cancellationToken)
     {
         var workItems = new List<EntryWork>();
 
-        foreach (var entry in rawEntries)
+        for (var index = 0; index < rawEntries.Count; index++)
         {
+            var entry = rawEntries[index];
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!PathSanitizer.TryNormalize(entry.Key, out var relativePath, out var pathError))
+            if (!PathSanitizer.TryNormalize(entry.Key, out var relativePath, out var pathError, out var pathErrorKey))
             {
                 if (pathError is not null)
                 {
@@ -303,7 +310,10 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                         ExtractionIssueSeverity.Error,
                         ExtractionIssueKind.PathTraversal,
                         entry.Key ?? string.Empty,
-                        pathError));
+                        pathError)
+                    {
+                        MessageKey = pathErrorKey,
+                    });
                 }
 
                 continue;
@@ -312,11 +322,13 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
             var sanitized = PathSanitizer.Sanitize(relativePath);
             if (sanitized.Changed)
             {
-                issues.Add(new ExtractionIssue(
+                issues.Add(CreateIssue(
                     ExtractionIssueSeverity.Warning,
                     ExtractionIssueKind.UnsafeName,
                     entry.Key ?? string.Empty,
-                    $"安全でないファイル名を修正しました: {sanitized.Note}"));
+                    $"安全でないファイル名を修正しました: {sanitized.Note}",
+                    "Issue_UnsafeNameFixed",
+                    sanitized.Note));
             }
 
             workItems.Add(new EntryWork(
@@ -325,7 +337,9 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                 entry.IsDirectory,
                 IsSymbolicLink(entry),
                 Math.Max(0, entry.Size),
-                entry.LastModifiedTime));
+                entry.LastModifiedTime,
+                index,
+                entry.Key ?? sanitized.RelativePath));
         }
 
         return await ExtractWorkItemsAsync(
@@ -335,6 +349,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
             baseDirectory,
             archiveLength,
             issues,
+            parallelSourcePath,
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -345,6 +360,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         string baseDirectory,
         long archiveLength,
         List<ExtractionIssue> issues,
+        string? parallelSourcePath,
         CancellationToken cancellationToken)
     {
         var plan = DestinationPlanner.Create(
@@ -370,7 +386,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         }
         catch (Exception ex)
         {
-            return Failure(baseDirectory, ExtractionIssueKind.ArchiveError, $"解凍先フォルダを作成できません: {ex.Message}", displayArchivePath);
+            return Failure(baseDirectory, ExtractionIssueKind.ArchiveError, $"解凍先フォルダを作成できません: {ex.Message}", displayArchivePath, "Issue_DestinationCreateFailed", ex.Message);
         }
 
         var totalBytes = workItems
@@ -379,6 +395,39 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
 
         AddExpansionWarningIfNeeded(workItems, archiveLength, request.Options, issues);
 
+        if (parallelSourcePath is not null)
+        {
+            var parallelism = ResolveParallelism(request.Options.MaxDegreeOfParallelism);
+            var fileEntryCount = workItems.Count(x => !x.IsDirectory && !x.IsSymbolicLink);
+            if (parallelism > 1
+                && fileEntryCount > 1
+                && !HasDuplicateFileTargets(workItems, plan)
+                && CanOpenIndependentArchive(parallelSourcePath))
+            {
+                return await ExtractWorkItemsParallelAsync(
+                    workItems,
+                    request,
+                    plan,
+                    totalBytes,
+                    issues,
+                    parallelSourcePath,
+                    parallelism,
+                    cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        return await ExtractWorkItemsSequentialAsync(workItems, request, plan, totalBytes, issues, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    private static async Task<ExtractionResult> ExtractWorkItemsSequentialAsync(
+        List<EntryWork> workItems,
+        ExtractionRequest request,
+        DestinationPlan plan,
+        long totalBytes,
+        List<ExtractionIssue> issues,
+        CancellationToken cancellationToken)
+    {
         var progress = request.Options.Progress;
         long processedBytes = 0;
         var extractedFiles = 0;
@@ -393,11 +442,12 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
 
                 if (work.IsSymbolicLink)
                 {
-                    issues.Add(new ExtractionIssue(
+                    issues.Add(CreateIssue(
                         ExtractionIssueSeverity.Warning,
                         ExtractionIssueKind.SymbolicLink,
                         work.RelativePath,
-                        "シンボリックリンクエントリは安全のためスキップしました。"));
+                        "シンボリックリンクエントリは安全のためスキップしました。",
+                        "Issue_SymlinkSkipped"));
                     skippedFiles++;
                     continue;
                 }
@@ -415,21 +465,24 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                 }
                 catch (Exception ex)
                 {
-                    issues.Add(new ExtractionIssue(
+                    issues.Add(CreateIssue(
                         ExtractionIssueSeverity.Error,
                         ExtractionIssueKind.EntryFailed,
                         work.RelativePath,
-                        $"出力パスを組み立てられません: {ex.Message}"));
+                        $"出力パスを組み立てられません: {ex.Message}",
+                        "Issue_OutputPathFailed",
+                        ex.Message));
                     continue;
                 }
 
                 if (!PathSanitizer.IsUnderRoot(plan.OutputRoot, targetPath))
                 {
-                    issues.Add(new ExtractionIssue(
+                    issues.Add(CreateIssue(
                         ExtractionIssueSeverity.Error,
                         ExtractionIssueKind.PathTraversal,
                         work.RelativePath,
-                        "解凍先の外へ書き込むエントリを拒否しました。"));
+                        "解凍先の外へ書き込むエントリを拒否しました。",
+                        "Issue_OutsideRoot"));
                     continue;
                 }
 
@@ -439,11 +492,12 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                     {
                         if (LongPath.FileExists(targetPath))
                         {
-                            issues.Add(new ExtractionIssue(
+                            issues.Add(CreateIssue(
                                 ExtractionIssueSeverity.Error,
                                 ExtractionIssueKind.EntryFailed,
                                 work.RelativePath,
-                                "同名のファイルが存在するためフォルダを作成できません。"));
+                                "同名のファイルが存在するためフォルダを作成できません。",
+                                "Issue_FileBlocksFolder"));
                             continue;
                         }
 
@@ -451,11 +505,13 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                     }
                     catch (Exception ex)
                     {
-                        issues.Add(new ExtractionIssue(
+                        issues.Add(CreateIssue(
                             ExtractionIssueSeverity.Error,
                             ExtractionIssueKind.EntryFailed,
                             work.RelativePath,
-                            $"フォルダを作成できません: {ex.Message}"));
+                            $"フォルダを作成できません: {ex.Message}",
+                            "Issue_CreateFolderFailed",
+                            ex.Message));
                     }
 
                     continue;
@@ -463,11 +519,12 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
 
                 if (LongPath.DirectoryExists(targetPath))
                 {
-                    issues.Add(new ExtractionIssue(
+                    issues.Add(CreateIssue(
                         ExtractionIssueSeverity.Error,
                         ExtractionIssueKind.EntryFailed,
                         work.RelativePath,
-                        "同名のフォルダが存在するためファイルを書き込めません。"));
+                        "同名のフォルダが存在するためファイルを書き込めません。",
+                        "Issue_FolderBlocksFile"));
                     skippedFiles++;
                     continue;
                 }
@@ -509,11 +566,12 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                 var parentDirectory = Path.GetDirectoryName(writePath);
                 if (string.IsNullOrEmpty(parentDirectory))
                 {
-                    issues.Add(new ExtractionIssue(
+                    issues.Add(CreateIssue(
                         ExtractionIssueSeverity.Error,
                         ExtractionIssueKind.EntryFailed,
                         work.RelativePath,
-                        "出力先フォルダを特定できません。"));
+                        "出力先フォルダを特定できません。",
+                        "Issue_OutputParentMissing"));
                     continue;
                 }
 
@@ -539,7 +597,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                         totalBytes,
                         work.RelativePath,
                         work.Size,
-                        progress,
+                        progress is null ? null : progress.Report,
                         lastProgress,
                         cancellationToken).ConfigureAwait(false);
 
@@ -583,11 +641,13 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                 }
                 catch (Exception ex)
                 {
-                    issues.Add(new ExtractionIssue(
+                    issues.Add(CreateIssue(
                         ExtractionIssueSeverity.Error,
                         ExtractionIssueKind.EntryFailed,
                         work.RelativePath,
-                        $"ファイルを書き込めません: {ex.Message}"));
+                        $"ファイルを書き込めません: {ex.Message}",
+                        "Issue_WriteFailed",
+                        ex.Message));
                 }
                 finally
                 {
@@ -631,6 +691,507 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         };
     }
 
+    private static int ResolveParallelism(int requested)
+    {
+        var maximum = Math.Max(1, Environment.ProcessorCount);
+        return requested <= 0 ? maximum : Math.Clamp(requested, 1, maximum);
+    }
+
+    /// <summary>
+    /// 同じ出力パスを指すエントリがあるアーカイブは、逐次処理の上書き判定順序を
+    /// 再現できないため並列化しない。
+    /// </summary>
+    private static bool HasDuplicateFileTargets(IReadOnlyList<EntryWork> workItems, DestinationPlan plan)
+    {
+        var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var work in workItems)
+        {
+            if (work.IsDirectory || work.IsSymbolicLink)
+            {
+                continue;
+            }
+
+            var mappedPath = plan.MapPath(work.RelativePath);
+            if (string.IsNullOrEmpty(mappedPath))
+            {
+                continue;
+            }
+
+            try
+            {
+                var targetPath = Path.GetFullPath(Path.Combine(plan.OutputRoot, mappedPath));
+                if (!paths.Add(targetPath))
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// ワーカーごとに独立した ZipArchive を開けるか確認する。
+    /// 開けない場合は呼び出し元が逐次処理へフォールバックする。
+    /// </summary>
+    private static bool CanOpenIndependentArchive(string path)
+    {
+        try
+        {
+            using var archive = ArchiveFactory.OpenArchive(path, CreateReaderOptions(password: null, path));
+            using var enumerator = archive.Entries.GetEnumerator();
+            return enumerator.MoveNext();
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static async Task<ExtractionResult> ExtractWorkItemsParallelAsync(
+        List<EntryWork> workItems,
+        ExtractionRequest request,
+        DestinationPlan plan,
+        long totalBytes,
+        List<ExtractionIssue> issues,
+        string sourcePath,
+        int parallelism,
+        CancellationToken cancellationToken)
+    {
+        var options = request.Options;
+        var progress = options.Progress;
+        var counters = new ExtractionCounters();
+        var prepared = new List<PreparedEntry>();
+        var reservedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var skippedFiles = 0;
+
+        // 上書き確認・フォルダ作成・Zip Slip 検査をすべてワーカー起動前に済ませる。
+        // ダイアログが並列ワーカーから同時に要求されることはない。
+        foreach (var work in workItems)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (work.IsSymbolicLink)
+            {
+                counters.AddIssue(issues, CreateIssue(
+                    ExtractionIssueSeverity.Warning,
+                    ExtractionIssueKind.SymbolicLink,
+                    work.RelativePath,
+                    "シンボリックリンクエントリは安全のためスキップしました。",
+                    "Issue_SymlinkSkipped"));
+                skippedFiles++;
+                continue;
+            }
+
+            var mappedPath = plan.MapPath(work.RelativePath);
+            if (string.IsNullOrEmpty(mappedPath))
+            {
+                continue;
+            }
+
+            string targetPath;
+            try
+            {
+                targetPath = Path.GetFullPath(Path.Combine(plan.OutputRoot, mappedPath));
+            }
+            catch (Exception ex)
+            {
+                counters.AddIssue(issues, CreateIssue(
+                    ExtractionIssueSeverity.Error,
+                    ExtractionIssueKind.EntryFailed,
+                    work.RelativePath,
+                    $"出力パスを組み立てられません: {ex.Message}",
+                    "Issue_OutputPathFailed",
+                    ex.Message));
+                continue;
+            }
+
+            if (!PathSanitizer.IsUnderRoot(plan.OutputRoot, targetPath))
+            {
+                counters.AddIssue(issues, CreateIssue(
+                    ExtractionIssueSeverity.Error,
+                    ExtractionIssueKind.PathTraversal,
+                    work.RelativePath,
+                    "解凍先の外へ書き込むエントリを拒否しました。",
+                    "Issue_OutsideRoot"));
+                continue;
+            }
+
+            if (work.IsDirectory)
+            {
+                try
+                {
+                    if (LongPath.FileExists(targetPath))
+                    {
+                        counters.AddIssue(issues, CreateIssue(
+                            ExtractionIssueSeverity.Error,
+                            ExtractionIssueKind.EntryFailed,
+                            work.RelativePath,
+                            "同名のファイルが存在するためフォルダを作成できません。",
+                            "Issue_FileBlocksFolder"));
+                        continue;
+                    }
+
+                    LongPath.CreateDirectory(targetPath);
+                }
+                catch (Exception ex)
+                {
+                    counters.AddIssue(issues, CreateIssue(
+                        ExtractionIssueSeverity.Error,
+                        ExtractionIssueKind.EntryFailed,
+                        work.RelativePath,
+                        $"フォルダを作成できません: {ex.Message}",
+                        "Issue_CreateFolderFailed",
+                        ex.Message));
+                }
+
+                continue;
+            }
+
+            if (LongPath.DirectoryExists(targetPath))
+            {
+                counters.AddIssue(issues, CreateIssue(
+                    ExtractionIssueSeverity.Error,
+                    ExtractionIssueKind.EntryFailed,
+                    work.RelativePath,
+                    "同名のフォルダが存在するためファイルを書き込めません。",
+                    "Issue_FolderBlocksFile"));
+                skippedFiles++;
+                continue;
+            }
+
+            var writePath = targetPath;
+            var overwrite = false;
+
+            if (LongPath.FileExists(targetPath))
+            {
+                var decision = await ResolveOverwriteAsync(
+                    options,
+                    work.RelativePath,
+                    work.Size,
+                    work.LastModifiedTime,
+                    targetPath,
+                    cancellationToken).ConfigureAwait(false);
+
+                if (decision == OverwriteDecision.Cancel)
+                {
+                    return Cancelled(plan.OutputRoot, issues, sourcePath);
+                }
+
+                if (decision == OverwriteDecision.Skip)
+                {
+                    skippedFiles++;
+                    continue;
+                }
+
+                if (decision == OverwriteDecision.AutoRename)
+                {
+                    writePath = GetUniqueFilePath(targetPath, reservedPaths);
+                }
+                else
+                {
+                    overwrite = true;
+                }
+            }
+
+            // 自動リネーム先が後続エントリの出力先とぶつかる場合は、
+            // 逐次処理と同じ結果になるようフォールバックする。
+            if (!reservedPaths.Add(writePath))
+            {
+                return await ExtractWorkItemsSequentialAsync(
+                    workItems,
+                    request,
+                    plan,
+                    totalBytes,
+                    issues,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            var parentDirectory = Path.GetDirectoryName(writePath);
+            if (string.IsNullOrEmpty(parentDirectory))
+            {
+                counters.AddIssue(issues, CreateIssue(
+                    ExtractionIssueSeverity.Error,
+                    ExtractionIssueKind.EntryFailed,
+                    work.RelativePath,
+                    "出力先フォルダを特定できません。",
+                    "Issue_OutputParentMissing"));
+                continue;
+            }
+
+            try
+            {
+                LongPath.CreateDirectory(parentDirectory);
+            }
+            catch (Exception ex)
+            {
+                counters.AddIssue(issues, CreateIssue(
+                    ExtractionIssueSeverity.Error,
+                    ExtractionIssueKind.EntryFailed,
+                    work.RelativePath,
+                    $"ファイルを書き込めません: {ex.Message}",
+                    "Issue_WriteFailed",
+                    ex.Message));
+                continue;
+            }
+
+            prepared.Add(new PreparedEntry(work, writePath, overwrite));
+        }
+
+        counters.SkippedFiles = skippedFiles;
+
+        if (prepared.Count == 0)
+        {
+            counters.Report(progress, new ExtractionProgress(0, totalBytes, string.Empty, 0, 0, plan.OutputRoot));
+            return new ExtractionResult
+            {
+                Success = !issues.Any(x => x.Severity == ExtractionIssueSeverity.Error),
+                Cancelled = false,
+                DestinationPath = plan.OutputRoot,
+                ExtractedFileCount = counters.ExtractedFiles,
+                SkippedFileCount = counters.SkippedFiles,
+                Issues = issues,
+            };
+        }
+
+        counters.Report(progress, new ExtractionProgress(0, totalBytes, string.Empty, 0, 0, plan.OutputRoot));
+
+        var queue = new ConcurrentQueue<PreparedEntry>(prepared);
+        var workerCount = Math.Min(parallelism, prepared.Count);
+        var workers = new Task[workerCount];
+
+        for (var index = 0; index < workerCount; index++)
+        {
+            workers[index] = Task.Run(async () =>
+            {
+                IArchive workerArchive;
+                try
+                {
+                    workerArchive = ArchiveFactory.OpenArchive(sourcePath, CreateReaderOptions(password: null, sourcePath));
+                }
+                catch (Exception ex)
+                {
+                    counters.AddIssue(issues, CreateIssue(
+                        ExtractionIssueSeverity.Error,
+                        ExtractionIssueKind.ArchiveError,
+                        sourcePath,
+                        $"アーカイブを開けませんでした: {ex.Message}",
+                        "Issue_OpenFailed",
+                        ex.Message));
+                    return;
+                }
+
+                try
+                {
+                    var entries = workerArchive.Entries.ToList();
+                    while (queue.TryDequeue(out var item))
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        if (item.Work.Index < 0 || item.Work.Index >= entries.Count)
+                        {
+                            counters.AddIssue(issues, CreateIssue(
+                                ExtractionIssueSeverity.Error,
+                                ExtractionIssueKind.EntryFailed,
+                                item.Work.RelativePath,
+                                "アーカイブのエントリを特定できませんでした。",
+                                "Issue_Generic"));
+                            continue;
+                        }
+
+                        var entry = entries[item.Work.Index];
+                        await ExtractPreparedEntryAsync(
+                            entry.OpenEntryStream,
+                            item,
+                            plan.OutputRoot,
+                            totalBytes,
+                            counters,
+                            issues,
+                            progress,
+                            cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    // キャンセルは呼び出し元で結果へ変換する。
+                }
+                catch (Exception ex)
+                {
+                    counters.AddIssue(issues, CreateIssue(
+                        ExtractionIssueSeverity.Error,
+                        ExtractionIssueKind.ArchiveError,
+                        sourcePath,
+                        $"アーカイブの内容を読み取れませんでした: {ex.Message}",
+                        "Issue_ReadFailed",
+                        ex.Message));
+                }
+                finally
+                {
+                    workerArchive.Dispose();
+                }
+            }, CancellationToken.None);
+        }
+
+        await Task.WhenAll(workers).ConfigureAwait(false);
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            issues.Add(CreateIssue(
+                ExtractionIssueSeverity.Warning,
+                ExtractionIssueKind.Cancelled,
+                sourcePath,
+                "解凍をキャンセルしました。",
+                "Issue_Cancelled"));
+
+            return new ExtractionResult
+            {
+                Success = false,
+                Cancelled = true,
+                DestinationPath = plan.OutputRoot,
+                ExtractedFileCount = counters.ExtractedFiles,
+                SkippedFileCount = counters.SkippedFiles,
+                Issues = issues,
+            };
+        }
+
+        counters.Report(progress, new ExtractionProgress(
+            counters.ProcessedBytes,
+            totalBytes,
+            string.Empty,
+            0,
+            0,
+            plan.OutputRoot));
+
+        return new ExtractionResult
+        {
+            Success = !issues.Any(x => x.Severity == ExtractionIssueSeverity.Error),
+            Cancelled = false,
+            DestinationPath = plan.OutputRoot,
+            ExtractedFileCount = counters.ExtractedFiles,
+            SkippedFileCount = counters.SkippedFiles,
+            Issues = issues,
+        };
+    }
+
+    private static async Task ExtractPreparedEntryAsync(
+        Func<Stream> openStream,
+        PreparedEntry item,
+        string outputRoot,
+        long totalBytes,
+        ExtractionCounters counters,
+        List<ExtractionIssue> issues,
+        IProgress<ExtractionProgress>? progress,
+        CancellationToken cancellationToken)
+    {
+        var work = item.Work;
+        string? tempPath = null;
+
+        try
+        {
+            var parentDirectory = Path.GetDirectoryName(item.WritePath);
+            if (string.IsNullOrEmpty(parentDirectory))
+            {
+                counters.AddIssue(issues, CreateIssue(
+                    ExtractionIssueSeverity.Error,
+                    ExtractionIssueKind.EntryFailed,
+                    work.RelativePath,
+                    "出力先フォルダを特定できません。",
+                    "Issue_OutputParentMissing"));
+                return;
+            }
+
+            LongPath.CreateDirectory(parentDirectory);
+            tempPath = Path.Combine(parentDirectory, "~hodozip-" + Guid.NewGuid().ToString("N") + ".tmp");
+            var lastProgress = Stopwatch.StartNew();
+
+            counters.Report(progress, new ExtractionProgress(
+                counters.ProcessedBytes,
+                totalBytes,
+                work.RelativePath,
+                0,
+                work.Size,
+                outputRoot));
+
+            var copied = await WriteEntryAsync(
+                openStream,
+                tempPath,
+                counters.AddProcessed,
+                counters.GetProcessed,
+                totalBytes,
+                work.RelativePath,
+                work.Size,
+                value => counters.Report(progress, value),
+                lastProgress,
+                cancellationToken).ConfigureAwait(false);
+
+            if (work.LastModifiedTime is { } lastModified)
+            {
+                LongPath.SetLastWriteTime(tempPath, lastModified);
+            }
+
+            if (item.Overwrite && LongPath.FileExists(item.WritePath))
+            {
+                TryClearReadOnly(item.WritePath);
+            }
+
+            LongPath.MoveFile(tempPath, item.WritePath, item.Overwrite);
+            tempPath = null;
+            counters.AddExtracted();
+
+            if (work.LastModifiedTime is { } modified)
+            {
+                try
+                {
+                    LongPath.SetLastWriteTime(item.WritePath, modified);
+                }
+                catch
+                {
+                    // 更新日時の設定失敗は解凍自体の失敗にはしない。
+                }
+            }
+
+            counters.Report(progress, new ExtractionProgress(
+                counters.ProcessedBytes,
+                totalBytes,
+                work.RelativePath,
+                copied,
+                work.Size));
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            counters.AddIssue(issues, CreateIssue(
+                ExtractionIssueSeverity.Error,
+                ExtractionIssueKind.EntryFailed,
+                work.RelativePath,
+                $"ファイルを書き込めません: {ex.Message}",
+                "Issue_WriteFailed",
+                ex.Message));
+        }
+        finally
+        {
+            if (tempPath is not null)
+            {
+                try
+                {
+                    LongPath.DeleteFile(tempPath);
+                }
+                catch
+                {
+                    // 一時ファイルの削除失敗は無視する。
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// 単一ストリーム圧縮（.bz2 / .xz / .zst）を 1 ファイルとして解凍する。
     /// </summary>
@@ -646,11 +1207,13 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         var sanitized = PathSanitizer.Sanitize(outputName);
         if (sanitized.Changed)
         {
-            issues.Add(new ExtractionIssue(
+            issues.Add(CreateIssue(
                 ExtractionIssueSeverity.Warning,
                 ExtractionIssueKind.UnsafeName,
                 outputName,
-                $"安全でないファイル名を修正しました: {sanitized.Note}"));
+                $"安全でないファイル名を修正しました: {sanitized.Note}",
+                "Issue_UnsafeNameFixed",
+                sanitized.Note));
         }
 
         var relativePath = string.IsNullOrWhiteSpace(sanitized.RelativePath) ? "output" : sanitized.RelativePath;
@@ -662,12 +1225,12 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         }
         catch (Exception ex)
         {
-            return Failure(baseDirectory, ExtractionIssueKind.ArchiveError, $"出力パスを組み立てられません: {ex.Message}", archivePath);
+            return Failure(baseDirectory, ExtractionIssueKind.ArchiveError, $"出力パスを組み立てられません: {ex.Message}", archivePath, "Issue_OutputPathFailed", ex.Message);
         }
 
         if (!PathSanitizer.IsUnderRoot(baseDirectory, targetPath))
         {
-            return Failure(baseDirectory, ExtractionIssueKind.PathTraversal, "解凍先の外へ書き込むエントリを拒否しました。", archivePath);
+            return Failure(baseDirectory, ExtractionIssueKind.PathTraversal, "解凍先の外へ書き込むエントリを拒否しました。", archivePath, "Issue_OutsideRoot");
         }
 
         var writePath = targetPath;
@@ -789,11 +1352,13 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         }
         catch (Exception ex)
         {
-            issues.Add(new ExtractionIssue(
+            issues.Add(CreateIssue(
                 ExtractionIssueSeverity.Error,
                 ExtractionIssueKind.EntryFailed,
                 relativePath,
-                $"ファイルを書き込めません: {ex.Message}"));
+                $"ファイルを書き込めません: {ex.Message}",
+                "Issue_WriteFailed",
+                ex.Message));
 
             return new ExtractionResult
             {
@@ -828,7 +1393,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         long totalBytes,
         string currentFile,
         long currentFileTotalBytes,
-        IProgress<ExtractionProgress>? progress,
+        Action<ExtractionProgress>? report,
         Stopwatch lastProgress,
         CancellationToken cancellationToken)
     {
@@ -861,7 +1426,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
 
                 if (lastProgress.Elapsed >= ProgressInterval)
                 {
-                    progress?.Report(new ExtractionProgress(
+                    report?.Invoke(new ExtractionProgress(
                         getProcessed(),
                         totalBytes,
                         currentFile,
@@ -1013,7 +1578,12 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
             return null;
         }
 
-        return await options.PasswordProvider(new PasswordRequest(attempt, errorMessage), cancellationToken)
+        return await options.PasswordProvider(
+                new PasswordRequest(attempt, errorMessage)
+                {
+                    ErrorMessageKey = errorMessage is null ? null : "Issue_PasswordMismatch",
+                },
+                cancellationToken)
             .ConfigureAwait(false);
     }
 
@@ -1103,14 +1673,21 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
             return;
         }
 
-        issues.Add(new ExtractionIssue(
+        issues.Add(CreateIssue(
             ExtractionIssueSeverity.Warning,
             ExtractionIssueKind.SuspiciousExpansion,
             string.Empty,
-            $"展開後サイズが圧縮サイズの {ratio:N0} 倍です。展開爆弾の可能性があります。"));
+            $"展開後サイズが圧縮サイズの {ratio:N0} 倍です。展開爆弾の可能性があります。",
+            "Issue_ExpansionWarning",
+            ratio));
     }
 
     private static string GetUniqueFilePath(string path)
+    {
+        return GetUniqueFilePath(path, null);
+    }
+
+    private static string GetUniqueFilePath(string path, HashSet<string>? reservedPaths)
     {
         var directory = Path.GetDirectoryName(path) ?? string.Empty;
         var fileName = Path.GetFileName(path);
@@ -1126,7 +1703,9 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         for (var number = 2; number < 10000; number++)
         {
             var candidate = Path.Combine(directory, $"{baseName} ({number}){extension}");
-            if (!LongPath.FileExists(candidate) && !LongPath.DirectoryExists(candidate))
+            if (!LongPath.FileExists(candidate)
+                && !LongPath.DirectoryExists(candidate)
+                && reservedPaths?.Contains(candidate) != true)
             {
                 return candidate;
             }
@@ -1259,7 +1838,28 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         }
     }
 
-    private static ExtractionResult Failure(string destinationPath, ExtractionIssueKind kind, string message, string entryPath)
+    private static ExtractionIssue CreateIssue(
+        ExtractionIssueSeverity severity,
+        ExtractionIssueKind kind,
+        string entryPath,
+        string fallbackMessage,
+        string messageKey,
+        params object?[] arguments)
+    {
+        return new ExtractionIssue(severity, kind, entryPath, fallbackMessage)
+        {
+            MessageKey = messageKey,
+            MessageArguments = arguments,
+        };
+    }
+
+    private static ExtractionResult Failure(
+        string destinationPath,
+        ExtractionIssueKind kind,
+        string message,
+        string entryPath,
+        string? messageKey = null,
+        params object?[] arguments)
     {
         return new ExtractionResult
         {
@@ -1270,18 +1870,23 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
             SkippedFileCount = 0,
             Issues = new[]
             {
-                new ExtractionIssue(ExtractionIssueSeverity.Error, kind, entryPath, message),
+                new ExtractionIssue(ExtractionIssueSeverity.Error, kind, entryPath, message)
+                {
+                    MessageKey = messageKey,
+                    MessageArguments = arguments,
+                },
             },
         };
     }
 
     private static ExtractionResult Cancelled(string destinationPath, List<ExtractionIssue> issues, string archivePath)
     {
-        issues.Add(new ExtractionIssue(
+        issues.Add(CreateIssue(
             ExtractionIssueSeverity.Warning,
             ExtractionIssueKind.Cancelled,
             archivePath,
-            "解凍をキャンセルしました。"));
+            "解凍をキャンセルしました。",
+            "Issue_Cancelled"));
 
         return new ExtractionResult
         {
@@ -1300,7 +1905,59 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         bool IsDirectory,
         bool IsSymbolicLink,
         long Size,
-        DateTime? LastModifiedTime);
+        DateTime? LastModifiedTime,
+        int Index,
+        string EntryKey);
+
+    private sealed record PreparedEntry(EntryWork Work, string WritePath, bool Overwrite);
+
+    /// <summary>並列ワーカー間で共有する進捗・件数・問題リスト。</summary>
+    private sealed class ExtractionCounters
+    {
+        private long _processedBytes;
+        private int _extractedFiles;
+        private int _skippedFiles;
+        private readonly object _progressLock = new();
+        private readonly object _issuesLock = new();
+
+        public long ProcessedBytes => Interlocked.Read(ref _processedBytes);
+
+        public int ExtractedFiles => Volatile.Read(ref _extractedFiles);
+
+        public int SkippedFiles
+        {
+            get => Volatile.Read(ref _skippedFiles);
+            set => Volatile.Write(ref _skippedFiles, value);
+        }
+
+        public void AddProcessed(long bytes) => Interlocked.Add(ref _processedBytes, bytes);
+
+        public long GetProcessed() => Interlocked.Read(ref _processedBytes);
+
+        public void AddExtracted() => Interlocked.Increment(ref _extractedFiles);
+
+        public void Report(IProgress<ExtractionProgress>? progress, ExtractionProgress value)
+        {
+            if (progress is null)
+            {
+                return;
+            }
+
+            // IProgress<T> の実装はスレッドセーフとは限らないため直列化する。
+            lock (_progressLock)
+            {
+                progress.Report(value);
+            }
+        }
+
+        public void AddIssue(List<ExtractionIssue> issues, ExtractionIssue issue)
+        {
+            lock (_issuesLock)
+            {
+                issues.Add(issue);
+            }
+        }
+    }
 
     private sealed class EncodingNameHolder
     {

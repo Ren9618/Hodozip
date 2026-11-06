@@ -12,13 +12,13 @@ internal static class DonationDialog
 
         panel.Children.Add(new TextBlock
         {
-            Text = "Hodozip の開発を支援していただけますか？ いただいた支援は、開発とメンテナンスに使わせていただきます。",
+            Text = Loc.Donation_Message,
             TextWrapping = TextWrapping.Wrap,
         });
 
         panel.Children.Add(new TextBlock
         {
-            Text = "ボタンを押すと、既定のブラウザで支援ページが開きます。アプリ内では決済を行いません。",
+            Text = Loc.Donation_Note,
             TextWrapping = TextWrapping.Wrap,
             Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
         });
@@ -26,11 +26,11 @@ internal static class DonationDialog
         var dialog = new ContentDialog
         {
             XamlRoot = xamlRoot,
-            Title = "開発を支援する",
+            Title = Loc.Donation_Title,
             Content = panel,
-            PrimaryButtonText = "GitHub Sponsors",
-            SecondaryButtonText = "Stripe で支援",
-            CloseButtonText = "キャンセル",
+            PrimaryButtonText = Loc.Donation_GitHub,
+            SecondaryButtonText = Loc.Donation_Stripe,
+            CloseButtonText = Loc.Donation_Cancel,
             DefaultButton = ContentDialogButton.Primary,
         };
 

@@ -16,7 +16,7 @@ internal static class FolderCollisionDialog
 
         panel.Children.Add(new TextBlock
         {
-            Text = $"解凍先のフォルダ「{conflict.FolderName}」は既に存在します。",
+            Text = Loc.FolderCollision_Exists(conflict.FolderName),
             TextWrapping = TextWrapping.Wrap,
         });
 
@@ -32,7 +32,7 @@ internal static class FolderCollisionDialog
         {
             panel.Children.Add(new TextBlock
             {
-                Text = "同じ名前のファイルが存在するため、既存フォルダへの解凍は選べません。",
+                Text = Loc.FolderCollision_FileConflict,
                 Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorCautionBrush"],
                 TextWrapping = TextWrapping.Wrap,
             });
@@ -40,18 +40,18 @@ internal static class FolderCollisionDialog
 
         var saveAsDefault = new CheckBox
         {
-            Content = "この選択を既定にする",
+            Content = Loc.FolderCollision_SaveDefault,
         };
         panel.Children.Add(saveAsDefault);
 
         var dialog = new ContentDialog
         {
             XamlRoot = xamlRoot,
-            Title = "フォルダの上書き確認",
+            Title = Loc.FolderCollision_Title,
             Content = panel,
-            PrimaryButtonText = "既存に解凍",
-            SecondaryButtonText = "新規フォルダ",
-            CloseButtonText = "キャンセル",
+            PrimaryButtonText = Loc.FolderCollision_Merge,
+            SecondaryButtonText = Loc.FolderCollision_New,
+            CloseButtonText = Loc.FolderCollision_Cancel,
             DefaultButton = ContentDialogButton.Primary,
             IsPrimaryButtonEnabled = conflict.ExistingIsDirectory,
         };

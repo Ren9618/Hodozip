@@ -16,8 +16,8 @@
                 FontWeight="SemiBold"
                 Text="Hodozip" />
             <TextBlock
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="アーカイブを、ほどく。ドラッグ＆ドロップですぐに解凍できます。" />
+                x:Name="TaglineText"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
         </StackPanel>
 
         <ScrollViewer
@@ -60,19 +60,18 @@
                                 Text="ZIP/7z" />
                         </Border>
                         <TextBlock
+                            x:Name="DropHereText"
                             HorizontalAlignment="Center"
                             FontSize="21"
-                            FontWeight="SemiBold"
-                            Text="アーカイブをここにドロップ" />
+                            FontWeight="SemiBold" />
                         <TextBlock
+                            x:Name="OrText"
                             HorizontalAlignment="Center"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Text="または" />
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         <Button
                             x:Name="SelectFileButton"
                             Padding="26,8"
                             Click="SelectFileButton_Click"
-                            Content="ファイルを選択"
                             Style="{StaticResource AccentButtonStyle}" />
                     </StackPanel>
                 </Border>
@@ -83,9 +82,9 @@
                     IsOpen="False" />
 
                 <TextBlock
+                    x:Name="SupportedFormatsText"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="ZIP / 7z / RAR / MSI / TAR / TAR.GZ / TAR.BZ2 / TAR.XZ / TAR.ZST / GZ / BZ2 / XZ / ZST に対応しています。単一フォルダのアーカイブは二重フォルダにせず、散らばったファイルはアーカイブ名のフォルダへ解凍します。"
                     TextWrapping="Wrap" />
 
                 <Border
@@ -98,8 +97,8 @@
                     Visibility="Collapsed">
                     <StackPanel Spacing="8">
                         <TextBlock
-                            Style="{StaticResource BodyStrongTextBlockStyle}"
-                            Text="前回の結果" />
+                            x:Name="PreviousResultText"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
                         <TextBlock
                             x:Name="RecentResultTitle"
                             FontSize="16"
@@ -114,8 +113,7 @@
                             Spacing="8">
                             <Button
                                 x:Name="RecentOpenFolderButton"
-                                Click="RecentOpenFolderButton_Click"
-                                Content="フォルダを開く" />
+                                Click="RecentOpenFolderButton_Click" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -133,11 +131,11 @@
                 Orientation="Horizontal"
                 Spacing="8">
                 <Button
-                    Click="AboutButton_Click"
-                    Content="バージョン情報" />
+                    x:Name="AboutButton"
+                    Click="AboutButton_Click" />
                 <Button
-                    Click="SettingsButton_Click"
-                    Content="設定" />
+                    x:Name="SettingsButton"
+                    Click="SettingsButton_Click" />
             </StackPanel>
         </Grid>
     </Grid>

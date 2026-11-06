@@ -20,6 +20,13 @@ public sealed class AppSettings
     /// <summary>同名ファイルが既に存在するときの扱い。</summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public OverwritePolicy OverwritePolicy { get; set; } = OverwritePolicy.Ask;
+
+    /// <summary>UI 言語。変更は次回起動時に反映される。</summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public AppLanguage Language { get; set; } = AppLanguage.System;
+
+    /// <summary>ZIP 並列解凍の最大並列度。0 は CPU コア数に合わせる自動。</summary>
+    public int MaxDegreeOfParallelism { get; set; }
 }
 
 public static class SettingsService

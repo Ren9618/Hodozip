@@ -45,7 +45,7 @@ internal static class LegacyContextMenuService
             return new LegacyContextMenuStatus(
                 IsSupported: false,
                 IsRegistered: false,
-                "MSIX 版では、Windows の制約により従来型コンテキストメニューを登録できません。Windows 11 の新しい右クリックメニューだけが利用できます。");
+                Loc.Legacy_PackagedUnsupported);
         }
 
         if (!File.Exists(DllPath))
@@ -53,28 +53,28 @@ internal static class LegacyContextMenuService
             return new LegacyContextMenuStatus(
                 IsSupported: false,
                 IsRegistered: false,
-                $"Hodozip.ContextMenu.dll が見つかりません: {DllPath}");
+                Loc.Legacy_DllMissing(DllPath));
         }
 
         return new LegacyContextMenuStatus(
             IsSupported: true,
             IsRegistered: IsRegistered(),
             IsRegistered()
-                ? "従来型コンテキストメニューに登録されています。"
-                : "従来型コンテキストメニューには未登録です。");
+                ? Loc.Legacy_Registered
+                : Loc.Legacy_NotRegistered);
     }
 
     public static bool Register(out string message)
     {
         if (AppInfo.IsPackaged)
         {
-            message = "MSIX 版では従来型コンテキストメニューを登録できません。";
+            message = Loc.Legacy_PackagedCannotRegister;
             return false;
         }
 
         if (!File.Exists(DllPath))
         {
-            message = $"Hodozip.ContextMenu.dll が見つかりません: {DllPath}";
+            message = Loc.Legacy_DllMissing(DllPath);
             return false;
         }
 
@@ -84,7 +84,7 @@ internal static class LegacyContextMenuService
             {
                 if (clsidKey is null)
                 {
-                    message = "CLSID のレジストリ キーを作成できませんでした。";
+                    message = Loc.Legacy_ClsidCreateFailed;
                     return false;
                 }
 
@@ -95,7 +95,7 @@ internal static class LegacyContextMenuService
             {
                 if (inprocKey is null)
                 {
-                    message = "InprocServer32 のレジストリ キーを作成できませんでした。";
+                    message = Loc.Legacy_InprocCreateFailed;
                     return false;
                 }
 
@@ -110,7 +110,7 @@ internal static class LegacyContextMenuService
                 using var handlerKey = Registry.CurrentUser.CreateSubKey(handlerKeyPath, writable: true);
                 if (handlerKey is null)
                 {
-                    message = $"コンテキストメニューの登録キーを作成できませんでした: {extension}";
+                    message = Loc.Legacy_HandlerCreateFailed(extension);
                     return false;
                 }
 
@@ -118,12 +118,12 @@ internal static class LegacyContextMenuService
             }
 
             NotifyShell();
-            message = $"従来型コンテキストメニューへ登録しました（{Extensions.Count} 拡張子）。";
+            message = Loc.Legacy_RegisteredCount(Extensions.Count);
             return true;
         }
         catch (Exception ex)
         {
-            message = $"従来型コンテキストメニューの登録に失敗しました: {ex.Message}";
+            message = Loc.Legacy_RegisterFailed(ex.Message);
             return false;
         }
     }
@@ -132,7 +132,7 @@ internal static class LegacyContextMenuService
     {
         if (AppInfo.IsPackaged)
         {
-            message = "MSIX 版では従来型コンテキストメニューを登録していません。";
+            message = Loc.Legacy_PackagedNotRegistered;
             return false;
         }
 
@@ -163,12 +163,12 @@ internal static class LegacyContextMenuService
             }
 
             NotifyShell();
-            message = "従来型コンテキストメニューから解除しました。";
+            message = Loc.Legacy_Unregistered;
             return true;
         }
         catch (Exception ex)
         {
-            message = $"従来型コンテキストメニューの解除に失敗しました: {ex.Message}";
+            message = Loc.Legacy_UnregisterFailed(ex.Message);
             return false;
         }
     }

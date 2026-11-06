@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="Common_OpenFolder" xml:space="preserve"><value>フォルダを開く</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="Common_Close" xml:space="preserve"><value>閉じる</value></data>
+  <data name="Common_Settings" xml:space="preserve"><value>設定</value></data>
+  <data name="Common_About" xml:space="preserve"><value>バージョン情報</value></data>
+  <data name="Common_Support" xml:space="preserve"><value>開発を支援する</value></data>
+
+  <data name="Main_Tagline" xml:space="preserve"><value>アーカイブを、ほどく。ドラッグ＆ドロップですぐに解凍できます。</value></data>
+  <data name="Main_DropHere" xml:space="preserve"><value>アーカイブをここにドロップ</value></data>
+  <data name="Main_Or" xml:space="preserve"><value>または</value></data>
+  <data name="Main_SelectFile" xml:space="preserve"><value>ファイルを選択</value></data>
+  <data name="Main_SupportedFormats" xml:space="preserve"><value>ZIP / 7z / RAR / MSI / TAR / TAR.GZ / TAR.BZ2 / TAR.XZ / TAR.ZST / GZ / BZ2 / XZ / ZST に対応しています。単一フォルダのアーカイブは二重フォルダにせず、散らばったファイルはアーカイブ名のフォルダへ解凍します。</value></data>
+  <data name="Main_PreviousResult" xml:space="preserve"><value>前回の結果</value></data>
+  <data name="Main_FilePickErrorTitle" xml:space="preserve"><value>ファイルを選択できません</value></data>
+  <data name="Main_DropCaption" xml:space="preserve"><value>ここにドロップして解凍</value></data>
+  <data name="Main_NotArchiveTitle" xml:space="preserve"><value>アーカイブではありません</value></data>
+  <data name="Main_DropFileMessage" xml:space="preserve"><value>ファイルをドロップしてください。</value></data>
+  <data name="Main_UnsupportedTitle" xml:space="preserve"><value>対応していない形式です</value></data>
+  <data name="Main_UnsupportedDropMessage" xml:space="preserve"><value>ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST などのアーカイブをドロップしてください。</value></data>
+  <data name="Main_MultipleTitle" xml:space="preserve"><value>複数のアーカイブがドロップされました</value></data>
+  <data name="Main_MultipleMessage" xml:space="preserve"><value>最初の 1 つを解凍します。残りは 1 つずつドロップしてください。</value></data>
+  <data name="Main_ReadErrorTitle" xml:space="preserve"><value>ファイルを読み取れません</value></data>
+  <data name="Main_FileNotFoundTitle" xml:space="preserve"><value>ファイルが見つかりません</value></data>
+  <data name="Main_UnsupportedFileMessage" xml:space="preserve"><value>ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST などのアーカイブを指定してください。</value></data>
+  <data name="Main_ExtractingTitle" xml:space="preserve"><value>解凍中です</value></data>
+  <data name="Main_ExtractingMessage" xml:space="preserve"><value>現在の解凍が終わってから、次のファイルを指定してください。</value></data>
+  <data name="Main_CompletedTitle" xml:space="preserve"><value>解凍が完了しました</value></data>
+  <data name="Main_CancelledTitle" xml:space="preserve"><value>解凍をキャンセルしました</value></data>
+  <data name="Main_FailedTitle" xml:space="preserve"><value>解凍できませんでした</value></data>
+  <data name="Main_ResultDestination" xml:space="preserve"><value>解凍先: {0}</value></data>
+  <data name="Main_ResultFiles" xml:space="preserve"><value>ファイル: {0} 件（スキップ {1} 件）</value></data>
+  <data name="Main_ResultIssues" xml:space="preserve"><value>警告 {0} 件 / エラー {1} 件</value></data>
+
+  <data name="Progress_Extracting" xml:space="preserve"><value>解凍しています…</value></data>
+  <data name="Progress_Destination" xml:space="preserve"><value>解凍先: {0}</value></data>
+  <data name="Progress_File" xml:space="preserve"><value>ファイル: {0}</value></data>
+  <data name="Progress_CompletedWarnings" xml:space="preserve"><value>完了しました（警告 {0} 件 / スキップ {1} 件）</value></data>
+  <data name="Progress_Completed" xml:space="preserve"><value>完了しました（{0} ファイル / スキップ {1} 件）</value></data>
+  <data name="Progress_Cancelled" xml:space="preserve"><value>キャンセルしました</value></data>
+  <data name="Progress_ErrorStatus" xml:space="preserve"><value>エラー: {0}</value></data>
+  <data name="Progress_ErrorTitle" xml:space="preserve"><value>エラー</value></data>
+  <data name="Progress_CancelledTitle" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="Progress_FailedMessage" xml:space="preserve"><value>解凍できませんでした。</value></data>
+  <data name="Progress_Cancelling" xml:space="preserve"><value>キャンセルしています…</value></data>
+  <data name="Progress_AutoClose" xml:space="preserve"><value>{0} 秒後に自動で閉じます。</value></data>
+  <data name="Progress_UnexpectedError" xml:space="preserve"><value>解凍中に予期しないエラーが発生しました: {0}</value></data>
+  <data name="Progress_CancelledMessage" xml:space="preserve"><value>解凍をキャンセルしました。</value></data>
+
+  <data name="Settings_Title" xml:space="preserve"><value>設定</value></data>
+  <data name="Settings_WindowTitle" xml:space="preserve"><value>{0} - 設定</value></data>
+  <data name="Settings_Subtitle" xml:space="preserve"><value>Hodozip の動作を設定します。</value></data>
+  <data name="Settings_Destination" xml:space="preserve"><value>解凍先</value></data>
+  <data name="Settings_SameAsArchive" xml:space="preserve"><value>アーカイブと同じ場所</value></data>
+  <data name="Settings_DestinationNote" xml:space="preserve"><value>アーカイブの内容に応じて、解凍先フォルダを自動判定します。</value></data>
+  <data name="Settings_FolderCollision" xml:space="preserve"><value>解凍先フォルダが既に存在するとき</value></data>
+  <data name="Settings_AskEveryTime" xml:space="preserve"><value>毎回確認する</value></data>
+  <data name="Settings_MergeExisting" xml:space="preserve"><value>既存のフォルダに解凍する</value></data>
+  <data name="Settings_AutoRenameFolder" xml:space="preserve"><value>新しいフォルダを作成する（連番）</value></data>
+  <data name="Settings_FolderCollisionNote" xml:space="preserve"><value>「毎回確認する」では、解凍開始前に既存フォルダへ統合するか、連番の新しいフォルダを作るかを選べます。</value></data>
+  <data name="Settings_Overwrite" xml:space="preserve"><value>同名ファイルが既に存在するとき</value></data>
+  <data name="Settings_AlwaysOverwrite" xml:space="preserve"><value>常に上書きする</value></data>
+  <data name="Settings_AlwaysSkip" xml:space="preserve"><value>常にスキップする</value></data>
+  <data name="Settings_RenameSave" xml:space="preserve"><value>名前を変えて保存する</value></data>
+  <data name="Settings_OverwriteNote" xml:space="preserve"><value>「毎回確認する」では、新旧のサイズと更新日時を比較する上書き確認ダイアログを表示します。</value></data>
+  <data name="Settings_Behavior" xml:space="preserve"><value>動作</value></data>
+  <data name="Settings_OpenFolderAfter" xml:space="preserve"><value>解凍完了後にフォルダを開く</value></data>
+  <data name="Settings_CloseAfter" xml:space="preserve"><value>ダブルクリック起動時の完了後、自動で閉じる</value></data>
+  <data name="Settings_CloseAfterNote" xml:space="preserve"><value>関連付けやコマンドラインから起動した場合に適用されます。エラー時は閉じません。</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>言語</value></data>
+  <data name="Settings_LanguageSystem" xml:space="preserve"><value>システム設定に従う</value></data>
+  <data name="Settings_LanguageJapanese" xml:space="preserve"><value>日本語</value></data>
+  <data name="Settings_LanguageEnglish" xml:space="preserve"><value>English</value></data>
+  <data name="Settings_LanguageNote" xml:space="preserve"><value>言語の変更は次回起動時に反映されます。</value></data>
+  <data name="Settings_Parallelism" xml:space="preserve"><value>並列解凍</value></data>
+  <data name="Settings_ParallelismAuto" xml:space="preserve"><value>自動（CPU コア数に合わせる）</value></data>
+  <data name="Settings_ParallelismSequential" xml:space="preserve"><value>1（逐次）</value></data>
+  <data name="Settings_ParallelismThreads" xml:space="preserve"><value>{0} スレッド</value></data>
+  <data name="Settings_ParallelismNote" xml:space="preserve"><value>ZIP の解凍時に複数のファイルを同時に処理します。形式によっては逐次処理になります。</value></data>
+  <data name="Settings_LegacyMenu" xml:space="preserve"><value>従来型コンテキストメニュー</value></data>
+  <data name="Settings_LegacyNote" xml:space="preserve"><value>Windows 10 形式の右クリックメニュー（Windows 11 では「その他のオプションを表示」側）に「Hodozip で解凍」を追加します。unpackaged 版のみ利用できます。</value></data>
+  <data name="Settings_LegacyToggle" xml:space="preserve"><value>従来型コンテキストメニューに登録する</value></data>
+  <data name="Settings_LegacyOn" xml:space="preserve"><value>登録</value></data>
+  <data name="Settings_LegacyOff" xml:space="preserve"><value>解除</value></data>
+  <data name="Settings_Support" xml:space="preserve"><value>開発を支援する</value></data>
+  <data name="Settings_SupportNote" xml:space="preserve"><value>Hodozip は無料・オープンソースです。支援は今後の開発とメンテナンスに使われます。</value></data>
+  <data name="Settings_ContextMenuTitle" xml:space="preserve"><value>コンテキストメニュー</value></data>
+  <data name="Settings_RegisterFailedTitle" xml:space="preserve"><value>登録できませんでした</value></data>
+  <data name="Settings_Save" xml:space="preserve"><value>保存</value></data>
+
+  <data name="About_Title" xml:space="preserve"><value>バージョン情報</value></data>
+  <data name="About_WindowTitle" xml:space="preserve"><value>{0} - バージョン情報</value></data>
+  <data name="About_Version" xml:space="preserve"><value>バージョン {0}</value></data>
+  <data name="About_Subtitle" xml:space="preserve"><value>Hodozip について</value></data>
+  <data name="About_Tagline" xml:space="preserve"><value>アーカイブを、ほどく。ドラッグ＆ドロップと自動判定で、解凍先に迷わない解凍ソフトです。</value></data>
+  <data name="About_SupportedFormats" xml:space="preserve"><value>対応形式</value></data>
+  <data name="About_SupportedFormatsNote" xml:space="preserve"><value>実際に解凍テストを通過した形式のみを対応として記載しています。</value></data>
+  <data name="About_License" xml:space="preserve"><value>ライセンス</value></data>
+  <data name="About_LicenseFull" xml:space="preserve"><value>MIT ライセンス全文</value></data>
+  <data name="About_Libraries" xml:space="preserve"><value>使用ライブラリ</value></data>
+  <data name="About_SharpCompress" xml:space="preserve"><value>MIT License（アーカイブ解凍エンジン）</value></data>
+  <data name="About_WindowsAppSdk" xml:space="preserve"><value>MIT License（WinUI 3 実行基盤）</value></data>
+  <data name="About_DotNet" xml:space="preserve"><value>MIT License（実行環境）</value></data>
+  <data name="About_Privacy" xml:space="preserve"><value>プライバシー</value></data>
+  <data name="About_PrivacyText" xml:space="preserve"><value>Hodozip はテレメトリを送信せず、アプリ本体はネットワーク通信を行いません。寄付ボタンを押したときだけ、既定のブラウザで支援ページを開きます。</value></data>
+  <data name="About_Copyright" xml:space="preserve"><value>Copyright (c) 2026 Ren9618</value></data>
+
+  <data name="Overwrite_Title" xml:space="preserve"><value>上書きの確認</value></data>
+  <data name="Overwrite_Exists" xml:space="preserve"><value>「{0}」は既に存在します。</value></data>
+  <data name="Overwrite_Item" xml:space="preserve"><value>項目</value></data>
+  <data name="Overwrite_ExistingFile" xml:space="preserve"><value>既存ファイル</value></data>
+  <data name="Overwrite_NewFile" xml:space="preserve"><value>新しいファイル</value></data>
+  <data name="Overwrite_Size" xml:space="preserve"><value>サイズ</value></data>
+  <data name="Overwrite_Modified" xml:space="preserve"><value>更新日時</value></data>
+  <data name="Overwrite_Destination" xml:space="preserve"><value>保存先</value></data>
+  <data name="Overwrite_Action" xml:space="preserve"><value>上書き</value></data>
+  <data name="Overwrite_Skip" xml:space="preserve"><value>スキップ</value></data>
+  <data name="Overwrite_Rename" xml:space="preserve"><value>名前をつけて保存</value></data>
+  <data name="Overwrite_All" xml:space="preserve"><value>すべて上書き</value></data>
+  <data name="Overwrite_SkipAll" xml:space="preserve"><value>すべてスキップ</value></data>
+
+  <data name="FolderCollision_Title" xml:space="preserve"><value>フォルダの上書き確認</value></data>
+  <data name="FolderCollision_Exists" xml:space="preserve"><value>解凍先のフォルダ「{0}」は既に存在します。</value></data>
+  <data name="FolderCollision_FileConflict" xml:space="preserve"><value>同じ名前のファイルが存在するため、既存フォルダへの解凍は選べません。</value></data>
+  <data name="FolderCollision_SaveDefault" xml:space="preserve"><value>この選択を既定にする</value></data>
+  <data name="FolderCollision_Merge" xml:space="preserve"><value>既存に解凍</value></data>
+  <data name="FolderCollision_New" xml:space="preserve"><value>新規フォルダ</value></data>
+  <data name="FolderCollision_Cancel" xml:space="preserve"><value>キャンセル</value></data>
+
+  <data name="Password_Title" xml:space="preserve"><value>パスワードの入力</value></data>
+  <data name="Password_Message" xml:space="preserve"><value>このアーカイブはパスワードで保護されています。パスワードを入力してください。</value></data>
+  <data name="Password_ErrorWithAttempt" xml:space="preserve"><value>{0}（試行 {1} / 5）</value></data>
+  <data name="Password_Attempt" xml:space="preserve"><value>試行 {0} / 5</value></data>
+  <data name="Password_Placeholder" xml:space="preserve"><value>パスワード</value></data>
+  <data name="Password_Ok" xml:space="preserve"><value>OK</value></data>
+  <data name="Password_Cancel" xml:space="preserve"><value>キャンセル</value></data>
+
+  <data name="Donation_Title" xml:space="preserve"><value>開発を支援する</value></data>
+  <data name="Donation_Message" xml:space="preserve"><value>Hodozip の開発を支援していただけますか？ いただいた支援は、開発とメンテナンスに使わせていただきます。</value></data>
+  <data name="Donation_Note" xml:space="preserve"><value>ボタンを押すと、既定のブラウザで支援ページが開きます。アプリ内では決済を行いません。</value></data>
+  <data name="Donation_GitHub" xml:space="preserve"><value>GitHub Sponsors</value></data>
+  <data name="Donation_Stripe" xml:space="preserve"><value>Stripe で支援</value></data>
+  <data name="Donation_Cancel" xml:space="preserve"><value>キャンセル</value></data>
+
+  <data name="Legacy_PackagedUnsupported" xml:space="preserve"><value>MSIX 版では、Windows の制約により従来型コンテキストメニューを登録できません。Windows 11 の新しい右クリックメニューだけが利用できます。</value></data>
+  <data name="Legacy_DllMissing" xml:space="preserve"><value>Hodozip.ContextMenu.dll が見つかりません: {0}</value></data>
+  <data name="Legacy_Registered" xml:space="preserve"><value>従来型コンテキストメニューに登録されています。</value></data>
+  <data name="Legacy_NotRegistered" xml:space="preserve"><value>従来型コンテキストメニューには未登録です。</value></data>
+  <data name="Legacy_PackagedCannotRegister" xml:space="preserve"><value>MSIX 版では従来型コンテキストメニューを登録できません。</value></data>
+  <data name="Legacy_ClsidCreateFailed" xml:space="preserve"><value>CLSID のレジストリ キーを作成できませんでした。</value></data>
+  <data name="Legacy_InprocCreateFailed" xml:space="preserve"><value>InprocServer32 のレジストリ キーを作成できませんでした。</value></data>
+  <data name="Legacy_HandlerCreateFailed" xml:space="preserve"><value>コンテキストメニューの登録キーを作成できませんでした: {0}</value></data>
+  <data name="Legacy_RegisteredCount" xml:space="preserve"><value>従来型コンテキストメニューへ登録しました（{0} 拡張子）。</value></data>
+  <data name="Legacy_RegisterFailed" xml:space="preserve"><value>従来型コンテキストメニューの登録に失敗しました: {0}</value></data>
+  <data name="Legacy_PackagedNotRegistered" xml:space="preserve"><value>MSIX 版では従来型コンテキストメニューを登録していません。</value></data>
+  <data name="Legacy_Unregistered" xml:space="preserve"><value>従来型コンテキストメニューから解除しました。</value></data>
+  <data name="Legacy_UnregisterFailed" xml:space="preserve"><value>従来型コンテキストメニューの解除に失敗しました: {0}</value></data>
+
+  <data name="Issue_ArchiveNotFound" xml:space="preserve"><value>アーカイブが見つかりません。</value></data>
+  <data name="Issue_DestinationCreateFailed" xml:space="preserve"><value>解凍先フォルダを作成できません: {0}</value></data>
+  <data name="Issue_Unexpected" xml:space="preserve"><value>解凍中にエラーが発生しました: {0}</value></data>
+  <data name="Issue_PasswordIncorrect" xml:space="preserve"><value>パスワードが正しくないため解凍できませんでした。</value></data>
+  <data name="Issue_PasswordRequired" xml:space="preserve"><value>パスワードが必要です。</value></data>
+  <data name="Issue_PasswordMismatch" xml:space="preserve"><value>パスワードが違います。</value></data>
+  <data name="Issue_OpenFailed" xml:space="preserve"><value>アーカイブを開けませんでした: {0}</value></data>
+  <data name="Issue_ReadFailed" xml:space="preserve"><value>アーカイブの内容を読み取れませんでした: {0}</value></data>
+  <data name="Issue_UnsafeName" xml:space="preserve"><value>安全でないファイル名を修正しました: {0}</value></data>
+  <data name="Issue_SymlinkSkipped" xml:space="preserve"><value>シンボリックリンクエントリは安全のためスキップしました。</value></data>
+  <data name="Issue_OutputPathFailed" xml:space="preserve"><value>出力パスを組み立てられません: {0}</value></data>
+  <data name="Issue_OutsideRoot" xml:space="preserve"><value>解凍先の外へ書き込むエントリを拒否しました。</value></data>
+  <data name="Issue_FileBlocksFolder" xml:space="preserve"><value>同名のファイルが存在するためフォルダを作成できません。</value></data>
+  <data name="Issue_CreateFolderFailed" xml:space="preserve"><value>フォルダを作成できません: {0}</value></data>
+  <data name="Issue_FolderBlocksFile" xml:space="preserve"><value>同名のフォルダが存在するためファイルを書き込めません。</value></data>
+  <data name="Issue_OutputParentMissing" xml:space="preserve"><value>出力先フォルダを特定できません。</value></data>
+  <data name="Issue_WriteFailed" xml:space="preserve"><value>ファイルを書き込めません: {0}</value></data>
+  <data name="Issue_ExpansionWarning" xml:space="preserve"><value>展開後サイズが圧縮サイズの {0:N0} 倍です。展開爆弾の可能性があります。</value></data>
+  <data name="Issue_Cancelled" xml:space="preserve"><value>解凍をキャンセルしました。</value></data>
+  <data name="Issue_AbsolutePath" xml:space="preserve"><value>絶対パスを指すエントリを拒否しました。</value></data>
+  <data name="Issue_DriveLetter" xml:space="preserve"><value>ドライブレターを含むエントリを拒否しました。</value></data>
+  <data name="Issue_ParentTraversal" xml:space="preserve"><value>解凍先の外を参照する .. を含むエントリを拒否しました。</value></data>
+  <data name="Issue_NullCharacter" xml:space="preserve"><value>ヌル文字を含むエントリを拒否しました。</value></data>
+  <data name="Issue_UniqueNameFailed" xml:space="preserve"><value>空きファイル名が見つかりません: {0}</value></data>
+  <data name="Issue_UniqueFolderFailed" xml:space="preserve"><value>空きフォルダ名が見つかりません: {0}</value></data>
+  <data name="Issue_CompressionNotSpecified" xml:space="preserve"><value>圧縮方式が指定されていません。</value></data>
+  <data name="Issue_UnsafeNameFixed" xml:space="preserve"><value>安全でないファイル名を修正しました: {0}</value></data>
+  <data name="Issue_MsiEmpty" xml:space="preserve"><value>MSI にファイルが含まれていません。</value></data>
+  <data name="Issue_MsiFailed" xml:space="preserve"><value>MSI を解凍できませんでした: {0}</value></data>
+  <data name="Issue_MsiCabinetFailed" xml:space="preserve"><value>MSI のキャビネットを展開できませんでした。</value></data>
+  <data name="Issue_MsiFileReadFailed" xml:space="preserve"><value>MSI のファイルを読み取れませんでした: {0}</value></data>
+  <data name="Issue_MsiFileMissing" xml:space="preserve"><value>MSI 内にファイルが見つかりません（外部ソースの可能性があります）。</value></data>
+  <data name="Issue_MsiInvalidPath" xml:space="preserve"><value>MSI のファイル パスが不正です。</value></data>
+  <data name="Issue_MsiEmbeddedCabinetMissing" xml:space="preserve"><value>埋め込みキャビネットが見つかりません: {0}</value></data>
+  <data name="Issue_MsiEmbeddedCabinetReadFailed" xml:space="preserve"><value>埋め込みキャビネットを読み取れません: {0}</value></data>
+  <data name="Issue_MsiEmbeddedCabinetExpandFailed" xml:space="preserve"><value>埋め込みキャビネットを展開できません: {0}</value></data>
+  <data name="Issue_MsiExternalCabinetInvalid" xml:space="preserve"><value>外部キャビネットのパスが不正です: {0}</value></data>
+  <data name="Issue_MsiExternalCabinetMissing" xml:space="preserve"><value>外部キャビネットが見つかりません: {0}</value></data>
+  <data name="Issue_MsiCabinetExpandFailed" xml:space="preserve"><value>キャビネットを展開できません: {0}</value></data>
+  <data name="Issue_MsiCabinetEnumFailed" xml:space="preserve"><value>キャビネットの内容を列挙できません: {0}</value></data>
+  <data name="Issue_MsiCabinetEmpty" xml:space="preserve"><value>キャビネットからファイルを展開できませんでした。</value></data>
+  <data name="Issue_MsiDirectoryTooDeep" xml:space="preserve"><value>MSI の Directory テーブルが深すぎます。</value></data>
+  <data name="Issue_MsiDirectoryCycle" xml:space="preserve"><value>MSI の Directory テーブルに循環参照があります: {0}</value></data>
+  <data name="Issue_MsiExpandStartFailed" xml:space="preserve"><value>expand.exe を起動できませんでした。</value></data>
+  <data name="Issue_MsiExpandFailed" xml:space="preserve"><value>expand.exe が終了コード {0} で失敗しました。</value></data>
+  <data name="Issue_MsiExpandFailedDetail" xml:space="preserve"><value>expand.exe が終了コード {0} で失敗しました: {1}</value></data>
+  <data name="Issue_Generic" xml:space="preserve"><value>問題が発生しました。</value></data>
+</root>

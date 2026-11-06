@@ -19,10 +19,11 @@ internal static class PathSanitizer
     /// ZIP 内のパスを Windows の相対パスへ正規化する。
     /// 絶対パスや .. を含むパスはセキュリティ上拒否する。
     /// </summary>
-    public static bool TryNormalize(string? entryPath, out string normalized, out string? error)
+    public static bool TryNormalize(string? entryPath, out string normalized, out string? error, out string? errorKey)
     {
         normalized = string.Empty;
         error = null;
+        errorKey = null;
 
         if (string.IsNullOrWhiteSpace(entryPath))
         {
@@ -33,12 +34,14 @@ internal static class PathSanitizer
         if (value.StartsWith('/') || value.StartsWith('\\'))
         {
             error = "絶対パスを指すエントリを拒否しました。";
+            errorKey = "Issue_AbsolutePath";
             return false;
         }
 
         if (value.Length >= 2 && char.IsLetter(value[0]) && value[1] == ':')
         {
             error = "ドライブレターを含むエントリを拒否しました。";
+            errorKey = "Issue_DriveLetter";
             return false;
         }
 
@@ -55,12 +58,14 @@ internal static class PathSanitizer
             if (rawSegment == "..")
             {
                 error = "解凍先の外を参照する .. を含むエントリを拒否しました。";
+                errorKey = "Issue_ParentTraversal";
                 return false;
             }
 
             if (rawSegment.Contains('\0'))
             {
                 error = "ヌル文字を含むエントリを拒否しました。";
+                errorKey = "Issue_NullCharacter";
                 return false;
             }
 

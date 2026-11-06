@@ -73,7 +73,6 @@
                 x:Name="StatusText"
                 Height="20"
                 FontWeight="SemiBold"
-                Text="解凍しています…"
                 TextTrimming="CharacterEllipsis"
                 TextWrapping="NoWrap" />
             <TextBlock
@@ -92,16 +91,13 @@
             <Button
                 x:Name="OpenFolderButton"
                 Click="OpenFolderButton_Click"
-                Content="フォルダを開く"
                 Visibility="Collapsed" />
             <Button
                 x:Name="CancelButton"
-                Click="CancelButton_Click"
-                Content="キャンセル" />
+                Click="CancelButton_Click" />
             <Button
                 x:Name="CloseButton"
                 Click="CloseButton_Click"
-                Content="閉じる"
                 Style="{StaticResource AccentButtonStyle}"
                 Visibility="Collapsed" />
         </StackPanel>

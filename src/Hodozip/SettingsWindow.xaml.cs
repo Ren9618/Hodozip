@@ -14,8 +14,10 @@ public sealed partial class SettingsWindow : Window
     {
         InitializeComponent();
 
-        Title = $"{AppInfo.ProductName} - 設定";
-        WindowHelpers.Configure(this, 700, 860);
+        Title = Loc.Settings_WindowTitle(AppInfo.ProductName);
+        WindowHelpers.Configure(this, 700, 900);
+
+        ApplyLocalization();
 
         var settings = SettingsService.Load();
         OpenFolderToggle.IsOn = settings.OpenFolderAfterExtraction;
@@ -23,6 +25,8 @@ public sealed partial class SettingsWindow : Window
         DestinationRuleComboBox.SelectedIndex = 0;
         SelectByTag(FolderCollisionComboBox, settings.FolderCollisionPolicy.ToString());
         SelectByTag(OverwritePolicyComboBox, settings.OverwritePolicy.ToString());
+        SelectByTag(LanguageComboBox, settings.Language.ToString());
+        SelectParallelism(settings.MaxDegreeOfParallelism);
 
         RefreshLegacyContextMenuStatus();
     }
@@ -39,6 +43,12 @@ public sealed partial class SettingsWindow : Window
         settings.OverwritePolicy = ParsePolicy(
             SelectedTag(OverwritePolicyComboBox),
             OverwritePolicy.Ask);
+        settings.Language = Enum.TryParse<AppLanguage>(SelectedTag(LanguageComboBox), ignoreCase: true, out var language)
+            ? language
+            : AppLanguage.System;
+        settings.MaxDegreeOfParallelism = int.TryParse(SelectedTag(ParallelismComboBox), out var parallelism)
+            ? Math.Max(0, parallelism)
+            : 0;
         SettingsService.Save(settings);
         Close();
     }
@@ -69,7 +79,7 @@ public sealed partial class SettingsWindow : Window
 
         RefreshLegacyContextMenuStatus();
         SettingsInfoBar.Severity = succeeded ? InfoBarSeverity.Success : InfoBarSeverity.Error;
-        SettingsInfoBar.Title = succeeded ? "コンテキストメニュー" : "登録できませんでした";
+        SettingsInfoBar.Title = succeeded ? Loc.Settings_ContextMenuTitle : Loc.Settings_RegisterFailedTitle;
         SettingsInfoBar.Message = message;
         SettingsInfoBar.IsOpen = true;
     }
@@ -84,6 +94,104 @@ public sealed partial class SettingsWindow : Window
         _suppressLegacyToggle = false;
 
         LegacyContextMenuStatusText.Text = status.Message;
+    }
+
+    private void ApplyLocalization()
+    {
+        SettingsTitleText.Text = Loc.Settings_Title;
+        SettingsSubtitleText.Text = Loc.Settings_Subtitle;
+        DestinationSectionText.Text = Loc.Settings_Destination;
+        DestinationSameAsArchiveItem.Content = Loc.Settings_SameAsArchive;
+        DestinationNoteText.Text = Loc.Settings_DestinationNote;
+        FolderCollisionSectionText.Text = Loc.Settings_FolderCollision;
+        FolderCollisionAskItem.Content = Loc.Settings_AskEveryTime;
+        FolderCollisionMergeItem.Content = Loc.Settings_MergeExisting;
+        FolderCollisionAutoRenameItem.Content = Loc.Settings_AutoRenameFolder;
+        FolderCollisionNoteText.Text = Loc.Settings_FolderCollisionNote;
+        OverwriteSectionText.Text = Loc.Settings_Overwrite;
+        OverwriteAskItem.Content = Loc.Settings_AskEveryTime;
+        OverwriteOverwriteItem.Content = Loc.Settings_AlwaysOverwrite;
+        OverwriteSkipItem.Content = Loc.Settings_AlwaysSkip;
+        OverwriteAutoRenameItem.Content = Loc.Settings_RenameSave;
+        OverwriteNoteText.Text = Loc.Settings_OverwriteNote;
+
+        BehaviorSectionText.Text = Loc.Settings_Behavior;
+        OpenFolderToggle.Header = Loc.Settings_OpenFolderAfter;
+        OpenFolderToggle.OnContent = Loc.Settings_LegacyOn;
+        OpenFolderToggle.OffContent = Loc.Settings_LegacyOff;
+        CloseAfterExtractToggle.Header = Loc.Settings_CloseAfter;
+        CloseAfterExtractToggle.OnContent = Loc.Settings_LegacyOn;
+        CloseAfterExtractToggle.OffContent = Loc.Settings_LegacyOff;
+        CloseAfterNoteText.Text = Loc.Settings_CloseAfterNote;
+
+        LanguageSectionText.Text = Loc.Settings_Language;
+        SetItemContent(LanguageComboBox, Loc.Settings_LanguageSystem, Loc.Settings_LanguageJapanese, Loc.Settings_LanguageEnglish);
+        LanguageNoteText.Text = Loc.Settings_LanguageNote;
+
+        ParallelismSectionText.Text = Loc.Settings_Parallelism;
+        PopulateParallelismItems();
+        ParallelismNoteText.Text = Loc.Settings_ParallelismNote;
+
+        LegacySectionText.Text = Loc.Settings_LegacyMenu;
+        LegacyNoteText.Text = Loc.Settings_LegacyNote;
+        LegacyContextMenuToggle.Header = Loc.Settings_LegacyToggle;
+        LegacyContextMenuToggle.OnContent = Loc.Settings_LegacyOn;
+        LegacyContextMenuToggle.OffContent = Loc.Settings_LegacyOff;
+
+        SupportSectionText.Text = Loc.Settings_Support;
+        SupportNoteText.Text = Loc.Settings_SupportNote;
+        DonateButton.Content = Loc.Common_Support;
+        CancelButton.Content = Loc.Common_Cancel;
+        SaveButton.Content = Loc.Settings_Save;
+    }
+
+    private static void SetItemContent(ComboBox comboBox, params string[] contents)
+    {
+        for (var index = 0; index < comboBox.Items.Count && index < contents.Length; index++)
+        {
+            if (comboBox.Items[index] is ComboBoxItem item)
+            {
+                item.Content = contents[index];
+            }
+        }
+    }
+
+    private void PopulateParallelismItems()
+    {
+        var selected = SelectedTag(ParallelismComboBox);
+        ParallelismComboBox.Items.Clear();
+
+        AddParallelismItem("0", Loc.Settings_ParallelismAuto);
+        AddParallelismItem("1", Loc.Settings_ParallelismSequential);
+        foreach (var value in new[] { 2, 4, 8, 16, 32 })
+        {
+            AddParallelismItem(value.ToString(), Loc.Settings_ParallelismThreads(value));
+        }
+
+        SelectByTag(ParallelismComboBox, selected);
+    }
+
+    private void AddParallelismItem(string tag, string content)
+    {
+        ParallelismComboBox.Items.Add(new ComboBoxItem
+        {
+            Tag = tag,
+            Content = content,
+        });
+    }
+
+    private void SelectParallelism(int value)
+    {
+        var tag = Math.Max(0, value).ToString();
+        if (ParallelismComboBox.Items.OfType<ComboBoxItem>().Any(x => string.Equals(x.Tag as string, tag, StringComparison.Ordinal)))
+        {
+            SelectByTag(ParallelismComboBox, tag);
+            return;
+        }
+
+        // 手動で編集された設定値も失わないよう、候補として追加する。
+        AddParallelismItem(tag, Loc.Settings_ParallelismThreads(Math.Max(0, value)));
+        SelectByTag(ParallelismComboBox, tag);
     }
 
     private static void SelectByTag(ComboBox comboBox, string tag)

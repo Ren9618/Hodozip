@@ -2,10 +2,12 @@
 
 **アーカイブを、ほどく。**
 
+[English README](README.en.md)
+
 Hodozip（ホドジップ）は、往年の解凍ソフトの使い勝手を現代の実装で引き継ぐ、Windows 向けの無料・オープンソース解凍ソフトです。ZIP だけでなく 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST 系のアーカイブをドラッグ＆ドロップするだけで、解凍先フォルダを自動判定して展開します。
 
 - 製品名: Hodozip（由来: ほどく + ZIP）
-- バージョン: 0.3.1
+- バージョン: 0.4.0
 - ライセンス: MIT
 - 対応 OS: Windows 11（主対象）/ Windows 10 バージョン 19041 以降
 - 実装: C# / .NET 8 / WinUI 3（Windows App SDK）
@@ -15,13 +17,22 @@ Hodozip（ホドジップ）は、往年の解凍ソフトの使い勝手を現�
 
 [GitHub Releases](https://github.com/Ren9618/Hodozip/releases) から最新版をダウンロードできます。
 
-- 最新版: [Hodozip v0.3.1](https://github.com/Ren9618/Hodozip/releases/tag/v0.3.1)
-- `Hodozip-0.3.1-win-x64.zip`（unpackaged 版）: 解凍して `Hodozip.exe` を起動するだけで使えます。インストールは不要です。
-- `Hodozip-0.3.1.msix`（MSIX 版・実験的）: 対応アーカイブの関連付け候補と Windows 11 の右クリックメニューが登録されます。自己署名証明書を使うため、インストール前に証明書の登録が必要です。手順は [MSIX 版のインストール](#msix-版のインストール上級者向け実験的) を参照してください。
+- 最新版: [Hodozip v0.4.0](https://github.com/Ren9618/Hodozip/releases/tag/v0.4.0)
+- `Hodozip-0.4.0-win-x64.zip`（unpackaged 版）: 解凍して `Hodozip.exe` を起動するだけで使えます。インストールは不要です。
+- `Hodozip-0.4.0.msix`（MSIX 版・実験的）: 対応アーカイブの関連付け候補と Windows 11 の右クリックメニューが登録されます。自己署名証明書を使うため、インストール前に証明書の登録が必要です。手順は [MSIX 版のインストール](#msix-版のインストール上級者向け実験的) を参照してください。
 
 unpackaged 版の注意: 本バージョンは未署名のため、Windows SmartScreen の警告が表示される場合があります。「詳細情報」→「実行」で起動できます。
 
 unpackaged 版にも `Hodozip.ContextMenu.dll` が同梱されています。設定画面のトグル、またはコマンドラインから従来型コンテキストメニューを登録できます。
+
+## v0.4.0 の変更
+
+- 日本語 / English の多言語 UI に対応（設定 →「言語」）。既定は「システム設定に従う」で、変更は次回起動時に反映されます。
+- 従来型コンテキストメニューの項目名を OS の表示言語に合わせて切り替えるようにしました（日本語: 「Hodozip で解凍」/「Hodozip でフォルダに解凍」、英語: "Extract with Hodozip" / "Extract to folder with Hodozip"）。
+- ZIP のエントリ単位の並列解凍を追加しました。並列度は CPU コア数を上限に、設定画面から自動 / 1 / 2 / 4 / 8 / 16 / 32 スレッドを選べます。
+- 大容量 ZIP（1 GiB の展開データ）で逐次 5,336 ms → 並列 806 ms（約 6.6 倍）、10,000 ファイル ZIP で 28,577 ms → 8,210 ms（約 3.5 倍）を計測しました。詳細は [性能計測](#性能計測phase-4) を参照してください。
+- cozip（Rust + WebGPU）を GPU 解凍エンジン候補として評価しましたが、現行の cozip は解凍が CPU 専用で、ヘルパー起動を含む実測でも採用ゲートの 2 倍に届かなかったため、GPU エンジンは採用していません。評価結果は [GPU 解凍の評価](#gpu-解凍の評価phase-4) に残しています。
+- `README.en.md` と英語版 Web ページを追加しました。
 
 ## v0.3.1 の変更
 
@@ -64,7 +75,61 @@ unpackaged 版にも `Hodozip.ContextMenu.dll` が同梱されています。設
 - 拡張子が未知でも、SharpCompress がアーカイブとして開ける場合は処理を試みます。ただし「対応」と宣言するのは上記の検証済み形式だけです。
 - 暗号化アーカイブは ZIP（ZipCrypto / AES）と 7z をテスト済みです。RAR などの暗号化は対応を宣言していません。
 
+## 性能計測（Phase 4）
+
+計測用ハーネスは `tests/perf` にあります。フィクスチャは以下を生成し、同じ条件で逐次 / 並列を測ります。
+
+1. 大容量・高圧縮 ZIP（16 × 64 MiB = 1 GiB の展開データ）
+2. 小ファイル多数 ZIP（10,000 ファイル）
+3. 無圧縮（store）中心 ZIP（128 × 2 MiB）
+4. 7z（80 ファイル）
+
+```powershell
+# Phase 3 相当（逐次）
+dotnet run --project tests\perf\Hodozip.Perf.csproj -c Release -- --mode sequential --iterations 3 --warmup 1 --label phase3-v031-sequential
+
+# Phase 4（並列）
+dotnet run --project tests\perf\Hodozip.Perf.csproj -c Release -- --mode parallel --iterations 3 --warmup 1 --label phase4-parallel
+
+# 比較レポート
+dotnet run --project tests\perf\Hodozip.Perf.csproj -c Release -- --compare artifacts\perf\reports\phase3-v031-sequential.json artifacts\perf\reports\phase4-parallel.json --out tests\perf\reports\comparison.md
+```
+
+計測結果は `tests/perf/reports/` に残しています。実測値はマシンやディスク キャッシュの状態で変動します。
+
+最終計測（16 論理プロセッサ、各 3 回の中央値）:
+
+| フィクスチャ | 逐次 (ms) | 並列 (ms) | 速度比 |
+| --- | ---: | ---: | ---: |
+| 大容量・高圧縮 ZIP（1 GiB 展開、16 entries） | 5,336 | 806 | 6.62x |
+| 小ファイル多数 ZIP（10,000 entries） | 28,577 | 8,210 | 3.48x |
+| store 中心 ZIP（256 MiB、128 entries） | 944 | 184 | 5.14x |
+| 7z（80 files、逐次のみ） | 3,104 | 3,111 | 1.00x |
+
+7z / RAR / TAR / MSI と暗号化 ZIP は並列化の対象外で、逐次処理のままです。7z の差分は実行ごとのばらつきです。
+
+## GPU 解凍の評価（Phase 4）
+
+[bea4dev/cozip](https://github.com/bea4dev/cozip)（MIT License）を GPU 解凍エンジン候補として評価しました。評価用ヘルパーのソースは `tools/cozip-spike/` にあり、配布物には含めていません。
+
+結論は **不採用** です。理由:
+
+- 2026-11 時点の cozip は、解凍処理が CPU 専用です（上流 README に「decompression is CPU-only now」と明記されています）。GPU による解凍高速化という評価目的を満たしません。
+- CPU 並列の ZIP 解凍としては高速で、1 GiB フィクスチャのヘルパー内計測は中央値 256 ms（SharpCompress 並列は 806 ms）でした。ただしヘルパー プロセスの起動と GPU 初期化を含む wall-clock の中央値は 1,235 ms（0.65 倍）で、2 倍の採用ゲートには届きませんでした。GPU を初期化しない CPU のみの実行では 320 ms（2.52 倍）ですが、これは GPU 加速ではありません。
+- store 中心 ZIP は 0.58x（CPU のみ）と退行し、フィクスチャ全体で安定した改善にはなりませんでした。
+- 通常 ZIP と Shift_JIS ファイル名の出力は SharpCompress と一致することを確認しましたが、GPU 解凍ではない別エンジンを追加で同梱する保守コストに見合わないと判断しました。
+
+詳細は [`tests/perf/reports/gpu-cozip-evaluation.md`](tests/perf/reports/gpu-cozip-evaluation.md) を参照してください。暗号化 ZIP は cozip に渡さず SharpCompress へフォールバックする設計も検討しましたが、不採用のため実装していません。
+
 ## 特徴
+
+### 日本語 / English UI
+
+設定画面の「言語」で `システム設定に従う`（既定）/ `日本語` / `English` を選べます。言語の変更は次回起動時に反映されます。右クリックメニューの項目名は、アプリ設定ではなく OS の表示言語に従って切り替わります。
+
+### 並列解凍（ZIP）
+
+ZIP はエントリ単位で並列に解凍します。並列度は CPU コア数を上限に、設定画面の「並列解凍」から変更できます（既定: 自動）。上書き確認・フォルダ衝突確認・パスワード入力は、並列ワーカーを起動する前にまとめて済ませるため、ダイアログが同時に複数出ることはありません。7z / RAR / TAR など、エントリごとに独立したストリームを開けない形式は従来どおり逐次処理します。
 
 ### ダブルクリックですぐ解凍
 
@@ -132,6 +197,8 @@ MSIX 版をインストールすると、対応拡張子の右クリックメニ
 
 - **Hodozip で解凍**: `Auto` モードで解凍します。単一フォルダ型のアーカイブは二重フォルダになりません。
 - **Hodozip でフォルダに解凍**: `ForceArchiveFolder` モードで、必ずアーカイブ名のフォルダを作って解凍します。
+
+OS の表示言語が英語の場合、項目名は "Extract with Hodozip" / "Extract to folder with Hodozip" になります。
 
 対象拡張子は `.zip` `.7z` `.rar` `.msi` `.tar` `.gz` `.tgz` `.bz2` `.tbz2` `.xz` `.txz` `.zst` `.tzst` です。Windows 11 の新しい右クリックメニューに項目が表示されない場合は、「その他のオプションを表示」を選ぶか、`Shift` + `F10` で従来のメニューを開いてください。
 
@@ -236,7 +303,7 @@ MSIX 版は実験的配布です。署名にはローカルテスト用の自己
 
 ### 1. 証明書をインストールする
 
-リポジトリの [`packaging/certs/Hodozip-Test.cer`](https://github.com/Ren9618/Hodozip/raw/v0.3.1/packaging/certs/Hodozip-Test.cer) をダウンロードします。これは公開証明書のみで、秘密鍵は含まれていません。
+リポジトリの [`packaging/certs/Hodozip-Test.cer`](https://github.com/Ren9618/Hodozip/raw/v0.4.0/packaging/certs/Hodozip-Test.cer) をダウンロードします。これは公開証明書のみで、秘密鍵は含まれていません。
 
 管理者権限の PowerShell で、ダウンロードした CER を `LocalMachine\TrustedPeople`（信頼されたユーザー）に登録します。
 
@@ -250,13 +317,13 @@ certutil -addstore -f TrustedPeople .\Hodozip-Test.cer
 
 ### 2. MSIX をインストールする
 
-`Hodozip-0.3.1.msix` をダブルクリックするか、PowerShell で実行します。
+`Hodozip-0.4.0.msix` をダブルクリックするか、PowerShell で実行します。
 
 ```powershell
-Add-AppxPackage -Path .\Hodozip-0.3.1.msix
+Add-AppxPackage -Path .\Hodozip-0.4.0.msix
 ```
 
-インストール後、スタートメニューに「Hodozip」が表示されます。パッケージ ID は `Ren9618.Hodozip_0.3.1.0_x64__ex19z75j0wj0g`、アプリケーション ID は `Ren9618.Hodozip_ex19z75j0wj0g!Hodozip` です。
+インストール後、スタートメニューに「Hodozip」が表示されます。パッケージ ID は `Ren9618.Hodozip_0.4.0.0_x64__ex19z75j0wj0g`、アプリケーション ID は `Ren9618.Hodozip_ex19z75j0wj0g!Hodozip` です。
 
 ### 3. 対応拡張子の既定のアプリに設定する
 
@@ -281,7 +348,7 @@ MSIX 版では従来型 `IContextMenu` は登録できません。詳細は [MSI
 「設定」→「アプリ」→「インストールされているアプリ」から Hodozip をアンインストールします。PowerShell の場合は以下を実行します。
 
 ```powershell
-Remove-AppxPackage Ren9618.Hodozip_0.3.1.0_x64__ex19z75j0wj0g
+Remove-AppxPackage Ren9618.Hodozip_0.4.0.0_x64__ex19z75j0wj0g
 ```
 
 証明書も不要になった場合は、管理者権限の PowerShell で以下を実行します。
@@ -322,7 +389,7 @@ Windows App SDK は self-contained で出力されるため、unpackaged 版の�
 pwsh -File packaging\build-msix.ps1
 New-Item -ItemType Directory -Path artifacts\release\Hodozip -Force | Out-Null
 Copy-Item -Path artifacts\msix\publish\* -Destination artifacts\release\Hodozip -Recurse -Force
-Compress-Archive -Path artifacts\release\Hodozip -DestinationPath Hodozip-0.3.1-win-x64.zip
+Compress-Archive -Path artifacts\release\Hodozip -DestinationPath Hodozip-0.4.0-win-x64.zip
 ```
 
 MSIX を作らずに zip 版だけ作る場合は、publish 後に C++ プロジェクトをビルドして DLL をコピーします。
@@ -331,7 +398,7 @@ MSIX を作らずに zip 版だけ作る場合は、publish 後に C++ プロジ
 dotnet publish src\Hodozip\Hodozip.csproj -c Release -p:Platform=x64 -r win-x64 --self-contained true -o publish\Hodozip
 msbuild src\Hodozip.ContextMenu\Hodozip.ContextMenu.vcxproj /p:Configuration=Release /p:Platform=x64
 Copy-Item src\Hodozip.ContextMenu\bin\x64\Release\Hodozip.ContextMenu.dll publish\Hodozip\
-Compress-Archive -Path publish\Hodozip -DestinationPath Hodozip-0.3.1-win-x64.zip
+Compress-Archive -Path publish\Hodozip -DestinationPath Hodozip-0.4.0-win-x64.zip
 ```
 
 zip のトップレベルには `Hodozip` フォルダが 1 つだけ入ります。
@@ -348,7 +415,7 @@ pwsh -File packaging\build-msix.ps1
 2. `src\Hodozip.ContextMenu` の COM DLL を x64 Release でビルド
 3. publish 出力と COM DLL、生成したアセット画像を `artifacts\msix\staging` にステージング
 4. `packaging\Package.appxmanifest.template` から `AppxManifest.xml` を生成
-5. `makeappx.exe` で `artifacts\msix\Hodozip-0.3.1.msix` を作成
+5. `makeappx.exe` で `artifacts\msix\Hodozip-0.4.0.msix` を作成
 6. 自己署名証明書で `signtool.exe` 署名
 
 証明書は `artifacts\msix\certs\Hodozip-Test.pfx` に作成されます。PFX は秘密鍵を含むため、リポジトリや Release には含めません。
@@ -363,7 +430,7 @@ pwsh -File packaging\build-msix.ps1 -InstallTrustedCertificate
 
 ### バージョン管理
 
-バージョンは `Directory.Build.props` の `HodozipVersion` で管理します。アプリの `AssemblyVersion` / `FileVersion` と MSIX の `PackageVersion`（`0.3.1` → `0.3.1.0`）はこの値から生成されます。
+バージョンは `Directory.Build.props` の `HodozipVersion` で管理します。アプリの `AssemblyVersion` / `FileVersion` と MSIX の `PackageVersion`（`0.4.0` → `0.4.0.0`）はこの値から生成されます。
 
 ## テスト
 
@@ -373,7 +440,7 @@ pwsh -File packaging\build-msix.ps1 -InstallTrustedCertificate
 dotnet test tests\Hodozip.Core.Tests\Hodozip.Core.Tests.csproj -c Release
 ```
 
-69 件のテストで以下を検証します。
+76 件のテストで以下を検証します。
 
 - 解凍先自動判定（単一ファイル / 単一フォルダ / バラバラ）
 - `ForceArchiveFolder` の強制フォルダ作成（単一ファイル / 単一フォルダ / バラバラ）
@@ -387,6 +454,8 @@ dotnet test tests\Hodozip.Core.Tests\Hodozip.Core.Tests.csproj -c Release
 - Zip Slip の拒否
 - 予約デバイス名、シンボリックリンク、展開爆弾警告、ロングパス
 - 進捗の全体バイト数・ファイル別バイト数レポート
+- 並列解凍と逐次解凍の出力一致（通常 ZIP / Shift_JIS / Merge / 上書き確認の事前解決）
+- 並列時の Zip Slip 拒否、キャンセル時の一時ファイル削除
 
 パスワード付きテストフィクスチャ `tests/Hodozip.Core.Tests/Fixtures/password-*.zip` と `Fixtures/formats/password.7z` のパスワードは `secret` です。ZIP フィクスチャは 7-Zip で生成しています。
 
@@ -439,14 +508,14 @@ MSIX の検証は、ビルドしたパッケージを実際にインストール
 certutil -addstore -f TrustedPeople artifacts\msix\certs\Hodozip-Test.cer
 
 # インストール
-Add-AppxPackage -Path artifacts\msix\Hodozip-0.3.1.msix
+Add-AppxPackage -Path artifacts\msix\Hodozip-0.4.0.msix
 
 # スタートメニューと関連付け候補の確認
 Get-StartApps | Where-Object { $_.Name -eq 'Hodozip' }
 Get-ItemProperty 'HKCU:\Software\Classes\.zip\OpenWithProgids'
 
 # アンインストール
-Remove-AppxPackage Ren9618.Hodozip_0.3.1.0_x64__ex19z75j0wj0g
+Remove-AppxPackage Ren9618.Hodozip_0.4.0.0_x64__ex19z75j0wj0g
 ```
 
 インストール後の自動 E2E も用意しています。設定ファイルを共有するため、2 つのスクリプトは同時に実行しないでください。
@@ -488,6 +557,9 @@ packaging/
 tests/
   Hodozip.Core.Tests/      xUnit 単体テストとフィクスチャ
   e2e/                     E2E スクリプト
+  perf/                    性能計測ハーネスとレポート
+tools/
+  cozip-spike/             GPU 評価用の cozip ヘルパー（配布物には含めない）
 ```
 
 Core は `IArchiveExtractor` インターフェース越しに SharpCompress を利用します。形式判定は拡張子を優先し、判別できない場合は SharpCompress にアーカイブとして開けるかを問い合わせます。TAR.GZ / TAR.BZ2 / TAR.XZ / TAR.ZST は、単一ストリームを一時 TAR へ展開してから TAR として処理します。MSI は `msi.dll` で `File` / `Media` / `Component` / `Directory` テーブルを読み、埋め込みキャビネットを `expand.exe` で展開してから、他の形式と同じ解凍パイプラインへ流します。
@@ -510,7 +582,7 @@ Hodozip は無料・オープンソースです。支援は今後の開発とメ
 - GitHub Sponsors: <https://github.com/sponsors/Ren9618>
 - Stripe: <https://buy.stripe.com/5kQ9AU8Xva8T7tAbnj67S00>
 
-## 既知の制限（Phase 3）
+## 既知の制限（v0.4.0）
 
 - MSIX 版では、Windows のパッケージ アプリ向けシェル拡張の制約により従来型コンテキストメニューを登録できません。MSIX 版は Windows 11 の新しい右クリックメニューのみになります。理由は [MSIX 版で従来型メニューが使えない理由](#msix-版で従来型メニューが使えない理由) を参照してください。
 - Windows 11 の新しい右クリックメニューは Windows 10 では表示されません。Windows 10 では unpackaged 版の従来型メニューを利用してください。
@@ -524,7 +596,8 @@ Hodozip は無料・オープンソースです。支援は今後の開発とメ
 - 従来型メニューの登録は `Hodozip.ContextMenu.dll` の絶対パスを保存します。unpackaged 版のフォルダを移動した場合は再登録が必要です。
 - Microsoft Store への提出は行っていません。Store 提出時は、Store 用のパッケージ ID と信頼されたコード署名証明書に差し替える必要があります。また、`runFullTrust` の justification、プライバシーポリシー、年齢レーティングなどの Store 申請情報が必要です。
 - 圧縮、アーカイブ内容のプレビュー、自動アップデートは未実装です。
-- UI は日本語のみです。
+- UI は日本語 / English に対応しています。言語の変更は次回起動時に反映されます。従来型コンテキストメニューの項目名はアプリ設定ではなく OS の表示言語に従います。
+- 並列解凍は通常の ZIP のみが対象です。暗号化 ZIP と 7z / RAR / TAR / MSI などは逐次処理のため、速度向上は形式によって異なります。
 - 自動番号付けは `名前 (2)` 形式で、10000 番まで試行します。
 - 展開爆弾の警告は解凍を中止せず、警告として結果に表示します。
 

@@ -1,0 +1,91 @@
+{
+  "Label": "phase3-v031-sequential",
+  "Timestamp": "2026-11-07T06:46:23.1042335+09:00",
+  "Mode": "sequential",
+  "RequestedParallelism": 0,
+  "EffectiveProcessorCount": 16,
+  "Machine": "MYDESKTOPPC",
+  "Os": "Microsoft Windows NT 10.0.26300.0",
+  "Fixtures": [
+    {
+      "Name": "large-compressible",
+      "Description": "16 x 64 MiB highly compressible entries",
+      "ArchiveBytes": 2608806,
+      "EntryCount": 16,
+      "Mode": "sequential",
+      "MaxDegreeOfParallelism": 1,
+      "Runs": 3,
+      "ElapsedMilliseconds": [
+        5352.6394,
+        5243.6542,
+        5336.2552
+      ],
+      "MedianMilliseconds": 5336.2552,
+      "MegabytesPerSecond": 191.894870395254,
+      "ExtractedBytes": 1073741824,
+      "ExtractedFileCount": 16,
+      "SkippedFileCount": 0,
+      "Success": true
+    },
+    {
+      "Name": "many-small-files",
+      "Description": "10,000 small text files",
+      "ArchiveBytes": 1558903,
+      "EntryCount": 10000,
+      "Mode": "sequential",
+      "MaxDegreeOfParallelism": 1,
+      "Runs": 3,
+      "ElapsedMilliseconds": [
+        27502.629,
+        29116.2269,
+        28577.2599
+      ],
+      "MedianMilliseconds": 28577.2599,
+      "MegabytesPerSecond": 0.17496429040070421,
+      "ExtractedBytes": 5248890,
+      "ExtractedFileCount": 10000,
+      "SkippedFileCount": 0,
+      "Success": true
+    },
+    {
+      "Name": "store-heavy",
+      "Description": "128 x 2 MiB stored (incompressible) entries",
+      "ArchiveBytes": 268449814,
+      "EntryCount": 128,
+      "Mode": "sequential",
+      "MaxDegreeOfParallelism": 1,
+      "Runs": 3,
+      "ElapsedMilliseconds": [
+        944.1831,
+        1079.2934,
+        884.5997
+      ],
+      "MedianMilliseconds": 944.1831,
+      "MegabytesPerSecond": 271.1338510507125,
+      "ExtractedBytes": 268435456,
+      "ExtractedFileCount": 128,
+      "SkippedFileCount": 0,
+      "Success": true
+    },
+    {
+      "Name": "representative-7z",
+      "Description": "80 mixed files compressed with 7-Zip",
+      "ArchiveBytes": 1600048,
+      "EntryCount": 80,
+      "Mode": "sequential",
+      "MaxDegreeOfParallelism": 1,
+      "Runs": 3,
+      "ElapsedMilliseconds": [
+        3712.1068,
+        3063.7396,
+        3104.4321
+      ],
+      "MedianMilliseconds": 3104.4321,
+      "MegabytesPerSecond": 51.53921710834004,
+      "ExtractedBytes": 167772160,
+      "ExtractedFileCount": 80,
+      "SkippedFileCount": 0,
+      "Success": true
+    }
+  ]
+}

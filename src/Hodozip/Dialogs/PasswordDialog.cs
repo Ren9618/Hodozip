@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Hodozip.Core;
+using Hodozip.Services;
 
 namespace Hodozip.Dialogs;
 
@@ -12,7 +13,7 @@ internal static class PasswordDialog
 
         panel.Children.Add(new TextBlock
         {
-            Text = "このアーカイブはパスワードで保護されています。パスワードを入力してください。",
+            Text = Loc.Password_Message,
             TextWrapping = TextWrapping.Wrap,
         });
 
@@ -20,7 +21,7 @@ internal static class PasswordDialog
         {
             panel.Children.Add(new TextBlock
             {
-                Text = $"{request.ErrorMessage}（試行 {request.Attempt} / 5）",
+                Text = Loc.Password_ErrorWithAttempt(LocalizationService.GetPasswordError(request), request.Attempt),
                 Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorCriticalBrush"],
                 TextWrapping = TextWrapping.Wrap,
             });
@@ -29,14 +30,14 @@ internal static class PasswordDialog
         {
             panel.Children.Add(new TextBlock
             {
-                Text = $"試行 {request.Attempt} / 5",
+                Text = Loc.Password_Attempt(request.Attempt),
                 Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
             });
         }
 
         var passwordBox = new PasswordBox
         {
-            PlaceholderText = "パスワード",
+            PlaceholderText = Loc.Password_Placeholder,
             PasswordRevealMode = PasswordRevealMode.Peek,
             Width = 320,
         };
@@ -45,10 +46,10 @@ internal static class PasswordDialog
         var dialog = new ContentDialog
         {
             XamlRoot = xamlRoot,
-            Title = "パスワードの入力",
+            Title = Loc.Password_Title,
             Content = panel,
-            PrimaryButtonText = "OK",
-            CloseButtonText = "キャンセル",
+            PrimaryButtonText = Loc.Password_Ok,
+            CloseButtonText = Loc.Password_Cancel,
             DefaultButton = ContentDialogButton.Primary,
             IsPrimaryButtonEnabled = false,
         };

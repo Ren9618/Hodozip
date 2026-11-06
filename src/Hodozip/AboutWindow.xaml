@@ -12,12 +12,12 @@
 
         <StackPanel Grid.Row="0" Margin="28,24,28,8" Spacing="3">
             <TextBlock
+                x:Name="AboutTitleText"
                 FontSize="28"
-                FontWeight="SemiBold"
-                Text="バージョン情報" />
+                FontWeight="SemiBold" />
             <TextBlock
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="Hodozip について" />
+                x:Name="AboutSubtitleText"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
         </StackPanel>
 
         <ScrollViewer
@@ -43,8 +43,8 @@
                             x:Name="VersionText"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         <TextBlock
+                            x:Name="AboutTaglineText"
                             Margin="0,6,0,0"
-                            Text="アーカイブを、ほどく。ドラッグ＆ドロップと自動判定で、解凍先に迷わない解凍ソフトです。"
                             TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
@@ -57,15 +57,15 @@
                     CornerRadius="12">
                     <StackPanel Spacing="8">
                         <TextBlock
-                            Style="{StaticResource BodyStrongTextBlockStyle}"
-                            Text="対応形式" />
+                            x:Name="SupportedFormatsHeaderText"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
                         <TextBlock
                             x:Name="SupportedFormatsText"
                             TextWrapping="Wrap" />
                         <TextBlock
+                            x:Name="SupportedFormatsNoteText"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="実際に解凍テストを通過した形式のみを対応として記載しています。"
                             TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
@@ -78,13 +78,13 @@
                     CornerRadius="12">
                     <StackPanel Spacing="8">
                         <TextBlock
-                            Style="{StaticResource BodyStrongTextBlockStyle}"
-                            Text="ライセンス" />
+                            x:Name="LicenseHeaderText"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
                         <TextBlock Text="MIT License" />
                         <TextBlock
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Text="Copyright (c) 2026 Ren9618" />
-                        <Expander Header="MIT ライセンス全文">
+                            x:Name="CopyrightText"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <Expander x:Name="LicenseExpander">
                             <ScrollViewer
                                 MaxHeight="260"
                                 VerticalScrollBarVisibility="Auto">
@@ -107,8 +107,8 @@
                     CornerRadius="12">
                     <StackPanel Spacing="10">
                         <TextBlock
-                            Style="{StaticResource BodyStrongTextBlockStyle}"
-                            Text="使用ライブラリ" />
+                            x:Name="LibrariesHeaderText"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
                         <Grid ColumnSpacing="18" RowSpacing="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -125,30 +125,30 @@
                                 Grid.Column="0"
                                 Text="SharpCompress" />
                             <TextBlock
+                                x:Name="SharpCompressLicenseText"
                                 Grid.Row="0"
                                 Grid.Column="1"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="MIT License（アーカイブ解凍エンジン）"
                                 TextWrapping="Wrap" />
                             <TextBlock
                                 Grid.Row="1"
                                 Grid.Column="0"
                                 Text="Microsoft Windows App SDK" />
                             <TextBlock
+                                x:Name="WindowsAppSdkLicenseText"
                                 Grid.Row="1"
                                 Grid.Column="1"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="MIT License（WinUI 3 実行基盤）"
                                 TextWrapping="Wrap" />
                             <TextBlock
                                 Grid.Row="2"
                                 Grid.Column="0"
                                 Text=".NET" />
                             <TextBlock
+                                x:Name="DotNetLicenseText"
                                 Grid.Row="2"
                                 Grid.Column="1"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="MIT License（実行環境）"
                                 TextWrapping="Wrap" />
                         </Grid>
                     </StackPanel>
@@ -162,10 +162,10 @@
                     CornerRadius="12">
                     <StackPanel Spacing="6">
                         <TextBlock
-                            Style="{StaticResource BodyStrongTextBlockStyle}"
-                            Text="プライバシー" />
+                            x:Name="PrivacyHeaderText"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
                         <TextBlock
-                            Text="Hodozip はテレメトリを送信せず、アプリ本体はネットワーク通信を行いません。寄付ボタンを押したときだけ、既定のブラウザで支援ページを開きます。"
+                            x:Name="PrivacyText"
                             TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
@@ -179,11 +179,11 @@
             Orientation="Horizontal"
             Spacing="8">
             <Button
-                Click="DonateButton_Click"
-                Content="開発を支援する" />
+                x:Name="DonateButton"
+                Click="DonateButton_Click" />
             <Button
+                x:Name="CloseButton"
                 Click="CloseButton_Click"
-                Content="閉じる"
                 Style="{StaticResource AccentButtonStyle}" />
         </StackPanel>
     </Grid>

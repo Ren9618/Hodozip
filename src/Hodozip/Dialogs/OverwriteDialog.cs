@@ -17,7 +17,7 @@ internal static class OverwriteDialog
 
         panel.Children.Add(new TextBlock
         {
-            Text = $"「{conflict.EntryPath}」は既に存在します。",
+            Text = Loc.Overwrite_Exists(conflict.EntryPath),
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             TextWrapping = TextWrapping.Wrap,
         });
@@ -37,16 +37,16 @@ internal static class OverwriteDialog
         }
 
         var secondaryBrush = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
-        AddCell(details, 0, 0, "項目", secondaryBrush);
-        AddCell(details, 0, 1, "既存ファイル", secondaryBrush);
-        AddCell(details, 0, 2, "新しいファイル", secondaryBrush);
-        AddCell(details, 1, 0, "サイズ", secondaryBrush);
+        AddCell(details, 0, 0, Loc.Overwrite_Item, secondaryBrush);
+        AddCell(details, 0, 1, Loc.Overwrite_ExistingFile, secondaryBrush);
+        AddCell(details, 0, 2, Loc.Overwrite_NewFile, secondaryBrush);
+        AddCell(details, 1, 0, Loc.Overwrite_Size, secondaryBrush);
         AddCell(details, 1, 1, UiHelpers.FormatBytes(conflict.ExistingSize));
         AddCell(details, 1, 2, UiHelpers.FormatBytes(conflict.NewSize));
-        AddCell(details, 2, 0, "更新日時", secondaryBrush);
+        AddCell(details, 2, 0, Loc.Overwrite_Modified, secondaryBrush);
         AddCell(details, 2, 1, UiHelpers.FormatDateTime(conflict.ExistingLastWriteTime));
         AddCell(details, 2, 2, UiHelpers.FormatDateTime(conflict.NewLastWriteTime));
-        AddCell(details, 3, 0, "保存先", secondaryBrush);
+        AddCell(details, 3, 0, Loc.Overwrite_Destination, secondaryBrush);
         AddCell(
             details,
             3,
@@ -78,7 +78,7 @@ internal static class OverwriteDialog
         var dialog = new ContentDialog
         {
             XamlRoot = xamlRoot,
-            Title = "上書きの確認",
+            Title = Loc.Overwrite_Title,
             Content = panel,
         };
         AutomationProperties.SetAutomationId(dialog, "OverwriteDialog");
@@ -91,12 +91,12 @@ internal static class OverwriteDialog
             dialog.Hide();
         }
 
-        AddButton(buttons, 0, 0, "上書き", "OverwriteButton", () => Choose(OverwriteDecision.Overwrite, false), isPrimary: true);
-        AddButton(buttons, 0, 1, "スキップ", "SkipButton", () => Choose(OverwriteDecision.Skip, false));
-        AddButton(buttons, 0, 2, "名前をつけて保存", "RenameButton", () => Choose(OverwriteDecision.AutoRename, false));
-        AddButton(buttons, 1, 0, "すべて上書き", "OverwriteAllButton", () => Choose(OverwriteDecision.Overwrite, true));
-        AddButton(buttons, 1, 1, "すべてスキップ", "SkipAllButton", () => Choose(OverwriteDecision.Skip, true));
-        AddButton(buttons, 1, 2, "キャンセル", "CancelButton", () => Choose(OverwriteDecision.Cancel, false));
+        AddButton(buttons, 0, 0, Loc.Overwrite_Action, "OverwriteButton", () => Choose(OverwriteDecision.Overwrite, false), isPrimary: true);
+        AddButton(buttons, 0, 1, Loc.Overwrite_Skip, "SkipButton", () => Choose(OverwriteDecision.Skip, false));
+        AddButton(buttons, 0, 2, Loc.Overwrite_Rename, "RenameButton", () => Choose(OverwriteDecision.AutoRename, false));
+        AddButton(buttons, 1, 0, Loc.Overwrite_All, "OverwriteAllButton", () => Choose(OverwriteDecision.Overwrite, true));
+        AddButton(buttons, 1, 1, Loc.Overwrite_SkipAll, "SkipAllButton", () => Choose(OverwriteDecision.Skip, true));
+        AddButton(buttons, 1, 2, Loc.Common_Cancel, "CancelButton", () => Choose(OverwriteDecision.Cancel, false));
 
         panel.Children.Add(buttons);
 

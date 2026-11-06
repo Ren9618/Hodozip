@@ -12,12 +12,12 @@
 
         <StackPanel Grid.Row="0" Margin="28,24,28,8" Spacing="3">
             <TextBlock
+                x:Name="SettingsTitleText"
                 FontSize="28"
-                FontWeight="SemiBold"
-                Text="設定" />
+                FontWeight="SemiBold" />
             <TextBlock
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="Hodozip の動作を設定します。" />
+                x:Name="SettingsSubtitleText"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
         </StackPanel>
 
         <ScrollViewer
@@ -42,71 +42,71 @@
                     <StackPanel Spacing="18">
                         <StackPanel Spacing="6">
                             <TextBlock
-                                Style="{StaticResource BodyStrongTextBlockStyle}"
-                                Text="解凍先" />
+                                x:Name="DestinationSectionText"
+                                Style="{StaticResource BodyStrongTextBlockStyle}" />
                             <ComboBox
                                 x:Name="DestinationRuleComboBox"
                                 HorizontalAlignment="Stretch"
                                 SelectedIndex="0">
                                 <ComboBoxItem
-                                    Content="アーカイブと同じ場所"
+                                    x:Name="DestinationSameAsArchiveItem"
                                     Tag="SameAsArchive" />
                             </ComboBox>
                             <TextBlock
+                                x:Name="DestinationNoteText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="アーカイブの内容に応じて、解凍先フォルダを自動判定します。"
                                 TextWrapping="Wrap" />
                         </StackPanel>
 
                         <StackPanel Spacing="6">
                             <TextBlock
-                                Style="{StaticResource BodyStrongTextBlockStyle}"
-                                Text="解凍先フォルダが既に存在するとき" />
+                                x:Name="FolderCollisionSectionText"
+                                Style="{StaticResource BodyStrongTextBlockStyle}" />
                             <ComboBox
                                 x:Name="FolderCollisionComboBox"
                                 HorizontalAlignment="Stretch">
                                 <ComboBoxItem
-                                    Content="毎回確認する"
+                                    x:Name="FolderCollisionAskItem"
                                     Tag="Ask" />
                                 <ComboBoxItem
-                                    Content="既存のフォルダに解凍する"
+                                    x:Name="FolderCollisionMergeItem"
                                     Tag="Merge" />
                                 <ComboBoxItem
-                                    Content="新しいフォルダを作成する（連番）"
+                                    x:Name="FolderCollisionAutoRenameItem"
                                     Tag="AutoRename" />
                             </ComboBox>
                             <TextBlock
+                                x:Name="FolderCollisionNoteText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="「毎回確認する」では、解凍開始前に既存フォルダへ統合するか、連番の新しいフォルダを作るかを選べます。"
                                 TextWrapping="Wrap" />
                         </StackPanel>
 
                         <StackPanel Spacing="6">
                             <TextBlock
-                                Style="{StaticResource BodyStrongTextBlockStyle}"
-                                Text="同名ファイルが既に存在するとき" />
+                                x:Name="OverwriteSectionText"
+                                Style="{StaticResource BodyStrongTextBlockStyle}" />
                             <ComboBox
                                 x:Name="OverwritePolicyComboBox"
                                 HorizontalAlignment="Stretch">
                                 <ComboBoxItem
-                                    Content="毎回確認する"
+                                    x:Name="OverwriteAskItem"
                                     Tag="Ask" />
                                 <ComboBoxItem
-                                    Content="常に上書きする"
+                                    x:Name="OverwriteOverwriteItem"
                                     Tag="Overwrite" />
                                 <ComboBoxItem
-                                    Content="常にスキップする"
+                                    x:Name="OverwriteSkipItem"
                                     Tag="Skip" />
                                 <ComboBoxItem
-                                    Content="名前を変えて保存する"
+                                    x:Name="OverwriteAutoRenameItem"
                                     Tag="AutoRename" />
                             </ComboBox>
                             <TextBlock
+                                x:Name="OverwriteNoteText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="「毎回確認する」では、新旧のサイズと更新日時を比較する上書き確認ダイアログを表示します。"
                                 TextWrapping="Wrap" />
                         </StackPanel>
                     </StackPanel>
@@ -120,24 +120,60 @@
                     CornerRadius="12">
                     <StackPanel Spacing="16">
                         <TextBlock
-                            Style="{StaticResource BodyStrongTextBlockStyle}"
-                            Text="動作" />
+                            x:Name="BehaviorSectionText"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
                         <ToggleSwitch
-                            x:Name="OpenFolderToggle"
-                            Header="解凍完了後にフォルダを開く"
-                            OffContent="オフ"
-                            OnContent="オン" />
-
+                            x:Name="OpenFolderToggle" />
                         <StackPanel Spacing="4">
                             <ToggleSwitch
-                                x:Name="CloseAfterExtractToggle"
-                                Header="ダブルクリック起動時の完了後、自動で閉じる"
-                                OffContent="オフ"
-                                OnContent="オン" />
+                                x:Name="CloseAfterExtractToggle" />
                             <TextBlock
+                                x:Name="CloseAfterNoteText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="関連付けやコマンドラインから起動した場合に適用されます。エラー時は閉じません。"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Padding="22"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                    <StackPanel Spacing="16">
+                        <StackPanel Spacing="6">
+                            <TextBlock
+                                x:Name="LanguageSectionText"
+                                Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ComboBox
+                                x:Name="LanguageComboBox"
+                                HorizontalAlignment="Stretch"
+                                AutomationProperties.AutomationId="LanguageComboBox">
+                                <ComboBoxItem Tag="System" />
+                                <ComboBoxItem Tag="Japanese" />
+                                <ComboBoxItem Tag="English" />
+                            </ComboBox>
+                            <TextBlock
+                                x:Name="LanguageNoteText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock
+                                x:Name="ParallelismSectionText"
+                                Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ComboBox
+                                x:Name="ParallelismComboBox"
+                                HorizontalAlignment="Stretch"
+                                AutomationProperties.AutomationId="ParallelismComboBox" />
+                            <TextBlock
+                                x:Name="ParallelismNoteText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
                                 TextWrapping="Wrap" />
                         </StackPanel>
                     </StackPanel>
@@ -151,17 +187,14 @@
                     CornerRadius="12">
                     <StackPanel Spacing="8">
                         <TextBlock
-                            Style="{StaticResource BodyStrongTextBlockStyle}"
-                            Text="従来型コンテキストメニュー" />
+                            x:Name="LegacySectionText"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
                         <TextBlock
+                            x:Name="LegacyNoteText"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Text="Windows 10 形式の右クリックメニュー（Windows 11 では「その他のオプションを表示」側）に「Hodozip で解凍」を追加します。unpackaged 版のみ利用できます。"
                             TextWrapping="Wrap" />
                         <ToggleSwitch
                             x:Name="LegacyContextMenuToggle"
-                            Header="従来型コンテキストメニューに登録する"
-                            OffContent="解除"
-                            OnContent="登録"
                             Toggled="LegacyContextMenuToggle_Toggled" />
                         <TextBlock
                             x:Name="LegacyContextMenuStatusText"
@@ -179,16 +212,16 @@
                     CornerRadius="12">
                     <StackPanel Spacing="8">
                         <TextBlock
-                            Style="{StaticResource BodyStrongTextBlockStyle}"
-                            Text="開発を支援する" />
+                            x:Name="SupportSectionText"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
                         <TextBlock
+                            x:Name="SupportNoteText"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Text="Hodozip は無料・オープンソースです。支援は今後の開発とメンテナンスに使われます。"
                             TextWrapping="Wrap" />
                         <Button
+                            x:Name="DonateButton"
                             Margin="0,4,0,0"
                             Click="DonateButton_Click"
-                            Content="開発を支援する"
                             Style="{StaticResource AccentButtonStyle}" />
                     </StackPanel>
                 </Border>
@@ -202,11 +235,11 @@
             Orientation="Horizontal"
             Spacing="8">
             <Button
-                Click="CancelButton_Click"
-                Content="キャンセル" />
+                x:Name="CancelButton"
+                Click="CancelButton_Click" />
             <Button
+                x:Name="SaveButton"
                 Click="SaveButton_Click"
-                Content="保存"
                 Style="{StaticResource AccentButtonStyle}" />
         </StackPanel>
     </Grid>
