@@ -9,12 +9,18 @@ internal enum DestinationLayout
     Scattered,
 }
 
+internal sealed record FolderCollisionInfo(
+    string FolderName,
+    string FolderPath,
+    bool ExistingIsDirectory);
+
 internal sealed record DestinationPlan(
     DestinationLayout Layout,
     string BaseDirectory,
     string OutputRoot,
     string? TopFolderName,
-    bool CreateOutputRoot)
+    bool CreateOutputRoot,
+    FolderCollisionInfo? Collision = null)
 {
     public string MapPath(string relativePath)
     {
@@ -41,18 +47,17 @@ internal static class DestinationPlanner
         string baseDirectory,
         string archivePath,
         IReadOnlyList<EntryPathInfo> entries,
-        ExtractionDestinationMode mode = ExtractionDestinationMode.Auto)
+        ExtractionDestinationMode mode = ExtractionDestinationMode.Auto,
+        FolderCollisionPolicy collisionPolicy = FolderCollisionPolicy.Ask)
     {
         if (mode == ExtractionDestinationMode.ForceArchiveFolder)
         {
-            var archiveName = GetArchiveFolderName(archivePath);
-            var forcedRoot = GetUniqueDirectoryPath(baseDirectory, archiveName);
-            return new DestinationPlan(
+            return CreateWithRoot(
                 DestinationLayout.Scattered,
                 baseDirectory,
-                forcedRoot,
-                TopFolderName: null,
-                CreateOutputRoot: true);
+                topFolderName: null,
+                GetArchiveFolderName(archivePath),
+                collisionPolicy);
         }
 
         var fileEntries = entries.Where(x => !x.IsDirectory).ToList();
@@ -82,43 +87,75 @@ internal static class DestinationPlanner
         if (allUnderSingleTop && topFolders[0].Length > 0)
         {
             var topFolder = topFolders[0];
-            var outputRoot = GetUniqueDirectoryPath(baseDirectory, topFolder);
-            return new DestinationPlan(
+            return CreateWithRoot(
                 DestinationLayout.SingleTopFolder,
                 baseDirectory,
-                outputRoot,
                 topFolder,
-                CreateOutputRoot: true);
+                topFolder,
+                collisionPolicy);
         }
 
         // バラバラ: アーカイブ名（拡張子なし）のフォルダを作る。
-        var scatteredRoot = GetUniqueDirectoryPath(baseDirectory, GetArchiveFolderName(archivePath));
-        return new DestinationPlan(
+        return CreateWithRoot(
             DestinationLayout.Scattered,
             baseDirectory,
-            scatteredRoot,
-            TopFolderName: null,
+            topFolderName: null,
+            GetArchiveFolderName(archivePath),
+            collisionPolicy);
+    }
+
+    private static DestinationPlan CreateWithRoot(
+        DestinationLayout layout,
+        string baseDirectory,
+        string? topFolderName,
+        string folderName,
+        FolderCollisionPolicy collisionPolicy)
+    {
+        var intendedPath = Path.Combine(baseDirectory, folderName);
+
+        if (!LongPath.FileExists(intendedPath) && !LongPath.DirectoryExists(intendedPath))
+        {
+            return new DestinationPlan(
+                layout,
+                baseDirectory,
+                intendedPath,
+                topFolderName,
+                CreateOutputRoot: true);
+        }
+
+        var existingIsDirectory = LongPath.DirectoryExists(intendedPath);
+
+        // 既存フォルダへの統合。既存がファイルの場合は統合できないため連番へ回す。
+        if (collisionPolicy == FolderCollisionPolicy.Merge && existingIsDirectory)
+        {
+            return new DestinationPlan(
+                layout,
+                baseDirectory,
+                intendedPath,
+                topFolderName,
+                CreateOutputRoot: true);
+        }
+
+        if (collisionPolicy == FolderCollisionPolicy.Ask)
+        {
+            return new DestinationPlan(
+                layout,
+                baseDirectory,
+                intendedPath,
+                topFolderName,
+                CreateOutputRoot: true,
+                new FolderCollisionInfo(folderName, intendedPath, existingIsDirectory));
+        }
+
+        return new DestinationPlan(
+            layout,
+            baseDirectory,
+            GetUniqueDirectoryPath(baseDirectory, folderName),
+            topFolderName,
             CreateOutputRoot: true);
     }
 
-    private static string GetArchiveFolderName(string archivePath)
-    {
-        var archiveName = Path.GetFileNameWithoutExtension(archivePath);
-        if (string.IsNullOrWhiteSpace(archiveName))
-        {
-            archiveName = "Hodozip";
-        }
-
-        return PathSanitizer.Sanitize(archiveName).RelativePath;
-    }
-
-    private static string GetTopSegment(string relativePath)
-    {
-        var index = relativePath.IndexOf('\\');
-        return index < 0 ? relativePath : relativePath[..index];
-    }
-
-    private static string GetUniqueDirectoryPath(string baseDirectory, string name)
+    internal static string GetUniqueDirectoryPath(string baseDirectory, string name)
     {
         var candidate = Path.Combine(baseDirectory, name);
         if (!LongPath.FileExists(candidate) && !LongPath.DirectoryExists(candidate))
@@ -136,5 +173,17 @@ internal static class DestinationPlanner
         }
 
         throw new IOException($"空きフォルダ名が見つかりません: {name}");
+    }
+
+    private static string GetArchiveFolderName(string archivePath)
+    {
+        var archiveName = ArchiveFormats.GetArchiveBaseName(archivePath);
+        return PathSanitizer.Sanitize(archiveName).RelativePath;
+    }
+
+    private static string GetTopSegment(string relativePath)
+    {
+        var index = relativePath.IndexOf('\\');
+        return index < 0 ? relativePath : relativePath[..index];
     }
 }

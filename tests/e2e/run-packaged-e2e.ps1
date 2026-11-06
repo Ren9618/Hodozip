@@ -122,6 +122,8 @@ try {
         DestinationRule = 'SameAsArchive'
         OpenFolderAfterExtraction = $false
         CloseAfterAutoExtract = $true
+        FolderCollisionPolicy = 'Merge'
+        OverwritePolicy = 'Overwrite'
     } | ConvertTo-Json | Set-Content -LiteralPath $settingsPath -Encoding utf8
 
     Write-Host '=== Packaged E2E 1: --extract-here (single folder) ==='

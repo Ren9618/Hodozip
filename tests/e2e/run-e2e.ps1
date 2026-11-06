@@ -89,6 +89,8 @@ try {
         DestinationRule = 'SameAsArchive'
         OpenFolderAfterExtraction = $false
         CloseAfterAutoExtract = $true
+        FolderCollisionPolicy = 'Merge'
+        OverwritePolicy = 'Overwrite'
     } | ConvertTo-Json | Set-Content -LiteralPath $settingsPath -Encoding utf8
     Write-Host '  完了後に自動で閉じる設定を有効化しました。'
 

@@ -44,7 +44,7 @@
       EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         DisplayName="Hodozip"
-        Description="ZIP を、ほどく。Windows 向け無料・オープンソース ZIP 解凍ソフト"
+        Description="アーカイブを、ほどく。Windows 向け無料・オープンソース解凍ソフト"
         BackgroundColor="#1450A8"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"
@@ -60,15 +60,28 @@
 
       <Extensions>
         <!--
-          .zip の関連付け。Windows 11 ではユーザーが「既定のアプリ」で
+          対応アーカイブの関連付け。Windows 11 ではユーザーが「既定のアプリ」で
           Hodozip を選ぶまで既定にはならない。ここでは候補として登録する。
+          複合拡張子（.tar.gz など）は Windows が末尾拡張子で判定するため、
+          実際に登録するのは .gz / .tgz などの単一拡張子のみ。
         -->
         <uap:Extension Category="windows.fileTypeAssociation">
-          <uap:FileTypeAssociation Name="hodozip-zip">
-            <uap:DisplayName>ZIP アーカイブ</uap:DisplayName>
+          <uap:FileTypeAssociation Name="hodozip-archives">
+            <uap:DisplayName>Hodozip アーカイブ</uap:DisplayName>
             <uap:Logo>Assets\ZipFileLogo.png</uap:Logo>
             <uap:SupportedFileTypes>
               <uap:FileType>.zip</uap:FileType>
+              <uap:FileType>.7z</uap:FileType>
+              <uap:FileType>.rar</uap:FileType>
+              <uap:FileType>.tar</uap:FileType>
+              <uap:FileType>.gz</uap:FileType>
+              <uap:FileType>.tgz</uap:FileType>
+              <uap:FileType>.bz2</uap:FileType>
+              <uap:FileType>.tbz2</uap:FileType>
+              <uap:FileType>.xz</uap:FileType>
+              <uap:FileType>.txz</uap:FileType>
+              <uap:FileType>.zst</uap:FileType>
+              <uap:FileType>.tzst</uap:FileType>
             </uap:SupportedFileTypes>
           </uap:FileTypeAssociation>
         </uap:Extension>
@@ -97,13 +110,54 @@
 
         <desktop4:Extension Category="windows.fileExplorerContextMenus">
           <desktop4:FileExplorerContextMenus>
+            <!-- 対応が確定した拡張子すべてに、同じ 2 項目を登録する。 -->
             <desktop4:ItemType Type=".zip">
-              <desktop4:Verb
-                Id="HodozipExtractHere"
-                Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />
-              <desktop4:Verb
-                Id="HodozipExtractFolder"
-                Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02" />
+              <desktop4:Verb Id="HodozipExtractHereZip" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />
+              <desktop4:Verb Id="HodozipExtractFolderZip" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".7z">
+              <desktop4:Verb Id="HodozipExtractHere7z" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />
+              <desktop4:Verb Id="HodozipExtractFolder7z" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".rar">
+              <desktop4:Verb Id="HodozipExtractHereRar" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />
+              <desktop4:Verb Id="HodozipExtractFolderRar" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".tar">
+              <desktop4:Verb Id="HodozipExtractHereTar" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />
+              <desktop4:Verb Id="HodozipExtractFolderTar" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".gz">
+              <desktop4:Verb Id="HodozipExtractHereGz" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />
+              <desktop4:Verb Id="HodozipExtractFolderGz" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".tgz">
+              <desktop4:Verb Id="HodozipExtractHereTgz" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />
+              <desktop4:Verb Id="HodozipExtractFolderTgz" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".bz2">
+              <desktop4:Verb Id="HodozipExtractHereBz2" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />
+              <desktop4:Verb Id="HodozipExtractFolderBz2" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".tbz2">
+              <desktop4:Verb Id="HodozipExtractHereTbz2" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />
+              <desktop4:Verb Id="HodozipExtractFolderTbz2" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".xz">
+              <desktop4:Verb Id="HodozipExtractHereXz" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />
+              <desktop4:Verb Id="HodozipExtractFolderXz" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".txz">
+              <desktop4:Verb Id="HodozipExtractHereTxz" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />
+              <desktop4:Verb Id="HodozipExtractFolderTxz" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".zst">
+              <desktop4:Verb Id="HodozipExtractHereZst" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />
+              <desktop4:Verb Id="HodozipExtractFolderZst" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".tzst">
+              <desktop4:Verb Id="HodozipExtractHereTzst" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />
+              <desktop4:Verb Id="HodozipExtractFolderTzst" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02" />
             </desktop4:ItemType>
           </desktop4:FileExplorerContextMenus>
         </desktop4:Extension>

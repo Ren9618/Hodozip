@@ -15,6 +15,7 @@ public sealed partial class AboutWindow : Window
         WindowHelpers.Configure(this, 740, 760);
 
         VersionText.Text = $"Version {AppInfo.Version}";
+        SupportedFormatsText.Text = AppInfo.SupportedFormatsText;
         LicenseText.Text = AppInfo.MitLicenseText;
     }
 

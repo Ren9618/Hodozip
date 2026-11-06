@@ -117,8 +117,10 @@ public static class ExplorerCommandTest
 }
 '@
 
+$repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $extractHereClsid = [Guid]'4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01'
 $extractFolderClsid = [Guid]'4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02'
+$sevenZipFixture = Join-Path $repoRoot 'tests\Hodozip.Core.Tests\Fixtures\formats\sample.7z'
 $workRoot = Join-Path $env:TEMP 'HodozipContextMenuE2E'
 $archives = Join-Path $workRoot 'archives'
 $payload = Join-Path $workRoot 'payload'
@@ -218,6 +220,8 @@ try {
         DestinationRule = 'SameAsArchive'
         OpenFolderAfterExtraction = $false
         CloseAfterAutoExtract = $true
+        FolderCollisionPolicy = 'Merge'
+        OverwritePolicy = 'Overwrite'
     } | ConvertTo-Json | Set-Content -LiteralPath $settingsPath -Encoding utf8
 
     Write-Host '=== COM 登録とタイトル ==='
@@ -240,6 +244,17 @@ try {
     Wait-HodozipExit
     Assert-Exists -Path (Join-Path $archives 'context-folder\readme.txt') -Label 'context-folder\readme.txt'
     Assert-Exists -Path (Join-Path $archives 'context-folder\data\value.txt') -Label 'context-folder\data\value.txt'
+
+    Write-Host '=== コンテキストメニュー verb: 7z（ZIP 以外の対応形式） ==='
+    if (-not (Test-Path -LiteralPath $sevenZipFixture)) {
+        throw "7z フィクスチャが見つかりません: $sevenZipFixture"
+    }
+    $sevenZipPath = Join-Path $archives 'context-seven.7z'
+    Copy-Item -LiteralPath $sevenZipFixture -Destination $sevenZipPath -Force
+    [ExplorerCommandTest]::Invoke($extractHereClsid, $sevenZipPath)
+    Wait-HodozipExit
+    Assert-Exists -Path (Join-Path $archives 'context-seven\hello.txt') -Label 'context-seven\hello.txt'
+    Assert-Exists -Path (Join-Path $archives 'context-seven\Top\a.txt') -Label 'context-seven\Top\a.txt'
 
     Write-Host 'コンテキストメニュー E2E: すべて成功しました。'
 }

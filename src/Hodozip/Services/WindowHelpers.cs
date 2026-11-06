@@ -27,4 +27,17 @@ internal static class WindowHelpers
             // 位置調整に失敗しても、既定位置で表示を続ける。
         }
     }
+
+    /// <summary>サイズ固定の小型ウィンドウを設定する。</summary>
+    public static void ConfigureFixed(Window window, int width, int height)
+    {
+        Configure(window, width, height);
+
+        if (window.AppWindow.Presenter is OverlappedPresenter presenter)
+        {
+            presenter.IsResizable = false;
+            presenter.IsMaximizable = false;
+            presenter.IsMinimizable = false;
+        }
+    }
 }

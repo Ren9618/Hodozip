@@ -1,4 +1,6 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using Hodozip.Core;
 
 namespace Hodozip.Services;
 
@@ -10,6 +12,14 @@ public sealed class AppSettings
     public bool OpenFolderAfterExtraction { get; set; }
 
     public bool CloseAfterAutoExtract { get; set; }
+
+    /// <summary>解凍先フォルダが既に存在するときの扱い。</summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public FolderCollisionPolicy FolderCollisionPolicy { get; set; } = FolderCollisionPolicy.Ask;
+
+    /// <summary>同名ファイルが既に存在するときの扱い。</summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public OverwritePolicy OverwritePolicy { get; set; } = OverwritePolicy.Ask;
 }
 
 public static class SettingsService
@@ -17,6 +27,7 @@ public static class SettingsService
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
+        Converters = { new JsonStringEnumConverter() },
     };
 
     private static string SettingsDirectory =>

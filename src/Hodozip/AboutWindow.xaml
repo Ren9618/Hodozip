@@ -44,7 +44,28 @@
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         <TextBlock
                             Margin="0,6,0,0"
-                            Text="ZIP を、ほどく。ドラッグ＆ドロップと自動判定で、解凍先に迷わない解凍ソフトです。"
+                            Text="アーカイブを、ほどく。ドラッグ＆ドロップと自動判定で、解凍先に迷わない解凍ソフトです。"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Padding="22"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                    <StackPanel Spacing="8">
+                        <TextBlock
+                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                            Text="対応形式" />
+                        <TextBlock
+                            x:Name="SupportedFormatsText"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="実際に解凍テストを通過した形式のみを対応として記載しています。"
                             TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
@@ -107,7 +128,7 @@
                                 Grid.Row="0"
                                 Grid.Column="1"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="MIT License（ZIP 解凍エンジン）"
+                                Text="MIT License（アーカイブ解凍エンジン）"
                                 TextWrapping="Wrap" />
                             <TextBlock
                                 Grid.Row="1"

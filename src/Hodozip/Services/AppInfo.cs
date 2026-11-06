@@ -1,9 +1,14 @@
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
+using Hodozip.Core;
 
 namespace Hodozip.Services;
 
 internal static class AppInfo
 {
+    private const int AppModelErrorNoPackage = 15700;
+
     public const string ProductName = "Hodozip";
 
     public const string GitHubSponsorsUrl = "https://github.com/sponsors/Ren9618";
@@ -20,6 +25,30 @@ internal static class AppInfo
                 : $"{version.Major}.{version.Minor}.{version.Build}";
         }
     }
+
+    /// <summary>MSIX パッケージとして実行されているか。</summary>
+    public static bool IsPackaged
+    {
+        get
+        {
+            try
+            {
+                var length = 0;
+                return GetCurrentPackageFullName(ref length, null) != AppModelErrorNoPackage;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
+
+    /// <summary>README やバージョン情報に表示する対応形式の一覧。</summary>
+    public static string SupportedFormatsText =>
+        string.Join(" / ", ArchiveFormats.SupportedExtensions.Select(x => x.TrimStart('.').ToUpperInvariant()));
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetCurrentPackageFullName(ref int packageFullNameLength, StringBuilder? packageFullName);
 
     public const string MitLicenseText =
         """

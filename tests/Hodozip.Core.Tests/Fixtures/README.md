@@ -1,5 +1,7 @@
 # テスト用フィクスチャ
 
+## パスワード付き ZIP
+
 パスワード付き ZIP のテストで使うフィクスチャです。パスワードはいずれも `secret`、内容は `secret.txt`（`Hodozip password test`）です。
 
 | ファイル | 暗号化方式 |
@@ -21,3 +23,24 @@ Set-Content -LiteralPath (Join-Path $payload 'secret.txt') -Value 'Hodozip passw
 ```
 
 SharpZipLib で生成した AES ZIP は SharpCompress で読めなかったため、7-Zip の AES-256 を使用しています。
+
+## 多形式
+
+`formats/` には Phase 3 で対応を確定した形式のフィクスチャがあります。内容は `hello.txt`、`Top/a.txt`、`Top/sub/b.txt`、`日本語テスト.txt` です（RAR は SharpCompress の RAR5 テストアーカイブ）。
+
+| ファイル | 形式 | 備考 |
+| --- | --- | --- |
+| `sample.7z` | 7z | |
+| `password.7z` | 7z | パスワードは `secret` |
+| `sample.rar` | RAR | RAR5 |
+| `sample.tar` | TAR | |
+| `sample.tar.gz` / `sample.tgz` | TAR.GZ | 同じ内容の別名 |
+| `sample.tar.bz2` / `sample.tbz2` | TAR.BZ2 | 同じ内容の別名 |
+| `sample.tar.xz` / `sample.txz` | TAR.XZ | 同じ内容の別名 |
+| `sample.tar.zst` / `sample.tzst` | TAR.ZST | 同じ内容の別名 |
+| `sample.gz` | GZ | `hello.txt` を単一ストリーム圧縮 |
+| `sample.bz2` | BZ2 | `hello.txt` を単一ストリーム圧縮 |
+| `sample.xz` | XZ | `hello.txt` を単一ストリーム圧縮 |
+| `sample.zst` | ZST | `hello.txt` を単一ストリーム圧縮 |
+
+`formats/generate-fixtures.ps1` で再生成できます。7-Zip 互換 CLI（`7z.exe`）が必要で、RAR フィクスチャの取得にインターネット接続を使用します。

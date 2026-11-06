@@ -1,5 +1,7 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Hodozip.Core;
 using Hodozip.Services;
 
@@ -11,11 +13,12 @@ internal static class OverwriteDialog
         XamlRoot xamlRoot,
         OverwriteConflict conflict)
     {
-        var panel = new StackPanel { Spacing = 14 };
+        var panel = new StackPanel { Spacing = 14, MinWidth = 520 };
 
         panel.Children.Add(new TextBlock
         {
             Text = $"「{conflict.EntryPath}」は既に存在します。",
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             TextWrapping = TextWrapping.Wrap,
         });
 
@@ -26,64 +29,140 @@ internal static class OverwriteDialog
         };
         details.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         details.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        details.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        details.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        details.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        details.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        details.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        details.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-        AddDetail(details, 0, "項目", "既存ファイル", "新しいファイル");
-        AddDetail(details, 1, "サイズ", UiHelpers.FormatBytes(conflict.ExistingSize), UiHelpers.FormatBytes(conflict.NewSize));
-        AddDetail(details, 2, "更新日時", UiHelpers.FormatDateTime(conflict.ExistingLastWriteTime), UiHelpers.FormatDateTime(conflict.NewLastWriteTime));
+        for (var row = 0; row < 4; row++)
+        {
+            details.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        }
+
+        var secondaryBrush = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
+        AddCell(details, 0, 0, "項目", secondaryBrush);
+        AddCell(details, 0, 1, "既存ファイル", secondaryBrush);
+        AddCell(details, 0, 2, "新しいファイル", secondaryBrush);
+        AddCell(details, 1, 0, "サイズ", secondaryBrush);
+        AddCell(details, 1, 1, UiHelpers.FormatBytes(conflict.ExistingSize));
+        AddCell(details, 1, 2, UiHelpers.FormatBytes(conflict.NewSize));
+        AddCell(details, 2, 0, "更新日時", secondaryBrush);
+        AddCell(details, 2, 1, UiHelpers.FormatDateTime(conflict.ExistingLastWriteTime));
+        AddCell(details, 2, 2, UiHelpers.FormatDateTime(conflict.NewLastWriteTime));
+        AddCell(details, 3, 0, "保存先", secondaryBrush);
+        AddCell(
+            details,
+            3,
+            1,
+            MiddleEllipsis.CompactMiddle(conflict.DestinationPath, 62),
+            secondaryBrush,
+            columnSpan: 2);
 
         panel.Children.Add(details);
 
-        var applyToAll = new CheckBox
+        var buttons = new Grid
         {
-            Content = "以降すべてに適用",
+            ColumnSpacing = 8,
+            RowSpacing = 8,
+            Margin = new Thickness(0, 4, 0, 0),
         };
-        panel.Children.Add(applyToAll);
+        buttons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        buttons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        buttons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        for (var row = 0; row < 2; row++)
+        {
+            buttons.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        }
+
+        var chosen = OverwriteDecision.Cancel;
+        var applyToAll = false;
+        var closed = false;
 
         var dialog = new ContentDialog
         {
             XamlRoot = xamlRoot,
             Title = "上書きの確認",
             Content = panel,
-            PrimaryButtonText = "上書き",
-            SecondaryButtonText = "スキップ",
-            CloseButtonText = "リネーム",
-            DefaultButton = ContentDialogButton.Primary,
         };
+        AutomationProperties.SetAutomationId(dialog, "OverwriteDialog");
 
-        var result = await dialog.ShowAsync();
-        var decision = result switch
+        void Choose(OverwriteDecision decision, bool applyToAllFiles)
         {
-            ContentDialogResult.Primary => OverwriteDecision.Overwrite,
-            ContentDialogResult.Secondary => OverwriteDecision.Skip,
-            _ => OverwriteDecision.AutoRename,
+            chosen = decision;
+            applyToAll = applyToAllFiles;
+            closed = true;
+            dialog.Hide();
+        }
+
+        AddButton(buttons, 0, 0, "上書き", "OverwriteButton", () => Choose(OverwriteDecision.Overwrite, false), isPrimary: true);
+        AddButton(buttons, 0, 1, "スキップ", "SkipButton", () => Choose(OverwriteDecision.Skip, false));
+        AddButton(buttons, 0, 2, "名前をつけて保存", "RenameButton", () => Choose(OverwriteDecision.AutoRename, false));
+        AddButton(buttons, 1, 0, "すべて上書き", "OverwriteAllButton", () => Choose(OverwriteDecision.Overwrite, true));
+        AddButton(buttons, 1, 1, "すべてスキップ", "SkipAllButton", () => Choose(OverwriteDecision.Skip, true));
+        AddButton(buttons, 1, 2, "キャンセル", "CancelButton", () => Choose(OverwriteDecision.Cancel, false));
+
+        panel.Children.Add(buttons);
+
+        dialog.Closing += (_, _) =>
+        {
+            if (!closed)
+            {
+                // Esc キーやタイトルバーの閉じる操作はキャンセルとして扱う。
+                chosen = OverwriteDecision.Cancel;
+                applyToAll = false;
+            }
         };
 
-        return (decision, applyToAll.IsChecked == true);
+        await dialog.ShowAsync();
+        return (chosen, applyToAll);
     }
 
-    private static void AddDetail(Grid grid, int row, string label, string existing, string incoming)
+    private static void AddButton(
+        Grid grid,
+        int row,
+        int column,
+        string text,
+        string automationId,
+        Action onClick,
+        bool isPrimary = false)
     {
-        var labelBlock = new TextBlock
+        var button = new Button
         {
-            Text = label,
-            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+            Content = text,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
         };
-        Grid.SetRow(labelBlock, row);
-        Grid.SetColumn(labelBlock, 0);
-        grid.Children.Add(labelBlock);
 
-        var valueBlock = new TextBlock
+        if (isPrimary)
         {
-            Text = $"{existing}  →  {incoming}",
+            button.Style = (Style)Application.Current.Resources["AccentButtonStyle"];
+        }
+
+        AutomationProperties.SetAutomationId(button, automationId);
+        button.Click += (_, _) => onClick();
+        Grid.SetRow(button, row);
+        Grid.SetColumn(button, column);
+        grid.Children.Add(button);
+    }
+
+    private static void AddCell(
+        Grid grid,
+        int row,
+        int column,
+        string text,
+        Brush? foreground = null,
+        int columnSpan = 1)
+    {
+        var block = new TextBlock
+        {
+            Text = text,
             TextWrapping = TextWrapping.Wrap,
         };
-        Grid.SetRow(valueBlock, row);
-        Grid.SetColumn(valueBlock, 1);
-        grid.Children.Add(valueBlock);
+
+        if (foreground is not null)
+        {
+            block.Foreground = foreground;
+        }
+
+        Grid.SetRow(block, row);
+        Grid.SetColumn(block, column);
+        Grid.SetColumnSpan(block, columnSpan);
+        grid.Children.Add(block);
     }
 }

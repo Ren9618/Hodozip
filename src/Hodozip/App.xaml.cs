@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Hodozip.Core;
+using Hodozip.Services;
 
 namespace Hodozip;
 
@@ -14,11 +15,16 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        if (HandleContextMenuCommand())
+        {
+            return;
+        }
+
         var launchRequest = GetLaunchRequestFromCommandLine();
 
         if (launchRequest is not null)
         {
-            // ZIP の関連付けやダブルクリックから起動された場合: すぐに解凍を開始する。
+            // 関連付けやダブルクリックから起動された場合: すぐに解凍を開始する。
             var progressWindow = new ProgressWindow(
                 launchRequest.ArchivePath,
                 isCommandLine: true,
@@ -33,6 +39,31 @@ public partial class App : Application
         _window = mainWindow;
         mainWindow.Closed += (_, _) => Exit();
         mainWindow.Activate();
+    }
+
+    /// <summary>
+    /// 設定画面と同じ登録処理をコマンドラインから実行する（E2E・トラブルシューティング用）。
+    /// </summary>
+    private bool HandleContextMenuCommand()
+    {
+        var arguments = Environment.GetCommandLineArgs();
+        var register = arguments.Any(x =>
+            string.Equals(x, "--register-context-menu", StringComparison.OrdinalIgnoreCase));
+        var unregister = arguments.Any(x =>
+            string.Equals(x, "--unregister-context-menu", StringComparison.OrdinalIgnoreCase));
+
+        if (!register && !unregister)
+        {
+            return false;
+        }
+
+        var succeeded = register
+            ? LegacyContextMenuService.Register(out _)
+            : LegacyContextMenuService.Unregister(out _);
+
+        Environment.ExitCode = succeeded ? 0 : 1;
+        Exit();
+        return true;
     }
 
     private static LaunchRequest? GetLaunchRequestFromCommandLine()

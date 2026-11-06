@@ -1,20 +1,25 @@
-// Hodozip Windows 11 context-menu COM server.
+// Hodozip context-menu COM server.
 //
-// This DLL only implements the shell's IExplorerCommand interface. It does not
-// contain extraction logic. Invoke() launches the packaged Hodozip.exe with
+// This DLL implements the shell's IExplorerCommand interface (Windows 11 new
+// menu) and the legacy IContextMenu interface (unpackaged HKCU registration).
+// It does not contain extraction logic. Invoke() launches Hodozip.exe with
 // either --extract-here or --extract-folder and the selected file path.
 
 #include <windows.h>
 #include <shobjidl.h>
+#include <shlobj.h>
 #include <shellapi.h>
 #include <shlwapi.h>
+#include <strsafe.h>
 
 #include <new>
 #include <string>
+#include <vector>
 
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "shell32.lib")
 #pragma comment(lib, "shlwapi.lib")
+#pragma comment(lib, "user32.lib")
 
 namespace
 {
@@ -27,6 +32,39 @@ namespace
     // Extract to folder: {4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02}
     const CLSID CLSID_HodozipExtractFolder =
         { 0x4f4c6d2a, 0x71b9, 0x4e4e, { 0x9a, 0x7d, 0x8d, 0x9a, 0x0b, 0x5e, 0x6c, 0x02 } };
+
+    // Legacy IContextMenu handler: {4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03}
+    const CLSID CLSID_HodozipLegacyMenu =
+        { 0x4f4c6d2a, 0x71b9, 0x4e4e, { 0x9a, 0x7d, 0x8d, 0x9a, 0x0b, 0x5e, 0x6c, 0x03 } };
+
+    bool IsSupportedArchivePath(const std::wstring& path)
+    {
+        const wchar_t* extension = PathFindExtensionW(path.c_str());
+        static const wchar_t* supportedExtensions[] = {
+            L".zip",
+            L".7z",
+            L".rar",
+            L".tar",
+            L".gz",
+            L".tgz",
+            L".bz2",
+            L".tbz2",
+            L".xz",
+            L".txz",
+            L".zst",
+            L".tzst",
+        };
+
+        for (const auto* supported : supportedExtensions)
+        {
+            if (_wcsicmp(extension, supported) == 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     std::wstring GetModulePath()
     {
@@ -259,8 +297,7 @@ namespace
                     continue;
                 }
 
-                const bool isZip = _wcsicmp(PathFindExtensionW(fileSystemPath), L".zip") == 0;
-                if (isZip)
+                if (IsSupportedArchivePath(fileSystemPath))
                 {
                     const HRESULT launchResult = LaunchHodozip(fileSystemPath, _forceArchiveFolder);
                     if (FAILED(launchResult) && firstFailure == S_OK)
@@ -303,11 +340,234 @@ namespace
         const bool _forceArchiveFolder;
     };
 
+    class CLegacyContextMenu final : public IShellExtInit, public IContextMenu
+    {
+    public:
+        IFACEMETHODIMP QueryInterface(REFIID riid, void** ppvObject) override
+        {
+            if (ppvObject == nullptr)
+            {
+                return E_POINTER;
+            }
+
+            *ppvObject = nullptr;
+
+            if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IShellExtInit))
+            {
+                *ppvObject = static_cast<IShellExtInit*>(this);
+                AddRef();
+                return S_OK;
+            }
+
+            if (IsEqualIID(riid, IID_IContextMenu))
+            {
+                *ppvObject = static_cast<IContextMenu*>(this);
+                AddRef();
+                return S_OK;
+            }
+
+            return E_NOINTERFACE;
+        }
+
+        IFACEMETHODIMP_(ULONG) AddRef() override
+        {
+            return static_cast<ULONG>(InterlockedIncrement(&_referenceCount));
+        }
+
+        IFACEMETHODIMP_(ULONG) Release() override
+        {
+            const LONG count = InterlockedDecrement(&_referenceCount);
+            if (count == 0)
+            {
+                delete this;
+            }
+
+            return static_cast<ULONG>(count);
+        }
+
+        IFACEMETHODIMP Initialize(PCIDLIST_ABSOLUTE, IDataObject* dataObject, HKEY) override
+        {
+            _paths.clear();
+
+            if (dataObject == nullptr)
+            {
+                return E_INVALIDARG;
+            }
+
+            FORMATETC format = {};
+            format.cfFormat = CF_HDROP;
+            format.dwAspect = DVASPECT_CONTENT;
+            format.lindex = -1;
+            format.tymed = TYMED_HGLOBAL;
+
+            STGMEDIUM medium = {};
+            if (FAILED(dataObject->GetData(&format, &medium)))
+            {
+                return S_OK;
+            }
+
+            if (medium.tymed == TYMED_HGLOBAL && medium.hGlobal != nullptr)
+            {
+                auto* drop = static_cast<HDROP>(GlobalLock(medium.hGlobal));
+                if (drop != nullptr)
+                {
+                    const UINT count = DragQueryFileW(drop, 0xFFFFFFFF, nullptr, 0);
+                    for (UINT index = 0; index < count; ++index)
+                    {
+                        const UINT length = DragQueryFileW(drop, index, nullptr, 0);
+                        if (length == 0)
+                        {
+                            continue;
+                        }
+
+                        std::wstring path(length + 1, L'\0');
+                        const UINT copied = DragQueryFileW(
+                            drop,
+                            index,
+                            path.data(),
+                            static_cast<UINT>(path.size()));
+                        if (copied > 0)
+                        {
+                            path.resize(copied);
+                            _paths.push_back(std::move(path));
+                        }
+                    }
+
+                    GlobalUnlock(medium.hGlobal);
+                }
+            }
+
+            ReleaseStgMedium(&medium);
+            return S_OK;
+        }
+
+        IFACEMETHODIMP QueryContextMenu(
+            HMENU hmenu,
+            UINT indexMenu,
+            UINT idCmdFirst,
+            UINT idCmdLast,
+            UINT uFlags) override
+        {
+            if (hmenu == nullptr)
+            {
+                return E_INVALIDARG;
+            }
+
+            if ((uFlags & CMF_DEFAULTONLY) != 0)
+            {
+                return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0);
+            }
+
+            UINT commandCount = 0;
+            if (idCmdFirst <= idCmdLast)
+            {
+                InsertMenuW(
+                    hmenu,
+                    indexMenu,
+                    MF_BYPOSITION | MF_STRING,
+                    idCmdFirst,
+                    L"Hodozip で解凍");
+                ++commandCount;
+            }
+
+            if (idCmdFirst + 1 <= idCmdLast)
+            {
+                InsertMenuW(
+                    hmenu,
+                    indexMenu + 1,
+                    MF_BYPOSITION | MF_STRING,
+                    idCmdFirst + 1,
+                    L"Hodozip でフォルダに解凍");
+                ++commandCount;
+            }
+
+            return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, commandCount);
+        }
+
+        IFACEMETHODIMP GetCommandString(
+            UINT_PTR idCmd,
+            UINT uType,
+            UINT*,
+            LPSTR pszName,
+            UINT cchMax) override
+        {
+            if (pszName == nullptr)
+            {
+                return E_POINTER;
+            }
+
+            const bool forceArchiveFolder = idCmd == 1;
+
+            switch (uType)
+            {
+                case GCS_VERBW:
+                    return StringCchCopyW(
+                        reinterpret_cast<LPWSTR>(pszName),
+                        cchMax,
+                        forceArchiveFolder ? L"HodozipExtractFolder" : L"HodozipExtractHere");
+
+                case GCS_HELPTEXTW:
+                    return StringCchCopyW(
+                        reinterpret_cast<LPWSTR>(pszName),
+                        cchMax,
+                        forceArchiveFolder ? L"アーカイブ名のフォルダに解凍します" : L"アーカイブと同じ場所に解凍します");
+
+                default:
+                    return E_NOTIMPL;
+            }
+        }
+
+        IFACEMETHODIMP InvokeCommand(LPCMINVOKECOMMANDINFO pici) override
+        {
+            if (pici == nullptr)
+            {
+                return E_INVALIDARG;
+            }
+
+            if (HIWORD(pici->lpVerb) != 0)
+            {
+                return E_INVALIDARG;
+            }
+
+            const UINT command = LOWORD(pici->lpVerb);
+            if (command > 1)
+            {
+                return E_INVALIDARG;
+            }
+
+            const bool forceArchiveFolder = command == 1;
+            HRESULT firstFailure = S_OK;
+
+            for (const auto& path : _paths)
+            {
+                if (!IsSupportedArchivePath(path))
+                {
+                    continue;
+                }
+
+                const HRESULT result = LaunchHodozip(path, forceArchiveFolder);
+                if (FAILED(result) && firstFailure == S_OK)
+                {
+                    firstFailure = result;
+                }
+            }
+
+            return firstFailure;
+        }
+
+    private:
+        ~CLegacyContextMenu() = default;
+
+        LONG _referenceCount = 1;
+        std::vector<std::wstring> _paths;
+    };
+
     class CClassFactory final : public IClassFactory
     {
     public:
-        explicit CClassFactory(bool forceArchiveFolder)
-            : _forceArchiveFolder(forceArchiveFolder)
+        explicit CClassFactory(bool forceArchiveFolder, bool legacy = false)
+            : _forceArchiveFolder(forceArchiveFolder),
+              _legacy(legacy)
         {
         }
 
@@ -363,6 +623,19 @@ namespace
                 return CLASS_E_NOAGGREGATION;
             }
 
+            if (_legacy)
+            {
+                auto* legacyCommand = new (std::nothrow) CLegacyContextMenu();
+                if (legacyCommand == nullptr)
+                {
+                    return E_OUTOFMEMORY;
+                }
+
+                const HRESULT legacyResult = legacyCommand->QueryInterface(riid, ppvObject);
+                legacyCommand->Release();
+                return legacyResult;
+            }
+
             auto* command = new (std::nothrow) CExplorerCommand(_forceArchiveFolder);
             if (command == nullptr)
             {
@@ -384,6 +657,7 @@ namespace
 
         LONG _referenceCount = 1;
         const bool _forceArchiveFolder;
+        const bool _legacy;
     };
 }
 
@@ -424,6 +698,10 @@ extern "C" HRESULT WINAPI DllGetClassObject(
     else if (IsEqualCLSID(classId, CLSID_HodozipExtractFolder))
     {
         factory = new (std::nothrow) CClassFactory(true);
+    }
+    else if (IsEqualCLSID(classId, CLSID_HodozipLegacyMenu))
+    {
+        factory = new (std::nothrow) CClassFactory(false, true);
     }
     else
     {

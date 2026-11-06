@@ -12,7 +12,7 @@ internal static class PasswordDialog
 
         panel.Children.Add(new TextBlock
         {
-            Text = "この ZIP はパスワードで保護されています。パスワードを入力してください。",
+            Text = "このアーカイブはパスワードで保護されています。パスワードを入力してください。",
             TextWrapping = TextWrapping.Wrap,
         });
 

@@ -51,7 +51,10 @@ public sealed record PasswordRequest(int Attempt, string? ErrorMessage);
 public sealed record ExtractionProgress(
     long ProcessedBytes,
     long TotalBytes,
-    string CurrentFile);
+    string CurrentFile,
+    long CurrentFileProcessedBytes = 0,
+    long CurrentFileTotalBytes = 0,
+    string? DestinationPath = null);
 
 /// <summary>解凍処理のオプション。</summary>
 public sealed class ExtractionOptions
@@ -66,6 +69,15 @@ public sealed class ExtractionOptions
 
     /// <summary>Ask 方針で既存ファイルに当たったときに呼ばれる。</summary>
     public Func<OverwriteConflict, CancellationToken, Task<OverwriteDecision>>? OverwriteResolver { get; init; }
+
+    /// <summary>解凍先フォルダが既に存在するときの扱い。</summary>
+    public FolderCollisionPolicy FolderCollisionPolicy { get; init; } = FolderCollisionPolicy.Ask;
+
+    /// <summary>
+    /// Ask 方針で解凍先フォルダが既に存在するときに呼ばれる。
+    /// null の場合は従来どおり連番フォルダを作成する。
+    /// </summary>
+    public Func<FolderCollisionConflict, CancellationToken, Task<FolderCollisionDecision>>? FolderCollisionResolver { get; init; }
 
     /// <summary>暗号化 ZIP のパスワードを要求する。null を返すとキャンセル。</summary>
     public Func<PasswordRequest, CancellationToken, Task<string?>>? PasswordProvider { get; init; }

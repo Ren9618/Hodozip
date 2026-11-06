@@ -12,8 +12,11 @@ namespace Hodozip;
 public sealed partial class ProgressWindow : Window
 {
     private static readonly TimeSpan AutoCloseDelay = TimeSpan.FromSeconds(3);
+    private const int PathMaxLength = 62;
+    private const int FileNameMaxLength = 44;
 
     private readonly string _archivePath;
+    private readonly string _archiveName;
     private readonly bool _isCommandLine;
     private readonly ExtractionDestinationMode _destinationMode;
     private readonly AppSettings _settings;
@@ -37,15 +40,18 @@ public sealed partial class ProgressWindow : Window
         InitializeComponent();
 
         _archivePath = archivePath;
+        _archiveName = Path.GetFileName(archivePath);
         _isCommandLine = isCommandLine;
         _destinationMode = destinationMode;
         _settings = SettingsService.Load();
 
-        Title = $"{AppInfo.ProductName} - 解凍";
-        WindowHelpers.Configure(this, 790, 660);
+        Title = $"0% / {_archiveName}";
+        WindowHelpers.ConfigureFixed(this, 480, 240);
 
-        ArchiveNameText.Text = Path.GetFileName(archivePath);
-        ToolTipService.SetToolTip(ArchiveNameText, archivePath);
+        SetDestination(Path.GetDirectoryName(archivePath) ?? Environment.CurrentDirectory);
+
+        CurrentFileText.Text = " ";
+        ToolTipService.SetToolTip(CurrentFileText, null);
 
         RootGrid.Loaded += RootGrid_Loaded;
         AppWindow.Closing += AppWindow_Closing;
@@ -73,8 +79,10 @@ public sealed partial class ProgressWindow : Window
 
         var options = new ExtractionOptions
         {
-            OverwritePolicy = OverwritePolicy.Ask,
+            OverwritePolicy = _settings.OverwritePolicy,
+            FolderCollisionPolicy = _settings.FolderCollisionPolicy,
             OverwriteResolver = ResolveOverwriteAsync,
+            FolderCollisionResolver = ResolveFolderCollisionAsync,
             PasswordProvider = ProvidePasswordAsync,
             Progress = new DispatcherProgress(DispatcherQueue, UpdateProgress),
         };
@@ -151,74 +159,103 @@ public sealed partial class ProgressWindow : Window
 
         if (progress.TotalBytes > 0)
         {
+            var percent = Math.Min(100d, progress.ProcessedBytes * 100d / progress.TotalBytes);
             ProgressBar.IsIndeterminate = false;
             ProgressBar.Maximum = Math.Max(1, progress.TotalBytes);
             ProgressBar.Value = Math.Min(progress.ProcessedBytes, ProgressBar.Maximum);
-            PercentText.Text = $"{Math.Min(100d, progress.ProcessedBytes * 100d / progress.TotalBytes):0}%";
-            BytesText.Text = $"{UiHelpers.FormatBytes(progress.ProcessedBytes)} / {UiHelpers.FormatBytes(progress.TotalBytes)}";
+            PercentText.Text = $"{percent:0}%";
+            Title = $"{percent:0}% / {_archiveName}";
         }
         else
         {
             ProgressBar.IsIndeterminate = true;
-            BytesText.Text = UiHelpers.FormatBytes(progress.ProcessedBytes);
+            PercentText.Text = "…";
+            Title = $"… / {_archiveName}";
         }
 
-        CurrentFileText.Text = string.IsNullOrEmpty(progress.CurrentFile)
+        if (!string.IsNullOrEmpty(progress.DestinationPath))
+        {
+            SetDestination(progress.DestinationPath);
+        }
+
+        var currentFile = progress.CurrentFile;
+        CurrentFileText.Text = string.IsNullOrEmpty(currentFile)
             ? " "
-            : progress.CurrentFile;
+            : "ファイル: " + MiddleEllipsis.CompactMiddle(currentFile, FileNameMaxLength);
+        ToolTipService.SetToolTip(CurrentFileText, string.IsNullOrEmpty(currentFile) ? null : currentFile);
+
+        if (progress.CurrentFileTotalBytes > 0)
+        {
+            FileProgressBar.IsIndeterminate = false;
+            FileProgressBar.Maximum = Math.Max(1, progress.CurrentFileTotalBytes);
+            FileProgressBar.Value = Math.Min(progress.CurrentFileProcessedBytes, FileProgressBar.Maximum);
+        }
+        else if (!string.IsNullOrEmpty(currentFile))
+        {
+            FileProgressBar.IsIndeterminate = true;
+        }
+        else
+        {
+            FileProgressBar.IsIndeterminate = false;
+            FileProgressBar.Value = 0;
+        }
+
+        StatusText.Text = "解凍しています…";
+    }
+
+    private void SetDestination(string destination)
+    {
+        if (string.Equals(_destinationPath, destination, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _destinationPath = destination;
+        DestinationText.Text = "解凍先: " + MiddleEllipsis.CompactMiddle(destination, PathMaxLength);
+        ToolTipService.SetToolTip(DestinationText, destination);
     }
 
     private void ShowResult(ExtractionResult result)
     {
-        _destinationPath = result.DestinationPath;
+        SetDestination(result.DestinationPath);
 
-        BusyRing.IsActive = false;
-        BusyRing.Visibility = Visibility.Collapsed;
         ProgressBar.IsIndeterminate = false;
-        if (ProgressBar.Maximum <= 1)
-        {
-            ProgressBar.Maximum = 1;
-            ProgressBar.Value = 1;
-        }
+        ProgressBar.Maximum = 1;
+        ProgressBar.Value = result.Success ? 1 : 0;
+        FileProgressBar.IsIndeterminate = false;
+        FileProgressBar.Maximum = 1;
+        FileProgressBar.Value = result.Success ? 1 : 0;
+        PercentText.Text = result.Success ? "100%" : "—";
+        CurrentFileText.Text = " ";
+        ToolTipService.SetToolTip(CurrentFileText, null);
 
-        PercentText.Text = "100%";
-        if (string.IsNullOrEmpty(CurrentFileText.Text.Trim()))
-        {
-            CurrentFileText.Text = " ";
-        }
+        var warnings = result.Issues.Count(x => x.Severity == ExtractionIssueSeverity.Warning);
+        var errors = result.Issues.Count(x => x.Severity == ExtractionIssueSeverity.Error);
 
         if (result.Success)
         {
-            ResultSymbol.Text = "✓";
-            ResultSymbol.Foreground = (Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
-            ResultTitle.Text = result.HasWarnings ? "解凍が完了しました（警告あり）" : "解凍が完了しました";
-            StatusTitle.Text = "処理が完了しました";
+            Title = $"100% / {_archiveName}";
+            StatusText.Text = warnings > 0
+                ? $"完了しました（警告 {warnings} 件 / スキップ {result.SkippedFileCount} 件）"
+                : $"完了しました（{result.ExtractedFileCount} ファイル / スキップ {result.SkippedFileCount} 件）";
+            StatusText.Foreground = (Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
         }
         else if (result.Cancelled)
         {
-            ResultSymbol.Text = "×";
-            ResultSymbol.Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
-            ResultTitle.Text = "解凍をキャンセルしました";
-            StatusTitle.Text = "処理を中止しました";
+            Title = $"キャンセル / {_archiveName}";
+            StatusText.Text = "キャンセルしました";
+            StatusText.Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
         }
         else
         {
-            ResultSymbol.Text = "!";
-            ResultSymbol.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
-            ResultTitle.Text = "解凍できませんでした";
-            StatusTitle.Text = "エラーが発生しました";
+            Title = $"エラー / {_archiveName}";
+            var error = result.Issues.FirstOrDefault(x => x.Severity == ExtractionIssueSeverity.Error);
+            var message = error?.Message ?? "解凍できませんでした。";
+            StatusText.Text = "エラー: " + MiddleEllipsis.CompactMiddle(message, 56);
+            ToolTipService.SetToolTip(StatusText, message);
+            StatusText.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
         }
 
-        DestinationText.Text = result.DestinationPath;
-        var warnings = result.Issues.Count(x => x.Severity == ExtractionIssueSeverity.Warning);
-        var errors = result.Issues.Count(x => x.Severity == ExtractionIssueSeverity.Error);
-        ResultStatsText.Text =
-            $"ファイル: {result.ExtractedFileCount} 件（スキップ {result.SkippedFileCount} 件）" +
-            (warnings + errors > 0 ? $"／警告 {warnings} 件・エラー {errors} 件" : string.Empty);
-
-        BuildIssueList(result);
-
-        ResultPanel.Visibility = Visibility.Visible;
         CancelButton.Visibility = Visibility.Collapsed;
         CloseButton.Visibility = Visibility.Visible;
         OpenFolderButton.Visibility = Directory.Exists(result.DestinationPath)
@@ -238,53 +275,20 @@ public sealed partial class ProgressWindow : Window
         }
     }
 
-    private void BuildIssueList(ExtractionResult result)
-    {
-        IssuesPanel.Children.Clear();
-
-        if (result.Issues.Count == 0)
-        {
-            IssuesExpander.Visibility = Visibility.Collapsed;
-            return;
-        }
-
-        IssuesExpander.Visibility = Visibility.Visible;
-        IssuesExpander.Header = $"警告・エラー ({result.Issues.Count})";
-        IssuesExpander.IsExpanded = result.HasErrors;
-
-        foreach (var issue in result.Issues)
-        {
-            var label = issue.Severity == ExtractionIssueSeverity.Error ? "エラー" : "警告";
-            var text = string.IsNullOrEmpty(issue.EntryPath)
-                ? $"[{label}] {issue.Message}"
-                : $"[{label}] {issue.EntryPath}{Environment.NewLine}{issue.Message}";
-
-            IssuesPanel.Children.Add(new TextBlock
-            {
-                Text = text,
-                TextWrapping = TextWrapping.Wrap,
-                Foreground = (Brush)Application.Current.Resources[
-                    issue.Severity == ExtractionIssueSeverity.Error
-                        ? "SystemFillColorCriticalBrush"
-                        : "SystemFillColorCautionBrush"],
-            });
-        }
-    }
-
     private Task<OverwriteDecision> ResolveOverwriteAsync(
         OverwriteConflict conflict,
         CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
         {
-            return Task.FromResult(OverwriteDecision.Skip);
+            return Task.FromResult(OverwriteDecision.Cancel);
         }
 
         return RunOnUiThreadAsync(async () =>
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                return OverwriteDecision.Skip;
+                return OverwriteDecision.Cancel;
             }
 
             if (_applyToAllDecision is { } preset)
@@ -302,6 +306,45 @@ public sealed partial class ProgressWindow : Window
             if (applyToAll)
             {
                 _applyToAllDecision = decision;
+            }
+
+            return decision;
+        });
+    }
+
+    private Task<FolderCollisionDecision> ResolveFolderCollisionAsync(
+        FolderCollisionConflict conflict,
+        CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromResult(FolderCollisionDecision.Cancel);
+        }
+
+        return RunOnUiThreadAsync(async () =>
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return FolderCollisionDecision.Cancel;
+            }
+
+            var xamlRoot = RootGrid.XamlRoot;
+            if (xamlRoot is null)
+            {
+                return FolderCollisionDecision.AutoRename;
+            }
+
+            var (decision, saveAsDefault) = await FolderCollisionDialog.ShowAsync(xamlRoot, conflict);
+            if (saveAsDefault)
+            {
+                var settings = SettingsService.Load();
+                settings.FolderCollisionPolicy = decision switch
+                {
+                    FolderCollisionDecision.Merge => FolderCollisionPolicy.Merge,
+                    FolderCollisionDecision.AutoRename => FolderCollisionPolicy.AutoRename,
+                    _ => FolderCollisionPolicy.Ask,
+                };
+                SettingsService.Save(settings);
             }
 
             return decision;
@@ -400,8 +443,10 @@ public sealed partial class ProgressWindow : Window
 
         _cancellation.Cancel();
         CancelButton.IsEnabled = false;
-        StatusTitle.Text = "キャンセルしています...";
+        StatusText.Text = "キャンセルしています…";
         CurrentFileText.Text = " ";
+        FileProgressBar.IsIndeterminate = false;
+        FileProgressBar.Value = 0;
     }
 
     private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)

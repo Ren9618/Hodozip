@@ -47,7 +47,11 @@ public sealed partial class MainWindow : Window
                 SuggestedStartLocation = PickerLocationId.Downloads,
                 ViewMode = PickerViewMode.List,
             };
-            picker.FileTypeFilter.Add(".zip");
+
+            foreach (var extension in GetPickerExtensions())
+            {
+                picker.FileTypeFilter.Add(extension);
+            }
 
             InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(this));
 
@@ -98,7 +102,7 @@ public sealed partial class MainWindow : Window
         {
             if (!e.DataView.Contains(StandardDataFormats.StorageItems))
             {
-                ShowMessage(InfoBarSeverity.Warning, "ZIP ファイルではありません", "ファイルをドロップしてください。");
+                ShowMessage(InfoBarSeverity.Warning, "アーカイブではありません", "ファイルをドロップしてください。");
                 return;
             }
 
@@ -106,32 +110,32 @@ public sealed partial class MainWindow : Window
             var files = items.OfType<StorageFile>().ToList();
             if (files.Count == 0)
             {
-                ShowMessage(InfoBarSeverity.Warning, "ZIP ファイルではありません", "ファイルをドロップしてください。");
+                ShowMessage(InfoBarSeverity.Warning, "アーカイブではありません", "ファイルをドロップしてください。");
                 return;
             }
 
-            var zipFiles = files
-                .Where(x => string.Equals(Path.GetExtension(x.Name), ".zip", StringComparison.OrdinalIgnoreCase))
+            var archiveFiles = files
+                .Where(x => ArchiveFormats.IsSupportedArchive(x.Path))
                 .ToList();
 
-            if (zipFiles.Count == 0)
+            if (archiveFiles.Count == 0)
             {
                 ShowMessage(
                     InfoBarSeverity.Warning,
-                    "ZIP ファイルではありません",
-                    "Phase 1 で解凍できるのは ZIP ファイルだけです。");
+                    "対応していない形式です",
+                    "ZIP / 7z / RAR / TAR / GZ / BZ2 / XZ / ZST などのアーカイブをドロップしてください。");
                 return;
             }
 
-            if (zipFiles.Count > 1)
+            if (archiveFiles.Count > 1)
             {
                 ShowMessage(
                     InfoBarSeverity.Informational,
-                    "複数の ZIP がドロップされました",
+                    "複数のアーカイブがドロップされました",
                     "最初の 1 つを解凍します。残りは 1 つずつドロップしてください。");
             }
 
-            BeginExtraction(zipFiles[0].Path);
+            BeginExtraction(archiveFiles[0].Path);
         }
         catch (Exception ex)
         {
@@ -147,12 +151,12 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        if (!string.Equals(Path.GetExtension(archivePath), ".zip", StringComparison.OrdinalIgnoreCase))
+        if (!ArchiveFormats.IsSupportedArchive(archivePath))
         {
             ShowMessage(
                 InfoBarSeverity.Warning,
-                "ZIP ファイルではありません",
-                "Phase 1 で解凍できるのは ZIP ファイルだけです。");
+                "対応していない形式です",
+                "ZIP / 7z / RAR / TAR / GZ / BZ2 / XZ / ZST などのアーカイブを指定してください。");
             return;
         }
 
@@ -267,5 +271,15 @@ public sealed partial class MainWindow : Window
         StatusInfoBar.Title = title;
         StatusInfoBar.Message = message;
         StatusInfoBar.IsOpen = true;
+    }
+
+    private static IEnumerable<string> GetPickerExtensions()
+    {
+        return ArchiveFormats.SupportedExtensions
+            .Select(x => Path.GetExtension(x))
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x!)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase);
     }
 }

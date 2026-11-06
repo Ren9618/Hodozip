@@ -17,7 +17,7 @@
                 Text="Hodozip" />
             <TextBlock
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="ZIP を、ほどく。ドラッグ＆ドロップですぐに解凍できます。" />
+                Text="アーカイブを、ほどく。ドラッグ＆ドロップですぐに解凍できます。" />
         </StackPanel>
 
         <ScrollViewer
@@ -54,16 +54,16 @@
                             <TextBlock
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
-                                FontSize="24"
+                                FontSize="20"
                                 FontWeight="Bold"
                                 Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                                Text="ZIP" />
+                                Text="ZIP/7z" />
                         </Border>
                         <TextBlock
                             HorizontalAlignment="Center"
                             FontSize="21"
                             FontWeight="SemiBold"
-                            Text="ZIP ファイルをここにドロップ" />
+                            Text="アーカイブをここにドロップ" />
                         <TextBlock
                             HorizontalAlignment="Center"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -85,7 +85,7 @@
                 <TextBlock
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="単一フォルダのアーカイブは二重フォルダにせず、散らばったファイルはアーカイブ名のフォルダへ解凍します。"
+                    Text="ZIP / 7z / RAR / TAR / TAR.GZ / TAR.BZ2 / TAR.XZ / TAR.ZST / GZ / BZ2 / XZ / ZST に対応しています。単一フォルダのアーカイブは二重フォルダにせず、散らばったファイルはアーカイブ名のフォルダへ解凍します。"
                     TextWrapping="Wrap" />
 
                 <Border

@@ -28,6 +28,11 @@
                 MaxWidth="680"
                 HorizontalAlignment="Center"
                 Spacing="16">
+                <InfoBar
+                    x:Name="SettingsInfoBar"
+                    IsClosable="True"
+                    IsOpen="False" />
+
                 <Border
                     Padding="22"
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -50,10 +55,73 @@
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="Phase 1 では「アーカイブと同じ場所」に固定されています。"
+                                Text="アーカイブの内容に応じて、解凍先フォルダを自動判定します。"
                                 TextWrapping="Wrap" />
                         </StackPanel>
 
+                        <StackPanel Spacing="6">
+                            <TextBlock
+                                Style="{StaticResource BodyStrongTextBlockStyle}"
+                                Text="解凍先フォルダが既に存在するとき" />
+                            <ComboBox
+                                x:Name="FolderCollisionComboBox"
+                                HorizontalAlignment="Stretch">
+                                <ComboBoxItem
+                                    Content="毎回確認する"
+                                    Tag="Ask" />
+                                <ComboBoxItem
+                                    Content="既存のフォルダに解凍する"
+                                    Tag="Merge" />
+                                <ComboBoxItem
+                                    Content="新しいフォルダを作成する（連番）"
+                                    Tag="AutoRename" />
+                            </ComboBox>
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="「毎回確認する」では、解凍開始前に既存フォルダへ統合するか、連番の新しいフォルダを作るかを選べます。"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock
+                                Style="{StaticResource BodyStrongTextBlockStyle}"
+                                Text="同名ファイルが既に存在するとき" />
+                            <ComboBox
+                                x:Name="OverwritePolicyComboBox"
+                                HorizontalAlignment="Stretch">
+                                <ComboBoxItem
+                                    Content="毎回確認する"
+                                    Tag="Ask" />
+                                <ComboBoxItem
+                                    Content="常に上書きする"
+                                    Tag="Overwrite" />
+                                <ComboBoxItem
+                                    Content="常にスキップする"
+                                    Tag="Skip" />
+                                <ComboBoxItem
+                                    Content="名前を変えて保存する"
+                                    Tag="AutoRename" />
+                            </ComboBox>
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="「毎回確認する」では、新旧のサイズと更新日時を比較する上書き確認ダイアログを表示します。"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Padding="22"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                    <StackPanel Spacing="16">
+                        <TextBlock
+                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                            Text="動作" />
                         <ToggleSwitch
                             x:Name="OpenFolderToggle"
                             Header="解凍完了後にフォルダを開く"
@@ -69,9 +137,37 @@
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="ZIP の関連付けやコマンドラインから起動した場合に適用されます。エラー時は閉じません。"
+                                Text="関連付けやコマンドラインから起動した場合に適用されます。エラー時は閉じません。"
                                 TextWrapping="Wrap" />
                         </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Padding="22"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                    <StackPanel Spacing="8">
+                        <TextBlock
+                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                            Text="従来型コンテキストメニュー" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="Windows 10 形式の右クリックメニュー（Windows 11 では「その他のオプションを表示」側）に「Hodozip で解凍」を追加します。unpackaged 版のみ利用できます。"
+                            TextWrapping="Wrap" />
+                        <ToggleSwitch
+                            x:Name="LegacyContextMenuToggle"
+                            Header="従来型コンテキストメニューに登録する"
+                            OffContent="解除"
+                            OnContent="登録"
+                            Toggled="LegacyContextMenuToggle_Toggled" />
+                        <TextBlock
+                            x:Name="LegacyContextMenuStatusText"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
 

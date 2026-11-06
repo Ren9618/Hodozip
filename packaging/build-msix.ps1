@@ -204,6 +204,9 @@ if (-not (Test-Path $comDll)) {
     throw "COM DLL が見つかりません: $comDll"
 }
 
+# unpackaged zip 版でも従来型メニューを登録できるよう、publish 出力へ同梱する。
+Copy-Item -LiteralPath $comDll -Destination (Join-Path $publishDirectory 'Hodozip.ContextMenu.dll') -Force
+
 Write-Host ''
 Write-Host '=== MSIX ステージング ==='
 Remove-Item -LiteralPath $stagingDirectory -Recurse -Force -ErrorAction SilentlyContinue
