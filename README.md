@@ -11,17 +11,18 @@ Hodozip（ホドジップ）は、往年の解凍ソフトの使い勝手を現�
 - ライセンス: MIT
 - 対応 OS: Windows 11（主対象）/ Windows 10 バージョン 19041 以降
 - 実装: C# / .NET 8 / WinUI 3（Windows App SDK）
-- 配布形態: インストール不要の unpackaged zip 版と、ファイル関連付け・右クリックメニューに対応する MSIX 版
+- 配布形態: インストーラー（setup.exe）、インストール不要の unpackaged zip 版、ファイル関連付け・右クリックメニューに対応する MSIX 版
 
 ## ダウンロード
 
 [GitHub Releases](https://github.com/Ren9618/Hodozip/releases) から最新版をダウンロードできます。
 
 - 最新版: [Hodozip v0.4.0](https://github.com/Ren9618/Hodozip/releases/tag/v0.4.0)
+- `Hodozip-0.4.0-setup.exe`（インストーラー版・推奨）: 管理者権限不要で、ユーザーごとの `%LOCALAPPDATA%\Programs\Hodozip` にインストールします。スタートメニューのショートカットを作成し、任意で従来型右クリックメニューと「プログラムから開く」への登録を行います。手順は [インストーラー版のインストール](#インストーラー版のインストール推奨) を参照してください。
 - `Hodozip-0.4.0-win-x64.zip`（unpackaged 版）: 解凍して `Hodozip.exe` を起動するだけで使えます。インストールは不要です。
 - `Hodozip-0.4.0.msix`（MSIX 版・実験的）: 対応アーカイブの関連付け候補と Windows 11 の右クリックメニューが登録されます。自己署名証明書を使うため、インストール前に証明書の登録が必要です。手順は [MSIX 版のインストール](#msix-版のインストール上級者向け実験的) を参照してください。
 
-unpackaged 版の注意: 本バージョンは未署名のため、Windows SmartScreen の警告が表示される場合があります。「詳細情報」→「実行」で起動できます。
+インストーラーと unpackaged 版の注意: 本バージョンは未署名のため、Windows SmartScreen の警告が表示される場合があります。「詳細情報」→「実行」で起動できます。
 
 unpackaged 版にも `Hodozip.ContextMenu.dll` が同梱されています。設定画面のトグル、またはコマンドラインから従来型コンテキストメニューを登録できます。
 
@@ -297,6 +298,22 @@ ZipCrypto / AES のパスワード付き ZIP と、パスワード付き 7z に�
 
 アーカイブと同じフォルダへ、指定したモードに従って解凍します。「設定」で「ダブルクリック起動時の完了後、自動で閉じる」を有効にすると、コマンドライン起動時は完了後に自動で終了します（エラー時は閉じません）。
 
+## インストーラー版のインストール（推奨）
+
+`Hodozip-0.4.0-setup.exe` は Inno Setup で作成したインストーラーです。管理者権限は不要で、現在のユーザー向けにインストールします。
+
+1. `Hodozip-0.4.0-setup.exe` をダウンロードして実行します。未署名のため、Windows SmartScreen の警告が表示された場合は「詳細情報」→「実行」を選びます。
+2. インストール先は `%LOCALAPPDATA%\Programs\Hodozip` 固定です。インストール先の選択画面は表示されません。
+3. 「シェル統合」で以下の項目を選択できます（いずれも任意、既定でチェック済み）。
+   - 従来型の右クリックメニューを登録する（このユーザーのみ）
+   - 対応アーカイブを「プログラムから開く」に追加する
+4. 「デスクトップにアイコンを作成する」は既定でオフです。
+5. インストール後、スタートメニューに「Hodozip」が表示されます。
+
+インストーラーは対応拡張子を「プログラムから開く」の候補に追加するだけで、既定のアプリは変更しません。既定にするには、Windows の「設定」→「アプリ」→「既定のアプリ」で Hodozip を選ぶか、ファイルを右クリック →「プログラムから開く」→「別のプログラムを選択」→「Hodozip」→「常にこのアプリを使ってファイルを開く」を選びます。
+
+アンインストールは「設定」→「アプリ」→「インストールされているアプリ」から Hodozip を選びます。ユーザー設定（`%LOCALAPPDATA%\Hodozip\settings.json`）は残ります。
+
 ## MSIX 版のインストール（上級者向け・実験的）
 
 MSIX 版は実験的配布です。署名にはローカルテスト用の自己署名証明書（`CN=Ren9618`）を使っており、Microsoft Store の審査を通った証明書ではありません。以下の操作は自己責任で行ってください。
@@ -365,6 +382,7 @@ certutil -delstore TrustedPeople 09F6216808D67CCAF8686609F375EC7BFF837284
 - .NET SDK 8.0 以降（`net8.0` のビルドが可能なこと）
 - Visual Studio 2022 以降または Build Tools（WinUI 3 / Windows App SDK / C++ のビルド環境）
 - MSIX を作る場合は Windows 10/11 SDK（`makeappx.exe` / `signtool.exe`）
+- インストーラーを作る場合は Inno Setup 6.7 以降（`ISCC.exe`）
 - x64
 
 ### アプリのビルド
@@ -402,6 +420,20 @@ Compress-Archive -Path publish\Hodozip -DestinationPath Hodozip-0.4.0-win-x64.zi
 ```
 
 zip のトップレベルには `Hodozip` フォルダが 1 つだけ入ります。
+
+### インストーラーのビルド
+
+Inno Setup 6 がインストールされている状態で、以下を実行します。
+
+```powershell
+pwsh -File packaging\build-installer.ps1
+```
+
+スクリプトは publish、COM DLL のビルド、インストーラー用アイコンの生成、Inno Setup のコンパイルをまとめて行います。出力は `artifacts\installer\Hodozip-0.4.0-setup.exe` と、その SHA256 ファイルです。
+
+- `-SkipPublish` / `-SkipComBuild` を指定すると、既存の publish 出力や COM DLL を再利用できます。
+- `-InnoCompilerPath` で `ISCC.exe` の場所を明示できます（既定ではユーザー単位インストールの Inno Setup 6 を探します）。
+- インストーラーは `packaging\Hodozip.iss` で定義しています。インストール先、任意タスク、レジストリ登録はこのファイルで変更できます。
 
 ### MSIX のビルド
 
@@ -533,6 +565,25 @@ pwsh -File tests\e2e\run-contextmenu-e2e.ps1
 - `4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01`（Hodozip で解凍）
 - `4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02`（Hodozip でフォルダに解凍）
 - `4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03`（unpackaged 版の従来型メニュー）
+
+### インストーラーのインストール検証
+
+ビルドしたインストーラーを実際にインストールし、登録内容とアンインストール後の後始末を確認します。
+
+```powershell
+# インストール（右クリックメニューと「プログラムから開く」を有効化）
+Start-Process artifacts\installer\Hodozip-0.4.0-setup.exe -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/TASKS="contextmenu,associate"' -Wait
+
+# 登録の確認
+Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\App Paths\Hodozip.exe'
+Get-ItemProperty 'HKCU:\Software\Classes\.zip\OpenWithProgids' -Name 'Hodozip.Archive'
+Get-ItemProperty 'HKCU:\Software\Classes\CLSID\{4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03}\InprocServer32'
+
+# アンインストール（%LOCALAPPDATA%\Programs\Hodozip\unins000.exe）
+& "$env:LOCALAPPDATA\Programs\Hodozip\unins000.exe" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+```
+
+アンインストール後、インストール先フォルダー、`Hodozip.Archive` ProgID、`OpenWithProgids` の値、App Paths、スタートメニューのショートカット、従来型メニューの CLSID / ハンドラーが削除されることを確認します。`%LOCALAPPDATA%\Hodozip\settings.json` は残ります。
 
 ## プロジェクト構成
 

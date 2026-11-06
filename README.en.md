@@ -11,17 +11,18 @@ Hodozip is a free, open-source archive extractor for Windows that carries the us
 - License: MIT
 - Supported OS: Windows 11 (primary) / Windows 10 version 19041 or later
 - Implementation: C# / .NET 8 / WinUI 3 (Windows App SDK)
-- Distribution: a portable unpackaged zip and an MSIX package with file associations and context-menu integration
+- Distribution: an installer (setup.exe), a portable unpackaged zip, and an MSIX package with file associations and context-menu integration
 
 ## Download
 
 Download the latest release from [GitHub Releases](https://github.com/Ren9618/Hodozip/releases).
 
 - Latest: [Hodozip v0.4.0](https://github.com/Ren9618/Hodozip/releases/tag/v0.4.0)
+- `Hodozip-0.4.0-setup.exe` (installer, recommended): installs per user into `%LOCALAPPDATA%\Programs\Hodozip` without administrator rights. It creates a Start menu shortcut and optionally registers the legacy context menu and "Open with" candidates. See [Installer installation](#installer-installation-recommended).
 - `Hodozip-0.4.0-win-x64.zip` (unpackaged): unzip it and run `Hodozip.exe`. No installation is required.
 - `Hodozip-0.4.0.msix` (MSIX, experimental): registers Hodozip as a candidate for supported archive types and adds Windows 11 context-menu entries. It uses a self-signed certificate, so the certificate must be trusted before installation. See [MSIX installation](#msix-installation-advanced-experimental).
 
-Note for the unpackaged build: it is unsigned, so Windows SmartScreen may show a warning. Choose "More info" → "Run" to start it.
+Note for the installer and unpackaged build: they are unsigned, so Windows SmartScreen may show a warning. Choose "More info" → "Run" to start them.
 
 The unpackaged build also includes `Hodozip.ContextMenu.dll`. You can register the legacy context menu from the Settings window or from the command line.
 
@@ -297,6 +298,22 @@ There is no telemetry. The application itself does not communicate over the netw
 
 Hodozip extracts next to the archive according to the selected mode. If "Close automatically after command-line extraction" is enabled in Settings, the app exits after completion when launched from the command line (it stays open on errors).
 
+## Installer installation (recommended)
+
+`Hodozip-0.4.0-setup.exe` is an Inno Setup installer. It does not require administrator rights and installs for the current user.
+
+1. Download and run `Hodozip-0.4.0-setup.exe`. It is unsigned; if Windows SmartScreen shows a warning, choose "More info" → "Run".
+2. The install location is fixed to `%LOCALAPPDATA%\Programs\Hodozip`; no directory page is shown.
+3. Under "Shell integration" you can optionally enable (both are checked by default):
+   - Register the classic right-click menu (current user only)
+   - Add supported archives to "Open with"
+4. "Create a desktop icon" is off by default.
+5. After installation, "Hodozip" appears in the Start menu.
+
+The installer only adds Hodozip to the "Open with" candidates; it does not change the default app. To make it the default, open Windows Settings → Apps → Default apps and choose Hodozip, or right-click a file → "Open with" → "Choose another app" → "Hodozip" → "Always use this app to open these files".
+
+To uninstall, open Settings → Apps → Installed apps and select Hodozip. User settings (`%LOCALAPPDATA%\Hodozip\settings.json`) are preserved.
+
 ## MSIX installation (advanced, experimental)
 
 The MSIX build is experimental. It is signed with a local test self-signed certificate (`CN=Ren9618`), not a certificate reviewed by the Microsoft Store. Proceed at your own risk.
@@ -365,6 +382,7 @@ certutil -delstore TrustedPeople 09F6216808D67CCAF8686609F375EC7BFF837284
 - .NET SDK 8.0 or later (able to build `net8.0`)
 - Visual Studio 2022 or later, or Build Tools (WinUI 3 / Windows App SDK / C++ build environment)
 - Windows 10/11 SDK (`makeappx.exe` / `signtool.exe`) to build the MSIX
+- Inno Setup 6.7 or later (`ISCC.exe`) to build the installer
 - x64
 
 ### Build the app
@@ -402,6 +420,20 @@ Compress-Archive -Path publish\Hodozip -DestinationPath Hodozip-0.4.0-win-x64.zi
 ```
 
 The zip contains exactly one top-level `Hodozip` folder.
+
+### Build the installer
+
+With Inno Setup 6 installed, run:
+
+```powershell
+pwsh -File packaging\build-installer.ps1
+```
+
+The script publishes the app, builds the COM DLL, generates the installer icon, and compiles the Inno Setup script. The output is `artifacts\installer\Hodozip-0.4.0-setup.exe` plus its SHA256 file.
+
+- `-SkipPublish` / `-SkipComBuild` reuse an existing publish output or COM DLL.
+- `-InnoCompilerPath` specifies the location of `ISCC.exe` (by default the per-user Inno Setup 6 installation is used).
+- The installer is defined in `packaging\Hodozip.iss`. Change the install location, optional tasks, and registry entries there.
 
 ### Build the MSIX
 
@@ -533,6 +565,25 @@ Context-menu COM registration can be checked under `HKLM\SOFTWARE\Classes\Packag
 - `4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01` (Extract with Hodozip)
 - `4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02` (Extract to folder with Hodozip)
 - `4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03` (legacy menu in the unpackaged build)
+
+### Installer installation validation
+
+Install the built installer and verify the registrations and cleanup after uninstallation.
+
+```powershell
+# Install (enable the legacy menu and "Open with" candidates)
+Start-Process artifacts\installer\Hodozip-0.4.0-setup.exe -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/TASKS="contextmenu,associate"' -Wait
+
+# Check the registrations
+Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\App Paths\Hodozip.exe'
+Get-ItemProperty 'HKCU:\Software\Classes\.zip\OpenWithProgids' -Name 'Hodozip.Archive'
+Get-ItemProperty 'HKCU:\Software\Classes\CLSID\{4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03}\InprocServer32'
+
+# Uninstall (%LOCALAPPDATA%\Programs\Hodozip\unins000.exe)
+& "$env:LOCALAPPDATA\Programs\Hodozip\unins000.exe" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+```
+
+After uninstallation, confirm that the install folder, the `Hodozip.Archive` ProgID, the `OpenWithProgids` values, App Paths, the Start menu shortcut, and the legacy menu CLSID / handlers are removed. `%LOCALAPPDATA%\Hodozip\settings.json` remains.
 
 ## Project structure
 
