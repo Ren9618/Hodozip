@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Hodozip MSIX manifest template.
+
+  {{PACKAGE_VERSION}} is replaced by packaging/build-msix.ps1 from
+  Directory.Build.props (HodozipPackageVersion). Keep the package identity and
+  Publisher in sync with the test certificate subject (CN=Ren9618).
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
+  xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap desktop4 com rescap">
+
+  <Identity
+    Name="Ren9618.Hodozip"
+    Publisher="CN=Ren9618"
+    Version="{{PACKAGE_VERSION}}"
+    ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>Hodozip</DisplayName>
+    <PublisherDisplayName>Ren9618</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily
+      Name="Windows.Desktop"
+      MinVersion="10.0.19041.0"
+      MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="ja-JP" />
+  </Resources>
+
+  <Applications>
+    <Application
+      Id="Hodozip"
+      Executable="Hodozip.exe"
+      EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="Hodozip"
+        Description="ZIP を、ほどく。Windows 向け無料・オープンソース ZIP 解凍ソフト"
+        BackgroundColor="#1450A8"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png"
+        AppListEntry="default">
+        <uap:DefaultTile
+          Wide310x150Logo="Assets\Wide310x150Logo.png"
+          Square71x71Logo="Assets\Square71x71Logo.png"
+          Square310x310Logo="Assets\Square310x310Logo.png" />
+        <uap:SplashScreen
+          Image="Assets\SplashScreen.png"
+          BackgroundColor="#1450A8" />
+      </uap:VisualElements>
+
+      <Extensions>
+        <!--
+          .zip の関連付け。Windows 11 ではユーザーが「既定のアプリ」で
+          Hodozip を選ぶまで既定にはならない。ここでは候補として登録する。
+        -->
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap:FileTypeAssociation Name="hodozip-zip">
+            <uap:DisplayName>ZIP アーカイブ</uap:DisplayName>
+            <uap:Logo>Assets\ZipFileLogo.png</uap:Logo>
+            <uap:SupportedFileTypes>
+              <uap:FileType>.zip</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap:FileTypeAssociation>
+        </uap:Extension>
+
+        <!--
+          Windows 11 のコンテキストメニュー用 COM サーバー。
+          DLL は dllhost.exe のサロゲート内で読み込まれ、IExplorerCommand の
+          Invoke から Hodozip.exe を起動するだけ。解凍処理は持たない。
+        -->
+        <com:Extension Category="windows.comServer">
+          <com:ComServer>
+            <com:SurrogateServer
+              AppId="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C00"
+              DisplayName="Hodozip Context Menu">
+              <com:Class
+                Id="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01"
+                Path="Hodozip.ContextMenu.dll"
+                ThreadingModel="STA" />
+              <com:Class
+                Id="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02"
+                Path="Hodozip.ContextMenu.dll"
+                ThreadingModel="STA" />
+            </com:SurrogateServer>
+          </com:ComServer>
+        </com:Extension>
+
+        <desktop4:Extension Category="windows.fileExplorerContextMenus">
+          <desktop4:FileExplorerContextMenus>
+            <desktop4:ItemType Type=".zip">
+              <desktop4:Verb
+                Id="HodozipExtractHere"
+                Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />
+              <desktop4:Verb
+                Id="HodozipExtractFolder"
+                Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02" />
+            </desktop4:ItemType>
+          </desktop4:FileExplorerContextMenus>
+        </desktop4:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>

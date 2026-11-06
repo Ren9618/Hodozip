@@ -90,6 +90,70 @@ public sealed class ExtractionTests : IDisposable
     }
 
     [Fact]
+    public async Task ForceArchiveFolder_SingleFileZip_CreatesArchiveFolder()
+    {
+        var archiveDirectory = Path.Combine(_root, "archives");
+        var destination = Path.Combine(_root, "dest");
+        var archive = ZipFactory.Create(archiveDirectory, "single.zip", ("hello.txt", "hello"));
+
+        var result = await ExtractAsync(
+            archive,
+            destination,
+            new ExtractionOptions(),
+            ExtractionDestinationMode.ForceArchiveFolder);
+
+        Assert.True(result.Success);
+        Assert.Equal(Path.Combine(destination, "single"), result.DestinationPath);
+        Assert.Equal("hello", await File.ReadAllTextAsync(Path.Combine(destination, "single", "hello.txt")));
+        Assert.False(File.Exists(Path.Combine(destination, "hello.txt")));
+    }
+
+    [Fact]
+    public async Task ForceArchiveFolder_SingleTopFolderZip_KeepsArchiveFolder()
+    {
+        var archiveDirectory = Path.Combine(_root, "archives");
+        var destination = Path.Combine(_root, "dest");
+        var archive = ZipFactory.Create(
+            archiveDirectory,
+            "folder.zip",
+            ("Top/a.txt", "A"),
+            ("Top/sub/b.txt", "B"));
+
+        var result = await ExtractAsync(
+            archive,
+            destination,
+            new ExtractionOptions(),
+            ExtractionDestinationMode.ForceArchiveFolder);
+
+        Assert.True(result.Success);
+        Assert.Equal(Path.Combine(destination, "folder"), result.DestinationPath);
+        Assert.Equal("A", await File.ReadAllTextAsync(Path.Combine(destination, "folder", "Top", "a.txt")));
+        Assert.Equal("B", await File.ReadAllTextAsync(Path.Combine(destination, "folder", "Top", "sub", "b.txt")));
+        Assert.False(Directory.Exists(Path.Combine(destination, "Top")));
+        Assert.False(Directory.Exists(Path.Combine(destination, "folder", "folder")));
+    }
+
+    [Fact]
+    public async Task ForceArchiveFolder_ExistingArchiveFolder_GetsNumberedSuffix()
+    {
+        var archiveDirectory = Path.Combine(_root, "archives");
+        var destination = Path.Combine(_root, "dest");
+        Directory.CreateDirectory(Path.Combine(destination, "folder"));
+
+        var archive = ZipFactory.Create(archiveDirectory, "folder.zip", ("Top/a.txt", "A"));
+
+        var result = await ExtractAsync(
+            archive,
+            destination,
+            new ExtractionOptions(),
+            ExtractionDestinationMode.ForceArchiveFolder);
+
+        Assert.True(result.Success);
+        Assert.Equal(Path.Combine(destination, "folder (2)"), result.DestinationPath);
+        Assert.Equal("A", await File.ReadAllTextAsync(Path.Combine(destination, "folder (2)", "Top", "a.txt")));
+    }
+
+    [Fact]
     public async Task MultipleTopFolders_AreTreatedAsScattered()
     {
         var archiveDirectory = Path.Combine(_root, "archives");
@@ -446,10 +510,11 @@ public sealed class ExtractionTests : IDisposable
     private static async Task<ExtractionResult> ExtractAsync(
         string archivePath,
         string destination,
-        ExtractionOptions? options = null)
+        ExtractionOptions? options = null,
+        ExtractionDestinationMode destinationMode = ExtractionDestinationMode.Auto)
     {
         return await new SharpCompressExtractor().ExtractAsync(
-            new ExtractionRequest(archivePath, destination, options));
+            new ExtractionRequest(archivePath, destination, options, destinationMode));
     }
 
     private async Task<string> PrepareExistingFile()

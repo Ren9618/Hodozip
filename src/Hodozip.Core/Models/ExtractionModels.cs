@@ -18,6 +18,16 @@ public enum ExtractionIssueKind
     Cancelled,
 }
 
+/// <summary>解凍先フォルダの決定方法。</summary>
+public enum ExtractionDestinationMode
+{
+    /// <summary>ZIP の内容から自動判定する（Phase 1 と同じ）。</summary>
+    Auto,
+
+    /// <summary>常にアーカイブ名のフォルダを作成し、その中へ解凍する。</summary>
+    ForceArchiveFolder,
+}
+
 /// <summary>解凍中に検出した警告・エラー。</summary>
 public sealed record ExtractionIssue(
     ExtractionIssueSeverity Severity,
@@ -70,11 +80,16 @@ public sealed class ExtractionOptions
 /// <summary>1 回の解凍要求。</summary>
 public sealed class ExtractionRequest
 {
-    public ExtractionRequest(string archivePath, string? destinationDirectory, ExtractionOptions? options = null)
+    public ExtractionRequest(
+        string archivePath,
+        string? destinationDirectory,
+        ExtractionOptions? options = null,
+        ExtractionDestinationMode destinationMode = ExtractionDestinationMode.Auto)
     {
         ArchivePath = archivePath;
         DestinationDirectory = destinationDirectory;
         Options = options ?? new ExtractionOptions();
+        DestinationMode = destinationMode;
     }
 
     public string ArchivePath { get; }
@@ -83,6 +98,9 @@ public sealed class ExtractionRequest
     public string? DestinationDirectory { get; }
 
     public ExtractionOptions Options { get; }
+
+    /// <summary>解凍先フォルダの決定方法。</summary>
+    public ExtractionDestinationMode DestinationMode { get; }
 }
 
 /// <summary>解凍結果。</summary>

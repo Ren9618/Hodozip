@@ -37,8 +37,24 @@ internal sealed record DestinationPlan(
 
 internal static class DestinationPlanner
 {
-    public static DestinationPlan Create(string baseDirectory, string archivePath, IReadOnlyList<EntryPathInfo> entries)
+    public static DestinationPlan Create(
+        string baseDirectory,
+        string archivePath,
+        IReadOnlyList<EntryPathInfo> entries,
+        ExtractionDestinationMode mode = ExtractionDestinationMode.Auto)
     {
+        if (mode == ExtractionDestinationMode.ForceArchiveFolder)
+        {
+            var archiveName = GetArchiveFolderName(archivePath);
+            var forcedRoot = GetUniqueDirectoryPath(baseDirectory, archiveName);
+            return new DestinationPlan(
+                DestinationLayout.Scattered,
+                baseDirectory,
+                forcedRoot,
+                TopFolderName: null,
+                CreateOutputRoot: true);
+        }
+
         var fileEntries = entries.Where(x => !x.IsDirectory).ToList();
 
         // 単一ファイルのみ: フォルダを作らず基準フォルダへそのまま出す。
@@ -76,20 +92,24 @@ internal static class DestinationPlanner
         }
 
         // バラバラ: アーカイブ名（拡張子なし）のフォルダを作る。
-        var archiveName = Path.GetFileNameWithoutExtension(archivePath);
-        if (string.IsNullOrWhiteSpace(archiveName))
-        {
-            archiveName = "Hodozip";
-        }
-
-        var sanitized = PathSanitizer.Sanitize(archiveName).RelativePath;
-        var scatteredRoot = GetUniqueDirectoryPath(baseDirectory, sanitized);
+        var scatteredRoot = GetUniqueDirectoryPath(baseDirectory, GetArchiveFolderName(archivePath));
         return new DestinationPlan(
             DestinationLayout.Scattered,
             baseDirectory,
             scatteredRoot,
             TopFolderName: null,
             CreateOutputRoot: true);
+    }
+
+    private static string GetArchiveFolderName(string archivePath)
+    {
+        var archiveName = Path.GetFileNameWithoutExtension(archivePath);
+        if (string.IsNullOrWhiteSpace(archiveName))
+        {
+            archiveName = "Hodozip";
+        }
+
+        return PathSanitizer.Sanitize(archiveName).RelativePath;
     }
 
     private static string GetTopSegment(string relativePath)

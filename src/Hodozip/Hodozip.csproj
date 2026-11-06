@@ -15,8 +15,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
-    <ApplicationVersion>1.0.0</ApplicationVersion>
-    <Version>1.0.0</Version>
+    <ApplicationVersion>$(HodozipVersion)</ApplicationVersion>
+    <Version>$(HodozipVersion)</Version>
+    <AssemblyVersion>$(HodozipPackageVersion)</AssemblyVersion>
+    <FileVersion>$(HodozipPackageVersion)</FileVersion>
     <AssemblyName>Hodozip</AssemblyName>
     <Product>Hodozip</Product>
     <Company>Ren9618</Company>

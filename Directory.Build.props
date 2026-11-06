@@ -1,0 +1,11 @@
+<Project>
+  <!--
+    Hodozip のバージョンはこの 1 か所で管理する。
+    アプリの AssemblyVersion / FileVersion と MSIX の Package Version は
+    この値から生成する（例: 0.2.0 -> 0.2.0.0）。
+  -->
+  <PropertyGroup>
+    <HodozipVersion>0.2.0</HodozipVersion>
+    <HodozipPackageVersion>$(HodozipVersion).0</HodozipPackageVersion>
+  </PropertyGroup>
+</Project>

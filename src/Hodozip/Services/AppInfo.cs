@@ -16,7 +16,7 @@ internal static class AppInfo
         {
             var version = Assembly.GetExecutingAssembly().GetName().Version;
             return version is null
-                ? "1.0.0"
+                ? "0.0.0"
                 : $"{version.Major}.{version.Minor}.{version.Build}";
         }
     }

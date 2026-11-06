@@ -228,7 +228,8 @@ public sealed class SharpCompressExtractor : IArchiveExtractor
         var plan = DestinationPlanner.Create(
             baseDirectory,
             archivePath: request.ArchivePath,
-            workItems.Select(x => new EntryPathInfo(x.RelativePath, x.IsDirectory, x.Size)).ToList());
+            workItems.Select(x => new EntryPathInfo(x.RelativePath, x.IsDirectory, x.Size)).ToList(),
+            request.DestinationMode);
 
         try
         {

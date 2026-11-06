@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Hodozip.Core;
 
 namespace Hodozip;
 
@@ -13,12 +14,15 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        var archivePath = GetArchivePathFromCommandLine();
+        var launchRequest = GetLaunchRequestFromCommandLine();
 
-        if (archivePath is not null)
+        if (launchRequest is not null)
         {
             // ZIP の関連付けやダブルクリックから起動された場合: すぐに解凍を開始する。
-            var progressWindow = new ProgressWindow(archivePath, isCommandLine: true);
+            var progressWindow = new ProgressWindow(
+                launchRequest.ArchivePath,
+                isCommandLine: true,
+                launchRequest.DestinationMode);
             _window = progressWindow;
             progressWindow.Closed += (_, _) => Exit();
             progressWindow.Activate();
@@ -31,14 +35,38 @@ public partial class App : Application
         mainWindow.Activate();
     }
 
-    private static string? GetArchivePathFromCommandLine()
+    private static LaunchRequest? GetLaunchRequestFromCommandLine()
     {
         var arguments = Environment.GetCommandLineArgs();
+        var destinationMode = ExtractionDestinationMode.Auto;
+        string? archivePath = null;
 
         for (var index = 1; index < arguments.Length; index++)
         {
             var argument = arguments[index];
-            if (string.IsNullOrWhiteSpace(argument) || argument.StartsWith('-'))
+            if (string.IsNullOrWhiteSpace(argument))
+            {
+                continue;
+            }
+
+            if (string.Equals(argument, "--extract-folder", StringComparison.OrdinalIgnoreCase))
+            {
+                destinationMode = ExtractionDestinationMode.ForceArchiveFolder;
+                continue;
+            }
+
+            if (string.Equals(argument, "--extract-here", StringComparison.OrdinalIgnoreCase))
+            {
+                destinationMode = ExtractionDestinationMode.Auto;
+                continue;
+            }
+
+            if (argument.StartsWith('-'))
+            {
+                continue;
+            }
+
+            if (archivePath is not null)
             {
                 continue;
             }
@@ -48,7 +76,7 @@ public partial class App : Application
                 var fullPath = Path.GetFullPath(argument.Trim('"'));
                 if (File.Exists(fullPath))
                 {
-                    return fullPath;
+                    archivePath = fullPath;
                 }
             }
             catch
@@ -57,6 +85,12 @@ public partial class App : Application
             }
         }
 
-        return null;
+        return archivePath is null
+            ? null
+            : new LaunchRequest(archivePath, destinationMode);
     }
+
+    private sealed record LaunchRequest(
+        string ArchivePath,
+        ExtractionDestinationMode DestinationMode);
 }

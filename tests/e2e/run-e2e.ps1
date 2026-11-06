@@ -1,12 +1,20 @@
-# Hodozip Phase 1 E2E test
+# Hodozip E2E test
 # Usage: pwsh -File tests/e2e/run-e2e.ps1
-# Requires: Release x64 build already produced.
+#        pwsh -File tests/e2e/run-e2e.ps1 -ExePath <publish>\Hodozip.exe
+# Requires: Release x64 build (or publish output) already produced.
+
+param(
+    [string]$ExePath
+)
 
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$exePath = Join-Path $repoRoot 'src\Hodozip\bin\x64\Release\net8.0-windows10.0.19041.0\win-x64\Hodozip.exe'
+if ([string]::IsNullOrWhiteSpace($ExePath)) {
+    $ExePath = Join-Path $repoRoot 'src\Hodozip\bin\x64\Release\net8.0-windows10.0.19041.0\win-x64\Hodozip.exe'
+}
+$exePath = [System.IO.Path]::GetFullPath($ExePath)
 $workRoot = Join-Path $env:TEMP 'HodozipE2E'
 $archives = Join-Path $workRoot 'archives'
 $payload = Join-Path $workRoot 'payload'
@@ -57,8 +65,23 @@ try {
     Set-Content -LiteralPath (Join-Path $scattered 'data\value.txt') -Value 'scattered value' -Encoding utf8
     Compress-Archive -Path (Join-Path $scattered '*') -DestinationPath (Join-Path $archives 'scattered.zip') -CompressionLevel Optimal
 
+    # --extract-here 用の単一フォルダ型: HereRoot/here.txt, HereRoot/sub/here2.txt
+    $hereMode = Join-Path $payload 'here-mode'
+    New-Item -ItemType Directory -Path (Join-Path $hereMode 'HereRoot\sub') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $hereMode 'HereRoot\here.txt') -Value 'extract here' -Encoding utf8
+    Set-Content -LiteralPath (Join-Path $hereMode 'HereRoot\sub\here2.txt') -Value 'extract here 2' -Encoding utf8
+    Compress-Archive -LiteralPath (Join-Path $hereMode 'HereRoot') -DestinationPath (Join-Path $archives 'here-mode.zip') -CompressionLevel Optimal
+
+    # --extract-folder 用の単一フォルダ型: FolderRoot/f.txt
+    $folderMode = Join-Path $payload 'folder-mode'
+    New-Item -ItemType Directory -Path (Join-Path $folderMode 'FolderRoot') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $folderMode 'FolderRoot\f.txt') -Value 'extract folder' -Encoding utf8
+    Compress-Archive -LiteralPath (Join-Path $folderMode 'FolderRoot') -DestinationPath (Join-Path $archives 'folder-mode.zip') -CompressionLevel Optimal
+
     Write-Host "  単一フォルダ型: $(Join-Path $archives 'single-folder.zip')"
     Write-Host "  バラバラ型:     $(Join-Path $archives 'scattered.zip')"
+    Write-Host "  here モード:    $(Join-Path $archives 'here-mode.zip')"
+    Write-Host "  folder モード:  $(Join-Path $archives 'folder-mode.zip')"
 
     Write-Host '=== コマンドライン起動モードの設定 ==='
     New-Item -ItemType Directory -Path $settingsDirectory -Force | Out-Null
@@ -104,7 +127,34 @@ try {
     Write-Host '  出力ファイル一覧:'
     $scatteredContents | ForEach-Object { Write-Host "    $_" }
 
-    Write-Host '=== E2E 3: 引数なし起動でウィンドウ表示 ==='
+    Write-Host '=== E2E 3: --extract-here（単一フォルダ型を二重フォルダにしない） ==='
+    $process = Start-Process -FilePath $exePath -ArgumentList @('--extract-here', ('"' + (Join-Path $archives 'here-mode.zip') + '"')) -PassThru
+    if (-not $process.WaitForExit(30000)) {
+        try { $process.Kill($true) } catch { }
+        throw 'E2E 失敗: --extract-here の解凍が 30 秒以内に完了しませんでした。'
+    }
+    if ($process.ExitCode -ne 0) {
+        throw "E2E 失敗: --extract-here の終了コードが $($process.ExitCode) でした。"
+    }
+    Write-Host "  終了コード: $($process.ExitCode)"
+    Assert-Exists (Join-Path $archives 'HereRoot\here.txt') 'HereRoot\here.txt'
+    Assert-Exists (Join-Path $archives 'HereRoot\sub\here2.txt') 'HereRoot\sub\here2.txt'
+    Assert-NotExists (Join-Path $archives 'here-mode') '--extract-here で作られない here-mode フォルダ'
+
+    Write-Host '=== E2E 4: --extract-folder（単一フォルダ型でもアーカイブ名フォルダを作る） ==='
+    $process = Start-Process -FilePath $exePath -ArgumentList @('--extract-folder', ('"' + (Join-Path $archives 'folder-mode.zip') + '"')) -PassThru
+    if (-not $process.WaitForExit(30000)) {
+        try { $process.Kill($true) } catch { }
+        throw 'E2E 失敗: --extract-folder の解凍が 30 秒以内に完了しませんでした。'
+    }
+    if ($process.ExitCode -ne 0) {
+        throw "E2E 失敗: --extract-folder の終了コードが $($process.ExitCode) でした。"
+    }
+    Write-Host "  終了コード: $($process.ExitCode)"
+    Assert-Exists (Join-Path $archives 'folder-mode\FolderRoot\f.txt') 'folder-mode\FolderRoot\f.txt'
+    Assert-NotExists (Join-Path $archives 'FolderRoot') '--extract-folder で作られない FolderRoot（直下）'
+
+    Write-Host '=== E2E 5: 引数なし起動でウィンドウ表示 ==='
     $process = Start-Process -FilePath $exePath -PassThru
     $deadline = [DateTime]::UtcNow.AddSeconds(20)
     while (-not $process.HasExited -and [DateTime]::UtcNow -lt $deadline) {

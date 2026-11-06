@@ -15,6 +15,7 @@ public sealed partial class ProgressWindow : Window
 
     private readonly string _archivePath;
     private readonly bool _isCommandLine;
+    private readonly ExtractionDestinationMode _destinationMode;
     private readonly AppSettings _settings;
     private readonly SharpCompressExtractor _extractor = new();
     private readonly CancellationTokenSource _cancellation = new();
@@ -28,12 +29,16 @@ public sealed partial class ProgressWindow : Window
     private bool _closeRequested;
     private int _autoCloseSeconds;
 
-    public ProgressWindow(string archivePath, bool isCommandLine)
+    public ProgressWindow(
+        string archivePath,
+        bool isCommandLine,
+        ExtractionDestinationMode destinationMode = ExtractionDestinationMode.Auto)
     {
         InitializeComponent();
 
         _archivePath = archivePath;
         _isCommandLine = isCommandLine;
+        _destinationMode = destinationMode;
         _settings = SettingsService.Load();
 
         Title = $"{AppInfo.ProductName} - 解凍";
@@ -78,7 +83,9 @@ public sealed partial class ProgressWindow : Window
         try
         {
             result = await _extractor
-                .ExtractAsync(new ExtractionRequest(_archivePath, null, options), _cancellation.Token)
+                .ExtractAsync(
+                    new ExtractionRequest(_archivePath, null, options, _destinationMode),
+                    _cancellation.Token)
                 .ConfigureAwait(false);
         }
         catch (OperationCanceledException)

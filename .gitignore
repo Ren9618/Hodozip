@@ -63,6 +63,7 @@ BundleArtifacts/
 *.msixbundle
 *.msixupload
 *.cer
+!packaging/certs/Hodozip-Test.cer
 *.pfx
 
 # Rider
