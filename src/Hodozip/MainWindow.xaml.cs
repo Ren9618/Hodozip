@@ -123,7 +123,7 @@ public sealed partial class MainWindow : Window
                 ShowMessage(
                     InfoBarSeverity.Warning,
                     "対応していない形式です",
-                    "ZIP / 7z / RAR / TAR / GZ / BZ2 / XZ / ZST などのアーカイブをドロップしてください。");
+                    "ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST などのアーカイブをドロップしてください。");
                 return;
             }
 
@@ -156,7 +156,7 @@ public sealed partial class MainWindow : Window
             ShowMessage(
                 InfoBarSeverity.Warning,
                 "対応していない形式です",
-                "ZIP / 7z / RAR / TAR / GZ / BZ2 / XZ / ZST などのアーカイブを指定してください。");
+                "ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST などのアーカイブを指定してください。");
             return;
         }
 

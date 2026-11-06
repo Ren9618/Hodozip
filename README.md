@@ -2,10 +2,10 @@
 
 **アーカイブを、ほどく。**
 
-Hodozip（ホドジップ）は、往年の解凍ソフトの使い勝手を現代の実装で引き継ぐ、Windows 向けの無料・オープンソース解凍ソフトです。ZIP だけでなく 7z / RAR / TAR / GZ / BZ2 / XZ / ZST 系のアーカイブをドラッグ＆ドロップするだけで、解凍先フォルダを自動判定して展開します。
+Hodozip（ホドジップ）は、往年の解凍ソフトの使い勝手を現代の実装で引き継ぐ、Windows 向けの無料・オープンソース解凍ソフトです。ZIP だけでなく 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST 系のアーカイブをドラッグ＆ドロップするだけで、解凍先フォルダを自動判定して展開します。
 
 - 製品名: Hodozip（由来: ほどく + ZIP）
-- バージョン: 0.3.0
+- バージョン: 0.3.1
 - ライセンス: MIT
 - 対応 OS: Windows 11（主対象）/ Windows 10 バージョン 19041 以降
 - 実装: C# / .NET 8 / WinUI 3（Windows App SDK）
@@ -15,15 +15,20 @@ Hodozip（ホドジップ）は、往年の解凍ソフトの使い勝手を現�
 
 [GitHub Releases](https://github.com/Ren9618/Hodozip/releases) から最新版をダウンロードできます。
 
-- 最新版: [Hodozip v0.3.0](https://github.com/Ren9618/Hodozip/releases/tag/v0.3.0)
-- `Hodozip-0.3.0-win-x64.zip`（unpackaged 版）: 解凍して `Hodozip.exe` を起動するだけで使えます。インストールは不要です。
-- `Hodozip-0.3.0.msix`（MSIX 版・実験的）: 対応アーカイブの関連付け候補と Windows 11 の右クリックメニューが登録されます。自己署名証明書を使うため、インストール前に証明書の登録が必要です。手順は [MSIX 版のインストール](#msix-版のインストール上級者向け実験的) を参照してください。
+- 最新版: [Hodozip v0.3.1](https://github.com/Ren9618/Hodozip/releases/tag/v0.3.1)
+- `Hodozip-0.3.1-win-x64.zip`（unpackaged 版）: 解凍して `Hodozip.exe` を起動するだけで使えます。インストールは不要です。
+- `Hodozip-0.3.1.msix`（MSIX 版・実験的）: 対応アーカイブの関連付け候補と Windows 11 の右クリックメニューが登録されます。自己署名証明書を使うため、インストール前に証明書の登録が必要です。手順は [MSIX 版のインストール](#msix-版のインストール上級者向け実験的) を参照してください。
 
 unpackaged 版の注意: 本バージョンは未署名のため、Windows SmartScreen の警告が表示される場合があります。「詳細情報」→「実行」で起動できます。
 
 unpackaged 版にも `Hodozip.ContextMenu.dll` が同梱されています。設定画面のトグル、またはコマンドラインから従来型コンテキストメニューを登録できます。
 
-## Phase 3 の新機能
+## v0.3.1 の変更
+
+- MSI（Windows Installer）の解凍に対応（埋め込みキャビネット / 外部キャビネットをフィクスチャで検証済み）
+- フォルダ衝突確認ダイアログのボタン文言を短縮し、長いラベルが欠けないよう修正
+
+## Phase 3 の新機能（v0.3.0）
 
 - 7z / RAR / TAR / TAR.GZ / TAR.BZ2 / TAR.XZ / TAR.ZST / GZ / BZ2 / XZ / ZST の解凍に対応（フィクスチャで実際に検証済み）
 - 解凍先フォルダの衝突時動作を追加: 毎回確認 / 既存フォルダへ統合 / 連番フォルダ作成
@@ -42,6 +47,7 @@ unpackaged 版にも `Hodozip.ContextMenu.dll` が同梱されています。設
 | ZIP | `.zip` | 済み（ZipCrypto / AES のパスワード付きを含む） |
 | 7z | `.7z` | 済み（パスワード付きを含む） |
 | RAR | `.rar` | 済み（RAR5 のテストアーカイブ） |
+| MSI | `.msi` | 済み（埋め込みキャビネット / Windows Installer データベース） |
 | TAR | `.tar` | 済み |
 | TAR.GZ | `.tar.gz`, `.tgz` | 済み（両拡張子） |
 | TAR.BZ2 | `.tar.bz2`, `.tbz2` | 済み（両拡張子） |
@@ -53,6 +59,7 @@ unpackaged 版にも `Hodozip.ContextMenu.dll` が同梱されています。設
 | ZST | `.zst` | 済み（単一ストリーム） |
 
 - `.cab` と `.lzh` は未検証のため、対応形式には含めていません。
+- MSI はインストールを実行せず、Windows Installer データベース（`msi.dll`）とキャビネット展開（`expand.exe`）を使ってパッケージ内のファイルだけを展開します。`ProgramFiles64Folder` などの標準フォルダーは「Program Files」のような表示名に置き換えます。
 - GZ / BZ2 / XZ / ZST の単一ストリーム圧縮は、アーカイブ名から拡張子を除いた名前のファイルとして解凍します。
 - 拡張子が未知でも、SharpCompress がアーカイブとして開ける場合は処理を試みます。ただし「対応」と宣言するのは上記の検証済み形式だけです。
 - 暗号化アーカイブは ZIP（ZipCrypto / AES）と 7z をテスト済みです。RAR などの暗号化は対応を宣言していません。
@@ -87,7 +94,7 @@ unpackaged 版にも `Hodozip.ContextMenu.dll` が同梱されています。設
 | 既存のフォルダに解凍する（`Merge`） | 既存フォルダへ統合して解凍 |
 | 新しいフォルダを作成する（`AutoRename`） | `名前 (2)`、`名前 (3)` のように連番の新しいフォルダを作成 |
 
-`Ask` のダイアログでは「既存のフォルダに解凍する」「新しいフォルダを作成する」「キャンセル」を選べます。「この選択を既定にする」を有効にすると、その選択が設定へ保存されます。既存の同名パスがファイルで、フォルダではない場合は「既存のフォルダに解凍する」を選べません。
+`Ask` のダイアログでは「既存に解凍」「新規フォルダ」「キャンセル」を選べます。「この選択を既定にする」を有効にすると、その選択が設定へ保存されます。既存の同名パスがファイルで、フォルダではない場合は「既存に解凍」を選べません。
 
 単一ファイルを直接解凍するなど、フォルダを作らないパターンではこのダイアログは表示されません。同名ファイルの確認はファイル単位の上書き確認で行います。
 
@@ -126,7 +133,7 @@ MSIX 版をインストールすると、対応拡張子の右クリックメニ
 - **Hodozip で解凍**: `Auto` モードで解凍します。単一フォルダ型のアーカイブは二重フォルダになりません。
 - **Hodozip でフォルダに解凍**: `ForceArchiveFolder` モードで、必ずアーカイブ名のフォルダを作って解凍します。
 
-対象拡張子は `.zip` `.7z` `.rar` `.tar` `.gz` `.tgz` `.bz2` `.tbz2` `.xz` `.txz` `.zst` `.tzst` です。Windows 11 の新しい右クリックメニューに項目が表示されない場合は、「その他のオプションを表示」を選ぶか、`Shift` + `F10` で従来のメニューを開いてください。
+対象拡張子は `.zip` `.7z` `.rar` `.msi` `.tar` `.gz` `.tgz` `.bz2` `.tbz2` `.xz` `.txz` `.zst` `.tzst` です。Windows 11 の新しい右クリックメニューに項目が表示されない場合は、「その他のオプションを表示」を選ぶか、`Shift` + `F10` で従来のメニューを開いてください。
 
 ### 従来型コンテキストメニュー（unpackaged 版）
 
@@ -229,7 +236,7 @@ MSIX 版は実験的配布です。署名にはローカルテスト用の自己
 
 ### 1. 証明書をインストールする
 
-リポジトリの [`packaging/certs/Hodozip-Test.cer`](https://github.com/Ren9618/Hodozip/raw/v0.3.0/packaging/certs/Hodozip-Test.cer) をダウンロードします。これは公開証明書のみで、秘密鍵は含まれていません。
+リポジトリの [`packaging/certs/Hodozip-Test.cer`](https://github.com/Ren9618/Hodozip/raw/v0.3.1/packaging/certs/Hodozip-Test.cer) をダウンロードします。これは公開証明書のみで、秘密鍵は含まれていません。
 
 管理者権限の PowerShell で、ダウンロードした CER を `LocalMachine\TrustedPeople`（信頼されたユーザー）に登録します。
 
@@ -243,13 +250,13 @@ certutil -addstore -f TrustedPeople .\Hodozip-Test.cer
 
 ### 2. MSIX をインストールする
 
-`Hodozip-0.3.0.msix` をダブルクリックするか、PowerShell で実行します。
+`Hodozip-0.3.1.msix` をダブルクリックするか、PowerShell で実行します。
 
 ```powershell
-Add-AppxPackage -Path .\Hodozip-0.3.0.msix
+Add-AppxPackage -Path .\Hodozip-0.3.1.msix
 ```
 
-インストール後、スタートメニューに「Hodozip」が表示されます。パッケージ ID は `Ren9618.Hodozip_0.3.0.0_x64__ex19z75j0wj0g`、アプリケーション ID は `Ren9618.Hodozip_ex19z75j0wj0g!Hodozip` です。
+インストール後、スタートメニューに「Hodozip」が表示されます。パッケージ ID は `Ren9618.Hodozip_0.3.1.0_x64__ex19z75j0wj0g`、アプリケーション ID は `Ren9618.Hodozip_ex19z75j0wj0g!Hodozip` です。
 
 ### 3. 対応拡張子の既定のアプリに設定する
 
@@ -274,7 +281,7 @@ MSIX 版では従来型 `IContextMenu` は登録できません。詳細は [MSI
 「設定」→「アプリ」→「インストールされているアプリ」から Hodozip をアンインストールします。PowerShell の場合は以下を実行します。
 
 ```powershell
-Remove-AppxPackage Ren9618.Hodozip_0.3.0.0_x64__ex19z75j0wj0g
+Remove-AppxPackage Ren9618.Hodozip_0.3.1.0_x64__ex19z75j0wj0g
 ```
 
 証明書も不要になった場合は、管理者権限の PowerShell で以下を実行します。
@@ -315,7 +322,7 @@ Windows App SDK は self-contained で出力されるため、unpackaged 版の�
 pwsh -File packaging\build-msix.ps1
 New-Item -ItemType Directory -Path artifacts\release\Hodozip -Force | Out-Null
 Copy-Item -Path artifacts\msix\publish\* -Destination artifacts\release\Hodozip -Recurse -Force
-Compress-Archive -Path artifacts\release\Hodozip -DestinationPath Hodozip-0.3.0-win-x64.zip
+Compress-Archive -Path artifacts\release\Hodozip -DestinationPath Hodozip-0.3.1-win-x64.zip
 ```
 
 MSIX を作らずに zip 版だけ作る場合は、publish 後に C++ プロジェクトをビルドして DLL をコピーします。
@@ -324,7 +331,7 @@ MSIX を作らずに zip 版だけ作る場合は、publish 後に C++ プロジ
 dotnet publish src\Hodozip\Hodozip.csproj -c Release -p:Platform=x64 -r win-x64 --self-contained true -o publish\Hodozip
 msbuild src\Hodozip.ContextMenu\Hodozip.ContextMenu.vcxproj /p:Configuration=Release /p:Platform=x64
 Copy-Item src\Hodozip.ContextMenu\bin\x64\Release\Hodozip.ContextMenu.dll publish\Hodozip\
-Compress-Archive -Path publish\Hodozip -DestinationPath Hodozip-0.3.0-win-x64.zip
+Compress-Archive -Path publish\Hodozip -DestinationPath Hodozip-0.3.1-win-x64.zip
 ```
 
 zip のトップレベルには `Hodozip` フォルダが 1 つだけ入ります。
@@ -341,7 +348,7 @@ pwsh -File packaging\build-msix.ps1
 2. `src\Hodozip.ContextMenu` の COM DLL を x64 Release でビルド
 3. publish 出力と COM DLL、生成したアセット画像を `artifacts\msix\staging` にステージング
 4. `packaging\Package.appxmanifest.template` から `AppxManifest.xml` を生成
-5. `makeappx.exe` で `artifacts\msix\Hodozip-0.3.0.msix` を作成
+5. `makeappx.exe` で `artifacts\msix\Hodozip-0.3.1.msix` を作成
 6. 自己署名証明書で `signtool.exe` 署名
 
 証明書は `artifacts\msix\certs\Hodozip-Test.pfx` に作成されます。PFX は秘密鍵を含むため、リポジトリや Release には含めません。
@@ -356,7 +363,7 @@ pwsh -File packaging\build-msix.ps1 -InstallTrustedCertificate
 
 ### バージョン管理
 
-バージョンは `Directory.Build.props` の `HodozipVersion` で管理します。アプリの `AssemblyVersion` / `FileVersion` と MSIX の `PackageVersion`（`0.3.0` → `0.3.0.0`）はこの値から生成されます。
+バージョンは `Directory.Build.props` の `HodozipVersion` で管理します。アプリの `AssemblyVersion` / `FileVersion` と MSIX の `PackageVersion`（`0.3.1` → `0.3.1.0`）はこの値から生成されます。
 
 ## テスト
 
@@ -366,14 +373,14 @@ pwsh -File packaging\build-msix.ps1 -InstallTrustedCertificate
 dotnet test tests\Hodozip.Core.Tests\Hodozip.Core.Tests.csproj -c Release
 ```
 
-64 件のテストで以下を検証します。
+69 件のテストで以下を検証します。
 
 - 解凍先自動判定（単一ファイル / 単一フォルダ / バラバラ）
 - `ForceArchiveFolder` の強制フォルダ作成（単一ファイル / 単一フォルダ / バラバラ）
 - フォルダ衝突ポリシー（Merge / AutoRename / Ask）と Ask のキャンセル
 - `Merge` 時に上書きコールバックが呼ばれること、自動リネーム、キャンセル時にファイルが残らないこと
 - 上書き確認のサイズ・更新日時比較
-- 全対応形式のフィクスチャ解凍（ZIP / 7z / RAR / TAR / TAR.GZ / TGZ / TAR.BZ2 / TBZ2 / TAR.XZ / TXZ / TAR.ZST / TZST / GZ / BZ2 / XZ / ZST）
+- 全対応形式のフィクスチャ解凍（ZIP / 7z / RAR / MSI / TAR / TAR.GZ / TGZ / TAR.BZ2 / TBZ2 / TAR.XZ / TXZ / TAR.ZST / TZST / GZ / BZ2 / XZ / ZST）
 - パスワード付き ZIP（ZipCrypto / AES）とパスワード付き 7z の正常解凍・リトライ・キャンセル
 - TAR の `../` エントリ拒否
 - Shift_JIS ファイル名と UTF-8 ファイル名（Shift_JIS は ZIP のみ）
@@ -383,7 +390,7 @@ dotnet test tests\Hodozip.Core.Tests\Hodozip.Core.Tests.csproj -c Release
 
 パスワード付きテストフィクスチャ `tests/Hodozip.Core.Tests/Fixtures/password-*.zip` と `Fixtures/formats/password.7z` のパスワードは `secret` です。ZIP フィクスチャは 7-Zip で生成しています。
 
-多形式フィクスチャの生成方法は `tests/Hodozip.Core.Tests/Fixtures/formats/generate-fixtures.ps1` にあります。7-Zip 互換 CLI と、RAR フィクスチャ取得のためのインターネット接続が必要です。生成済みファイルはリポジトリにコミットしています。
+多形式フィクスチャの生成方法は `tests/Hodozip.Core.Tests/Fixtures/formats/generate-fixtures.ps1` にあります。7-Zip 互換 CLI と、RAR フィクスチャ取得のためのインターネット接続が必要です。MSI フィクスチャは `generate-msi-fixture.ps1` で WiX Toolset（`wix.exe`）から生成します。生成済みファイルはリポジトリにコミットしています。
 
 ### アプリ E2E
 
@@ -419,8 +426,8 @@ pwsh -File tests\e2e\run-legacy-menu-e2e.ps1
 ```
 
 - `run-overwrite-e2e.ps1` は 3 ケースを検証します。3 ケース目は UI Automation で `OverwriteDialog` の表示を検出し、キャンセル ボタンを実際に押します。
-- `run-formats-e2e.ps1` は 16 の形式・拡張子ケース（ZIP、7z、TAR、RAR、TAR.GZ/TGZ、TAR.BZ2/TBZ2、TAR.XZ/TXZ、TAR.ZST/TZST、GZ、BZ2、XZ、ZST）を検証します。
-- `run-legacy-menu-e2e.ps1` は STA で自動再起動し、HKCU への登録、12 拡張子のハンドラー、`IContextMenu::QueryContextMenu` の 2 項目、`InvokeCommand` による両モードの解凍、解除を検証します。実行前の登録状態と設定ファイルは終了時に復元します。
+- `run-formats-e2e.ps1` は 17 の形式・拡張子ケース（ZIP、7z、TAR、RAR、MSI、TAR.GZ/TGZ、TAR.BZ2/TBZ2、TAR.XZ/TXZ、TAR.ZST/TZST、GZ、BZ2、XZ、ZST）を検証します。
+- `run-legacy-menu-e2e.ps1` は STA で自動再起動し、HKCU への登録、13 拡張子のハンドラー、`IContextMenu::QueryContextMenu` の 2 項目、`InvokeCommand` による両モードの解凍、解除を検証します。実行前の登録状態と設定ファイルは終了時に復元します。
 - E2E は設定ファイル `%LOCALAPPDATA%\Hodozip\settings.json` を一時的に変更します。スクリプトを同時に実行しないでください。
 
 ### MSIX のインストール検証
@@ -432,14 +439,14 @@ MSIX の検証は、ビルドしたパッケージを実際にインストール
 certutil -addstore -f TrustedPeople artifacts\msix\certs\Hodozip-Test.cer
 
 # インストール
-Add-AppxPackage -Path artifacts\msix\Hodozip-0.3.0.msix
+Add-AppxPackage -Path artifacts\msix\Hodozip-0.3.1.msix
 
 # スタートメニューと関連付け候補の確認
 Get-StartApps | Where-Object { $_.Name -eq 'Hodozip' }
 Get-ItemProperty 'HKCU:\Software\Classes\.zip\OpenWithProgids'
 
 # アンインストール
-Remove-AppxPackage Ren9618.Hodozip_0.3.0.0_x64__ex19z75j0wj0g
+Remove-AppxPackage Ren9618.Hodozip_0.3.1.0_x64__ex19z75j0wj0g
 ```
 
 インストール後の自動 E2E も用意しています。設定ファイルを共有するため、2 つのスクリプトは同時に実行しないでください。
@@ -466,6 +473,7 @@ Directory.Build.props      バージョンの一元管理
 src/
   Hodozip.Core/            解凍ロジック（UI 非依存）
     ArchiveFormatCatalog.cs  対応形式の一覧と判定
+    MsiArchiveReader.cs      MSI のテーブル・ストリーム読み取り
     DestinationPlanner.cs    解凍先フォルダの決定
     SharpCompressExtractor.cs 解凍エンジン
   Hodozip/                 WinUI 3 アプリ
@@ -482,7 +490,7 @@ tests/
   e2e/                     E2E スクリプト
 ```
 
-Core は `IArchiveExtractor` インターフェース越しに SharpCompress を利用します。形式判定は拡張子を優先し、判別できない場合は SharpCompress にアーカイブとして開けるかを問い合わせます。TAR.GZ / TAR.BZ2 / TAR.XZ / TAR.ZST は、単一ストリームを一時 TAR へ展開してから TAR として処理します。
+Core は `IArchiveExtractor` インターフェース越しに SharpCompress を利用します。形式判定は拡張子を優先し、判別できない場合は SharpCompress にアーカイブとして開けるかを問い合わせます。TAR.GZ / TAR.BZ2 / TAR.XZ / TAR.ZST は、単一ストリームを一時 TAR へ展開してから TAR として処理します。MSI は `msi.dll` で `File` / `Media` / `Component` / `Directory` テーブルを読み、埋め込みキャビネットを `expand.exe` で展開してから、他の形式と同じ解凍パイプラインへ流します。
 
 COM DLL は `IExplorerCommand`（Windows 11 新メニュー）と `IContextMenu`（従来型メニュー）を実装する薄いサーバーで、解凍処理は持ちません。`Invoke` / `InvokeCommand` されたときに、`Hodozip.exe` へ `--extract-here` または `--extract-folder` と選択ファイルのパスを渡して起動します。MSIX 版の `IExplorerCommand` は `com:SurrogateServer` として `dllhost.exe` 内で動作します。
 
@@ -509,6 +517,7 @@ Hodozip は無料・オープンソースです。支援は今後の開発とメ
 - ファイル関連付けは Windows の仕様上、最後の拡張子で判定されます。`.tar.gz` は `.gz`、`.tar.bz2` は `.bz2` として関連付けられます。Hodozip 本体は複合拡張子を認識するため、ドラッグ＆ドロップやコマンドラインからは `.tar.gz` のまま正しく解凍できます。
 - RAR / 7z / TAR 系の解凍は SharpCompress に依存します。対応を宣言しているのはフィクスチャで検証済みの形式だけで、特殊な圧縮オプションや将来の形式バリアントは失敗する場合があります。`.cab` と `.lzh` は未対応です。
 - 暗号化アーカイブの対応を宣言しているのは ZIP と 7z のみです。RAR などの暗号化アーカイブは未検証です。
+- MSI はインストールを実行せず、パッケージに含まれるファイルを展開します。MSI の外にある外部ソース ファイル（`Compressed="no"` など）は解凍できません。カスタム アクションによるファイル生成や、インストール時のレジストリ変更も再現しません。
 - 形式ごとの専用アイコンは未実装で、全対応形式で共通のアイコンを使用します。
 - MSIX 版は自己署名証明書による実験的配布です。証明書の登録が必要で、SmartScreen や組織のポリシーによってはインストールできない場合があります。
 - 対応拡張子の既定のアプリはユーザーが選ぶ必要があります。アプリ側から強制することはできません。

@@ -26,13 +26,15 @@ SharpZipLib で生成した AES ZIP は SharpCompress で読めなかったた�
 
 ## 多形式
 
-`formats/` には Phase 3 で対応を確定した形式のフィクスチャがあります。内容は `hello.txt`、`Top/a.txt`、`Top/sub/b.txt`、`日本語テスト.txt` です（RAR は SharpCompress の RAR5 テストアーカイブ）。
+`formats/` には Phase 3 で対応を確定した形式のフィクスチャがあります。内容は `hello.txt`、`Top/a.txt`、`Top/sub/b.txt`、`日本語テスト.txt` です（RAR は SharpCompress の RAR5 テストアーカイブ、MSI は `Program Files\Sample` 配下へ展開されます）。
 
 | ファイル | 形式 | 備考 |
 | --- | --- | --- |
 | `sample.7z` | 7z | |
 | `password.7z` | 7z | パスワードは `secret` |
 | `sample.rar` | RAR | RAR5 |
+| `sample.msi` | MSI | Windows Installer（`Program Files\Sample` へ展開される埋め込みキャビネット） |
+| `msi-external/sample-external.msi` / `cab1.cab` | MSI | 外部キャビネット版（`Program Files\SampleExternal` へ展開。2 ファイルを同じディレクトリに置いて使用） |
 | `sample.tar` | TAR | |
 | `sample.tar.gz` / `sample.tgz` | TAR.GZ | 同じ内容の別名 |
 | `sample.tar.bz2` / `sample.tbz2` | TAR.BZ2 | 同じ内容の別名 |
@@ -43,4 +45,4 @@ SharpZipLib で生成した AES ZIP は SharpCompress で読めなかったた�
 | `sample.xz` | XZ | `hello.txt` を単一ストリーム圧縮 |
 | `sample.zst` | ZST | `hello.txt` を単一ストリーム圧縮 |
 
-`formats/generate-fixtures.ps1` で再生成できます。7-Zip 互換 CLI（`7z.exe`）が必要で、RAR フィクスチャの取得にインターネット接続を使用します。
+`formats/generate-fixtures.ps1` で 7-Zip 系フィクスチャを再生成できます。7-Zip 互換 CLI（`7z.exe`）が必要で、RAR フィクスチャの取得にインターネット接続を使用します。`formats/generate-msi-fixture.ps1` は WiX Toolset の `wix.exe` を使って `sample.msi` と `msi-external/sample-external.msi`、`msi-external/cab1.cab` を再生成します。

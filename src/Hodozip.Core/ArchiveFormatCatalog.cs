@@ -11,6 +11,9 @@ internal enum ArchiveLayoutKind
 
     /// <summary>単一ファイルを圧縮しただけの形式。</summary>
     BareCompressed,
+
+    /// <summary>Windows Installer パッケージ。msi.dll と埋め込みキャビネットで解凍する。</summary>
+    Msi,
 }
 
 /// <summary>単一ストリームの圧縮方式。</summary>
@@ -41,6 +44,7 @@ public static class ArchiveFormats
         ".zip",
         ".7z",
         ".rar",
+        ".msi",
         ".tar",
         ".tar.gz",
         ".tgz",
@@ -145,6 +149,7 @@ public static class ArchiveFormats
             ".zip" => new ArchiveFormatInfo(ArchiveLayoutKind.Archive, CompressionWrapper.None, ".zip", "ZIP"),
             ".7z" => new ArchiveFormatInfo(ArchiveLayoutKind.Archive, CompressionWrapper.None, ".7z", "7z"),
             ".rar" => new ArchiveFormatInfo(ArchiveLayoutKind.Archive, CompressionWrapper.None, ".rar", "RAR"),
+            ".msi" => new ArchiveFormatInfo(ArchiveLayoutKind.Msi, CompressionWrapper.None, ".msi", "MSI"),
             ".tar" => new ArchiveFormatInfo(ArchiveLayoutKind.Archive, CompressionWrapper.None, ".tar", "TAR"),
             ".gz" => new ArchiveFormatInfo(ArchiveLayoutKind.Archive, CompressionWrapper.None, ".gz", "GZ"),
             ".tgz" => new ArchiveFormatInfo(ArchiveLayoutKind.WrappedTar, CompressionWrapper.GZip, ".tgz", "TGZ"),

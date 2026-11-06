@@ -359,6 +359,7 @@ public sealed class Phase3ExtractionTests : IDisposable
         Assert.Contains(".zip", extensions);
         Assert.Contains(".7z", extensions);
         Assert.Contains(".rar", extensions);
+        Assert.Contains(".msi", extensions);
         Assert.Contains(".tar", extensions);
         Assert.Contains(".tar.gz", extensions);
         Assert.Contains(".tgz", extensions);
@@ -387,6 +388,7 @@ public sealed class Phase3ExtractionTests : IDisposable
     [InlineData("archive.tzst", "archive")]
     [InlineData("archive.7z", "archive")]
     [InlineData("archive.rar", "archive")]
+    [InlineData("archive.msi", "archive")]
     public void GetArchiveBaseName_StripsCompoundExtensions(string fileName, string expected)
     {
         Assert.Equal(expected, ArchiveFormats.GetArchiveBaseName(fileName));

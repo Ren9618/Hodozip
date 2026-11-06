@@ -215,6 +215,19 @@ try {
     New-Item -ItemType Directory -Path $zstCase -Force | Out-Null
     Test-BareCompressed -CaseDirectory $zstCase -BaseName 'sample' -FixturePath (Join-Path $fixtures 'sample.zst') -Label 'ZST'
 
+    Write-Host '=== E2E F10: MSI ==='
+    $msiCase = Join-Path $workRoot 'msi'
+    New-Item -ItemType Directory -Path $msiCase -Force | Out-Null
+    $msiPath = Join-Path $msiCase 'sample.msi'
+    Copy-Item -LiteralPath (Join-Path $fixtures 'sample.msi') -Destination $msiPath -Force
+    Invoke-Extraction -ArchivePath $msiPath
+    $msiRoot = Join-Path $msiCase 'sample\Program Files\Sample'
+    Assert-Content -Path (Join-Path $msiRoot 'hello.txt') -Expected 'hello world' -Label 'MSI hello.txt'
+    Assert-Content -Path (Join-Path $msiRoot 'Top\a.txt') -Expected 'A content' -Label 'MSI Top\a.txt'
+    Assert-Content -Path (Join-Path $msiRoot 'Top\sub\b.txt') -Expected 'B content' -Label 'MSI Top\sub\b.txt'
+    Assert-Content -Path (Join-Path $msiRoot '日本語テスト.txt') -Expected 'こんにちは' -Label 'MSI 日本語テスト.txt'
+    Write-Host '  OK: MSI'
+
     Write-Host ''
     Write-Host '多形式 E2E: すべて成功しました。'
 }

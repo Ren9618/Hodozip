@@ -17,7 +17,7 @@ namespace Hodozip.Core;
 /// Phase 3 では ZIP に加え、7z / RAR / TAR / TAR.GZ / TAR.BZ2 / TAR.XZ / TAR.ZST /
 /// 単一ストリームの GZ / BZ2 / XZ / ZST に対応する。
 /// </summary>
-public sealed class SharpCompressExtractor : IArchiveExtractor
+public sealed partial class SharpCompressExtractor : IArchiveExtractor
 {
     private const int MaxPasswordAttempts = 5;
     private const int CopyBufferSize = 81920;
@@ -67,6 +67,17 @@ public sealed class SharpCompressExtractor : IArchiveExtractor
 
         try
         {
+            if (format is { Layout: ArchiveLayoutKind.Msi })
+            {
+                return await ExtractMsiAsync(
+                    archivePath,
+                    request,
+                    baseDirectory,
+                    archiveLength,
+                    issues,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
             if (format is { Layout: ArchiveLayoutKind.WrappedTar })
             {
                 temporaryTarPath = await DecompressToTemporaryTarAsync(
@@ -254,7 +265,6 @@ public sealed class SharpCompressExtractor : IArchiveExtractor
                 }
 
                 return await ExtractEntriesAsync(
-                    archive,
                     entries,
                     request,
                     displayArchivePath,
@@ -271,7 +281,6 @@ public sealed class SharpCompressExtractor : IArchiveExtractor
     }
 
     private static async Task<ExtractionResult> ExtractEntriesAsync(
-        IArchive archive,
         IReadOnlyList<IArchiveEntry> rawEntries,
         ExtractionRequest request,
         string displayArchivePath,
@@ -311,15 +320,33 @@ public sealed class SharpCompressExtractor : IArchiveExtractor
             }
 
             workItems.Add(new EntryWork(
-                entry,
+                entry.OpenEntryStream,
                 sanitized.RelativePath,
                 entry.IsDirectory,
                 IsSymbolicLink(entry),
                 Math.Max(0, entry.Size),
-                Math.Max(0, entry.CompressedSize),
                 entry.LastModifiedTime));
         }
 
+        return await ExtractWorkItemsAsync(
+            workItems,
+            request,
+            displayArchivePath,
+            baseDirectory,
+            archiveLength,
+            issues,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<ExtractionResult> ExtractWorkItemsAsync(
+        List<EntryWork> workItems,
+        ExtractionRequest request,
+        string displayArchivePath,
+        string baseDirectory,
+        long archiveLength,
+        List<ExtractionIssue> issues,
+        CancellationToken cancellationToken)
+    {
         var plan = DestinationPlanner.Create(
             baseDirectory,
             archivePath: displayArchivePath,
@@ -505,7 +532,7 @@ public sealed class SharpCompressExtractor : IArchiveExtractor
                         plan.OutputRoot));
 
                     var copied = await WriteEntryAsync(
-                        work.Entry,
+                        work.OpenStream,
                         tempPath,
                         bytes => processedBytes += bytes,
                         () => processedBytes,
@@ -794,7 +821,7 @@ public sealed class SharpCompressExtractor : IArchiveExtractor
     }
 
     private static async Task<long> WriteEntryAsync(
-        IArchiveEntry entry,
+        Func<Stream> openStream,
         string tempPath,
         Action<long> addProcessed,
         Func<long> getProcessed,
@@ -805,7 +832,7 @@ public sealed class SharpCompressExtractor : IArchiveExtractor
         Stopwatch lastProgress,
         CancellationToken cancellationToken)
     {
-        await using var source = entry.OpenEntryStream();
+        await using var source = openStream();
         await using var destination = new FileStream(
             LongPath.ToFileSystemPath(tempPath),
             FileMode.CreateNew,
@@ -1214,6 +1241,11 @@ public sealed class SharpCompressExtractor : IArchiveExtractor
             return;
         }
 
+        DeleteDirectoryQuietly(directory);
+    }
+
+    private static void DeleteDirectoryQuietly(string directory)
+    {
         try
         {
             if (Directory.Exists(directory))
@@ -1263,12 +1295,11 @@ public sealed class SharpCompressExtractor : IArchiveExtractor
     }
 
     private sealed record EntryWork(
-        IArchiveEntry Entry,
+        Func<Stream> OpenStream,
         string RelativePath,
         bool IsDirectory,
         bool IsSymbolicLink,
         long Size,
-        long CompressedSize,
         DateTime? LastModifiedTime);
 
     private sealed class EncodingNameHolder

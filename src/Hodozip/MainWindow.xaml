@@ -85,7 +85,7 @@
                 <TextBlock
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="ZIP / 7z / RAR / TAR / TAR.GZ / TAR.BZ2 / TAR.XZ / TAR.ZST / GZ / BZ2 / XZ / ZST に対応しています。単一フォルダのアーカイブは二重フォルダにせず、散らばったファイルはアーカイブ名のフォルダへ解凍します。"
+                    Text="ZIP / 7z / RAR / MSI / TAR / TAR.GZ / TAR.BZ2 / TAR.XZ / TAR.ZST / GZ / BZ2 / XZ / ZST に対応しています。単一フォルダのアーカイブは二重フォルダにせず、散らばったファイルはアーカイブ名のフォルダへ解凍します。"
                     TextWrapping="Wrap" />
 
                 <Border

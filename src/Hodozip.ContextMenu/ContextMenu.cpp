@@ -44,6 +44,7 @@ namespace
             L".zip",
             L".7z",
             L".rar",
+            L".msi",
             L".tar",
             L".gz",
             L".tgz",

@@ -274,7 +274,7 @@ if (-not (Test-Path -LiteralPath $comDllPath)) {
 $legacyClsid = [Guid]'4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03'
 $clsidKey = "HKCU:\Software\Classes\CLSID\$($legacyClsid.ToString('B').ToUpperInvariant())"
 $inprocKey = Join-Path $clsidKey 'InprocServer32'
-$expectedExtensions = @('.zip', '.7z', '.rar', '.tar', '.gz', '.tgz', '.bz2', '.tbz2', '.xz', '.txz', '.zst', '.tzst')
+$expectedExtensions = @('.zip', '.7z', '.rar', '.msi', '.tar', '.gz', '.tgz', '.bz2', '.tbz2', '.xz', '.txz', '.zst', '.tzst')
 
 $workRoot = Join-Path $env:TEMP 'HodozipLegacyMenuE2E'
 $archives = Join-Path $workRoot 'archives'
