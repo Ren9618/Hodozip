@@ -196,6 +196,37 @@ pre code {
   border-bottom: 1px solid var(--border);
 }
 
+.lang-switch {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.lang-switch span,
+.lang-switch a {
+  padding: 0.3em 0.85em;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.lang-switch a:hover {
+  border-color: var(--accent);
+}
+
+.lang-switch [aria-current="page"] {
+  border-color: transparent;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
 .hero-eyebrow {
   color: var(--accent);
   font-weight: 700;

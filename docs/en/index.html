@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Hodozip | Unpack your archives. A Windows extraction tool</title>
+<meta name="description" content="Hodozip is a free, open-source archive extractor for Windows. Extract ZIP / 7z / RAR / MSI and more with a double-click, in place and without garbled Japanese filenames. No network, telemetry, or ads.">
+
+<!-- OGP: add <meta property="og:image" content="relative image path"> below once a real image is available -->
+<meta property="og:title" content="Hodozip | Unpack your archives.">
+<meta property="og:description" content="A free, open-source archive extractor for Windows. Extract ZIP / 7z / RAR / MSI and more with a double-click, in place and without garbled Japanese filenames.">
+<meta property="og:type" content="website">
+
+<!-- favicon: add <link rel="icon" href="..."> here once an app icon asset is available -->
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<!-- =========================================
+     Hero
+========================================= -->
+<header class="hero">
+  <div class="container">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="../" lang="ja">日本語</a>
+      <span aria-current="page">English</span>
+    </nav>
+    <p class="hero-eyebrow">Free, open-source archive extractor for Windows</p>
+    <h1 class="hero-title">Hodozip</h1>
+    <p class="hero-tagline">Unpack your archives.</p>
+    <p class="hero-lead">Double-click to extract in place, without garbled filenames.<br>
+    You can also drag and drop an archive to extract it.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="https://github.com/Ren9618/Hodozip/releases/latest">Download</a>
+      <a class="btn btn-ghost" href="https://github.com/Ren9618/Hodozip">View on GitHub</a>
+    </div>
+    <ul class="hero-chips" aria-label="Version and requirements">
+      <li class="chip-accent">Current version v0.4.0</li>
+      <li>Windows 10 (19041+) / Windows 11</li>
+      <li>MIT License</li>
+    </ul>
+  </div>
+</header>
+
+<main>
+
+<!-- =========================================
+     Features
+========================================= -->
+<section class="section" id="features">
+  <div class="container">
+    <h2 class="section-title">Features</h2>
+    <ul class="feature-grid">
+      <li class="card feature">
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>
+        </span>
+        <h3>Extract immediately by double-clicking</h3>
+        <p>Double-click a supported archive such as <code>.zip</code>, <code>.7z</code>, <code>.rar</code>, or <code>.msi</code> and extraction starts right away. The familiar feel of classic extraction tools, brought to modern Windows 11.</p>
+      </li>
+      <li class="card feature">
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </span>
+        <h3>Japanese / English UI</h3>
+        <p>Choose Follow system settings / Japanese / English in Settings. Language changes take effect the next time Hodozip starts.</p>
+      </li>
+      <li class="card feature">
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>
+        </span>
+        <h3>Faster ZIP extraction with parallelism</h3>
+        <p>ZIP entries are extracted in parallel. In our large-archive benchmark, extraction dropped from 5,336 ms sequential to 806 ms parallel, about 6.6x faster (results vary by environment).</p>
+      </li>
+      <li class="card feature">
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        </span>
+        <h3>Automatic destination selection</h3>
+        <p>Hodozip chooses where to extract based on the archive contents. Archives that contain a single top-level folder are not wrapped in a duplicate folder.</p>
+      </li>
+      <li class="card feature">
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+        </span>
+        <h3>Japanese filename encoding support</h3>
+        <p>File names inside ZIP archives are detected as UTF-8 or Shift_JIS and extracted without garbled Japanese characters.</p>
+      </li>
+      <li class="card feature">
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        </span>
+        <h3>Password-protected ZIP support</h3>
+        <p>ZipCrypto and AES password-protected ZIP archives are supported. Hodozip asks for the password inside the app when it needs one.</p>
+      </li>
+      <li class="card feature">
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="M13 13l6 6"/></svg>
+        </span>
+        <h3>Windows 11 context menu support</h3>
+        <p>Right-click a supported archive and choose "Extract with Hodozip" or "Extract to folder with Hodozip" (MSIX build).</p>
+      </li>
+      <li class="card feature">
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </span>
+        <h3>No network, telemetry, or ads</h3>
+        <p>The app does not communicate over the network and contains no telemetry or advertising. It is published as MIT-licensed open source.</p>
+      </li>
+    </ul>
+    <p class="note features-note">Supported formats: ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST. The UI is available in Japanese and English.</p>
+  </div>
+</section>
+
+<!-- =========================================
+     Screenshots
+     ▼ How to replace the placeholder (do this once real screenshots are available)
+       1. Create docs/en/screenshots/ and add real app screenshots
+          (for example: docs/en/screenshots/main-window.png. Do not use mockups or images of other software.)
+       2. Replace the whole <figure class="shot-frame"> … </figure> block below with:
+            <figure class="shot-frame has-image">
+              <img class="shot" src="screenshots/main-window.png" width="1280" height="720"
+                   alt="Hodozip main window. A ZIP archive is dragged and dropped to start extraction." loading="lazy">
+            </figure>
+          Change width / height to the actual image dimensions.
+       3. Adjust the frame and spacing in .shot-frame / .shot-frame.has-image in style.css
+       4. Add an og:image meta tag in <head> if needed
+========================================= -->
+<section class="section" id="screenshots">
+  <div class="container">
+    <h2 class="section-title">Screenshots</h2>
+    <figure class="shot-frame">
+      <p class="shot-placeholder">
+        <span class="shot-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m21 15-4-4-9 9"/></svg>
+        </span>
+        Real screenshots are coming soon
+      </p>
+    </figure>
+    <p class="note">App screenshots will be added here later.</p>
+  </div>
+</section>
+
+<!-- =========================================
+     Download
+========================================= -->
+<section class="section" id="download">
+  <div class="container">
+    <h2 class="section-title">Download</h2>
+    <p class="section-lead">Get the latest version from <a class="inline-link" href="https://github.com/Ren9618/Hodozip/releases/latest">GitHub Releases</a>. Two distributions are available.</p>
+    <div class="dl-grid">
+      <article class="card dl-card">
+        <div class="dl-head">
+          <h3>zip build</h3>
+          <span class="badge">Standard</span>
+        </div>
+        <p class="dl-file">Hodozip-0.4.0-win-x64.zip</p>
+        <ul class="dl-list">
+          <li>Extract the archive and launch <code>Hodozip.exe</code>; no installation required</li>
+          <li>Extract by dragging and dropping an archive or by passing a path</li>
+        </ul>
+        <a class="btn btn-primary" href="https://github.com/Ren9618/Hodozip/releases/latest">Get it from Releases</a>
+      </article>
+      <article class="card dl-card">
+        <div class="dl-head">
+          <h3>MSIX build</h3>
+          <span class="badge badge-warn">Experimental</span>
+        </div>
+        <p class="dl-file">Hodozip-0.4.0.msix</p>
+        <ul class="dl-list">
+          <li>Registers file-association candidates for supported archives and the Windows 11 context menu</li>
+          <li><strong>Requires registering the self-signed certificate</strong> before installation (see the How to use section)</li>
+          <li>Some organizations' security policies may prevent installation</li>
+        </ul>
+        <a class="btn btn-ghost" href="https://github.com/Ren9618/Hodozip/releases/latest">Get it from Releases</a>
+      </article>
+    </div>
+    <aside class="callout">
+      <p><strong>About SmartScreen warnings:</strong> Hodozip is unsigned, so Windows SmartScreen may show a "Windows protected your PC" warning on first launch. Choose "More info" and then "Run anyway" to start it.</p>
+    </aside>
+  </div>
+</section>
+
+<!-- =========================================
+     How to use
+========================================= -->
+<section class="section" id="howto">
+  <div class="container">
+    <h2 class="section-title">How to use</h2>
+
+    <article class="howto-block">
+      <h3>1. Install and launch</h3>
+      <h4>zip build (no installation)</h4>
+      <ol>
+        <li>Extract the downloaded zip file.</li>
+        <li>Launch <code>Hodozip.exe</code> inside it.</li>
+        <li>Drag an archive into the window or choose one with "Select file". Progress is shown while extracting, and "Open folder" opens the destination when it finishes.</li>
+      </ol>
+      <h4>MSIX build (experimental)</h4>
+      <p>Install the certificate first, then the package. For detailed steps and uninstallation, see "<a class="inline-link" href="https://github.com/Ren9618/Hodozip/blob/main/README.en.md#msix-installation-advanced-experimental">MSIX installation</a>" in the README.</p>
+      <ol>
+        <li>Download the public certificate <a class="inline-link" href="https://github.com/Ren9618/Hodozip/raw/v0.4.0/packaging/certs/Hodozip-Test.cer">Hodozip-Test.cer</a>.</li>
+        <li>Register the certificate in an elevated PowerShell window.</li>
+      </ol>
+      <pre><code>certutil -addstore -f TrustedPeople .\Hodozip-Test.cer</code></pre>
+      <ol start="3">
+        <li>Download <code>Hodozip-0.4.0.msix</code> from GitHub Releases and install it.</li>
+      </ol>
+      <pre><code>Add-AppxPackage -Path .\Hodozip-0.4.0.msix</code></pre>
+      <p class="note">To extract by double-clicking, configure Hodozip as the default app as described in the next section.</p>
+    </article>
+
+    <article class="howto-block">
+      <h3>2. Set Hodozip as the default app for supported archives (extract by double-click)</h3>
+      <p>Windows does not let apps force file associations. Follow these steps to make Hodozip the default for <code>.zip</code> and other supported extensions.</p>
+      <ol>
+        <li>Open Windows Settings → Apps → Default apps.</li>
+        <li>Search for <code>zip</code> and select ".zip".</li>
+        <li>Choose "Hodozip" from the list.</li>
+      </ol>
+      <p>Alternatively, right-click a <code>.zip</code> file → "Open with" → "Choose another app" → "Hodozip" → "Always use this app". The MSIX build registers itself as an association candidate.</p>
+    </article>
+
+    <article class="howto-block">
+      <h3>3. Extract from the context menu (MSIX / Windows 11)</h3>
+      <p>Right-click a supported archive and choose one of the following. The menu labels follow the OS display language.</p>
+      <ul>
+        <li><strong>Extract with Hodozip</strong> — chooses the destination automatically based on the archive contents.</li>
+        <li><strong>Extract to folder with Hodozip</strong> — always creates a folder named after the archive and extracts into it.</li>
+      </ul>
+      <p class="note">If the entry does not appear in the new Windows 11 context menu, choose "Show more options" (or press <kbd>Shift</kbd> + <kbd>F10</kbd>). Restarting Explorer after installation can also help. This menu targets Windows 11 and may not appear on Windows 10.</p>
+    </article>
+  </div>
+</section>
+
+<!-- =========================================
+     Support development
+========================================= -->
+<section class="section" id="support">
+  <div class="container">
+    <h2 class="section-title">Support development</h2>
+    <p class="section-lead">Hodozip is free. If you find it useful, please consider supporting its development and maintenance.</p>
+    <div class="hero-actions support-actions">
+      <a class="btn btn-primary" href="https://github.com/sponsors/Ren9618">Support via GitHub Sponsors</a>
+      <a class="btn btn-ghost" href="https://buy.stripe.com/5kQ9AU8Xva8T7tAbnj67S00">Donate via Stripe</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- =========================================
+     Footer
+========================================= -->
+<footer class="footer">
+  <div class="container footer-inner">
+    <p class="footer-item">Developed by <strong>Rayno Works</strong></p>
+    <p class="footer-item">License: <a class="inline-link" href="https://github.com/Ren9618/Hodozip/blob/main/LICENSE">MIT</a></p>
+    <nav class="footer-nav" aria-label="Footer">
+      <a class="inline-link" href="https://github.com/Ren9618/Hodozip">GitHub repository</a>
+      <a class="inline-link" href="https://megrab.mikumiku.online">Megrab Studio website</a>
+    </nav>
+    <p class="footer-item footer-copy">© 2026 Ren9618</p>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -22,6 +22,10 @@
 ========================================= -->
 <header class="hero">
   <div class="container">
+    <nav class="lang-switch" aria-label="言語">
+      <span aria-current="page">日本語</span>
+      <a href="en/" lang="en">English</a>
+    </nav>
     <p class="hero-eyebrow">Windows 向け・無料・オープンソースのアーカイブ解凍ソフト</p>
     <h1 class="hero-title">Hodozip</h1>
     <p class="hero-tagline">アーカイブを、ほどく。</p>
@@ -32,7 +36,7 @@
       <a class="btn btn-ghost" href="https://github.com/Ren9618/Hodozip">GitHub リポジトリを見る</a>
     </div>
     <ul class="hero-chips" aria-label="バージョンと動作環境">
-      <li class="chip-accent">現在のバージョン v0.3.1</li>
+      <li class="chip-accent">現在のバージョン v0.4.0</li>
       <li>Windows 10（19041 以降）/ Windows 11</li>
       <li>MIT ライセンス</li>
     </ul>
@@ -54,6 +58,20 @@
         </span>
         <h3>ダブルクリックですぐ解凍</h3>
         <p><code>.zip</code> や <code>.7z</code>、<code>.rar</code>、<code>.msi</code> などの対応アーカイブをダブルクリックすると、その場ですぐに解凍が始まります。往年の解凍ソフトの使い勝手を、現代の Windows 11 に引き継ぎました。</p>
+      </li>
+      <li class="card feature">
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </span>
+        <h3>日本語 / English UI</h3>
+        <p>設定画面の「言語」で、システム設定に従う / 日本語 / English を選べます。言語の変更は次回起動時に反映されます。</p>
+      </li>
+      <li class="card feature">
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>
+        </span>
+        <h3>ZIP の並列解凍で高速化</h3>
+        <p>ZIP をエントリ単位で並列に解凍します。大容量 ZIP の計測では逐次 5,336 ms から並列 806 ms へ、約 6.6 倍高速になりました（環境により変動します）。</p>
       </li>
       <li class="card feature">
         <span class="feature-icon" aria-hidden="true">
@@ -91,7 +109,7 @@
         <p>アプリ本体はネットワーク通信を行わず、テレメトリも広告もありません。MIT ライセンスのオープンソースとして公開しています。</p>
       </li>
     </ul>
-    <p class="note features-note">対応形式は ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST 系です。UI は日本語のみです。</p>
+    <p class="note features-note">対応形式は ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST 系です。UI は日本語 / English に対応しています。</p>
   </div>
 </section>
 
@@ -137,7 +155,7 @@
           <h3>zip 版</h3>
           <span class="badge">標準</span>
         </div>
-        <p class="dl-file">Hodozip-0.3.1-win-x64.zip</p>
+        <p class="dl-file">Hodozip-0.4.0-win-x64.zip</p>
         <ul class="dl-list">
           <li>解凍して <code>Hodozip.exe</code> を起動するだけで使えます（インストール不要）</li>
           <li>アーカイブのドラッグ＆ドロップやパス指定で解凍</li>
@@ -149,7 +167,7 @@
           <h3>MSIX 版</h3>
           <span class="badge badge-warn">実験的な配布</span>
         </div>
-        <p class="dl-file">Hodozip-0.3.1.msix</p>
+        <p class="dl-file">Hodozip-0.4.0.msix</p>
         <ul class="dl-list">
           <li>対応アーカイブのファイル関連付け候補と Windows 11 の右クリックメニューが登録されます</li>
           <li>インストール前に<strong>自己署名証明書の登録</strong>が必要です（手順は「使い方」のセクション）</li>
@@ -182,14 +200,14 @@
       <h4>MSIX 版（実験的配布）</h4>
       <p>「証明書 → パッケージ」の順でインストールします。詳しい手順とアンインストール方法は、README の「<a class="inline-link" href="https://github.com/Ren9618/Hodozip#msix-版のインストール上級者向け実験的">MSIX 版のインストール</a>」を参照してください。</p>
       <ol>
-        <li>公開証明書 <a class="inline-link" href="https://github.com/Ren9618/Hodozip/raw/v0.3.1/packaging/certs/Hodozip-Test.cer">Hodozip-Test.cer</a> をダウンロードします。</li>
+        <li>公開証明書 <a class="inline-link" href="https://github.com/Ren9618/Hodozip/raw/v0.4.0/packaging/certs/Hodozip-Test.cer">Hodozip-Test.cer</a> をダウンロードします。</li>
         <li>管理者権限の PowerShell で証明書を登録します。</li>
       </ol>
       <pre><code>certutil -addstore -f TrustedPeople .\Hodozip-Test.cer</code></pre>
       <ol start="3">
-        <li>GitHub Releases から <code>Hodozip-0.3.1.msix</code> をダウンロードしてインストールします。</li>
+        <li>GitHub Releases から <code>Hodozip-0.4.0.msix</code> をダウンロードしてインストールします。</li>
       </ol>
-      <pre><code>Add-AppxPackage -Path .\Hodozip-0.3.1.msix</code></pre>
+      <pre><code>Add-AppxPackage -Path .\Hodozip-0.4.0.msix</code></pre>
       <p class="note">ダブルクリックで解凍できるようにするには、次の「既定のアプリ」設定が必要です。</p>
     </article>
 
