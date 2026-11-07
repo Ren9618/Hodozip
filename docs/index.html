@@ -65,7 +65,7 @@
       <a class="btn btn-ghost" href="https://github.com/Ren9618/Hodozip">GitHub リポジトリを見る</a>
     </div>
     <ul class="hero-chips" aria-label="バージョンと動作環境">
-      <li class="chip-accent">現在のバージョン v0.6.0</li>
+      <li class="chip-accent">現在のバージョン v0.6.1</li>
       <li>Windows 10（19041 以降）/ Windows 11</li>
       <li>MIT ライセンス</li>
     </ul>
@@ -212,7 +212,7 @@
           <h3>インストーラー版</h3>
           <span class="badge">推奨</span>
         </div>
-        <p class="dl-file">Hodozip-0.6.0-setup.exe</p>
+        <p class="dl-file">Hodozip-0.6.1-setup.exe</p>
         <ul class="dl-list">
           <li>管理者権限不要で、ユーザーごとに <code>%LOCALAPPDATA%\Programs\Hodozip</code> へインストールします</li>
           <li>スタートメニューのショートカットを作成し、任意で右クリックメニューと「プログラムから開く」への登録を行います</li>
@@ -225,7 +225,7 @@
           <h3>zip 版</h3>
           <span class="badge">ポータブル</span>
         </div>
-        <p class="dl-file">Hodozip-0.6.0-win-x64.zip</p>
+        <p class="dl-file">Hodozip-0.6.1-win-x64.zip</p>
         <ul class="dl-list">
           <li>解凍して <code>Hodozip.exe</code> を起動するだけで使えます（インストール不要）</li>
           <li>アーカイブのドラッグ＆ドロップやパス指定で解凍</li>
@@ -237,7 +237,7 @@
           <h3>MSIX 版</h3>
           <span class="badge badge-warn">実験的な配布</span>
         </div>
-        <p class="dl-file">Hodozip-0.6.0.msix</p>
+        <p class="dl-file">Hodozip-0.6.1.msix</p>
         <ul class="dl-list">
           <li>対応アーカイブのファイル関連付け候補と Windows 11 の右クリックメニューが登録されます</li>
           <li>インストール前に<strong>自己署名証明書の登録</strong>が必要です（手順は「使い方」のセクション）</li>
@@ -264,7 +264,7 @@
       <h3>1. インストールして起動する</h3>
       <h4>インストーラー版（推奨）</h4>
       <ol>
-        <li><code>Hodozip-0.6.0-setup.exe</code> をダウンロードして実行します。未署名のため、SmartScreen の警告が表示された場合は「詳細情報」→「実行」を選びます。</li>
+        <li><code>Hodozip-0.6.1-setup.exe</code> をダウンロードして実行します。未署名のため、SmartScreen の警告が表示された場合は「詳細情報」→「実行」を選びます。</li>
         <li>インストール先は <code>%LOCALAPPDATA%\Programs\Hodozip</code> 固定です。「シェル統合」で右クリックメニューと「プログラムから開く」への登録を選べます（いずれも任意、既定で有効）。</li>
         <li>インストール後、スタートメニューの「Hodozip」から起動します。アンインストールは「設定」→「アプリ」→「インストールされているアプリ」から行えます。</li>
       </ol>
@@ -277,14 +277,14 @@
       <h4>MSIX 版（実験的配布）</h4>
       <p>「証明書 → パッケージ」の順でインストールします。詳しい手順とアンインストール方法は、README の「<a class="inline-link" href="https://github.com/Ren9618/Hodozip#msix-版のインストール上級者向け実験的">MSIX 版のインストール</a>」を参照してください。</p>
       <ol>
-        <li>公開証明書 <a class="inline-link" href="https://github.com/Ren9618/Hodozip/raw/v0.6.0/packaging/certs/Hodozip-Test.cer">Hodozip-Test.cer</a> をダウンロードします。</li>
+        <li>公開証明書 <a class="inline-link" href="https://github.com/Ren9618/Hodozip/raw/v0.6.1/packaging/certs/Hodozip-Test.cer">Hodozip-Test.cer</a> をダウンロードします。</li>
         <li>管理者権限の PowerShell で証明書を登録します。</li>
       </ol>
       <pre><code>certutil -addstore -f TrustedPeople .\Hodozip-Test.cer</code></pre>
       <ol start="3">
-        <li>GitHub Releases から <code>Hodozip-0.6.0.msix</code> をダウンロードしてインストールします。</li>
+        <li>GitHub Releases から <code>Hodozip-0.6.1.msix</code> をダウンロードしてインストールします。</li>
       </ol>
-      <pre><code>Add-AppxPackage -Path .\Hodozip-0.6.0.msix</code></pre>
+      <pre><code>Add-AppxPackage -Path .\Hodozip-0.6.1.msix</code></pre>
       <p class="note">ダブルクリックで解凍できるようにするには、次の「既定のアプリ」設定が必要です。</p>
     </article>
 
