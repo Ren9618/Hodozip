@@ -170,31 +170,31 @@
 </section>
 
 <!-- =========================================
-     Screenshots
-     ▼ How to replace the placeholder (do this once real screenshots are available)
-       1. Create docs/en/screenshots/ and add real app screenshots
-          (for example: docs/en/screenshots/main-window.png. Do not use mockups or images of other software.)
-       2. Replace the whole <figure class="shot-frame"> … </figure> block below with:
-            <figure class="shot-frame has-image">
-              <img class="shot" src="screenshots/main-window.png" width="1280" height="720"
-                   alt="Hodozip main window. A ZIP archive is dragged and dropped to start extraction." loading="lazy">
-            </figure>
-          Change width / height to the actual image dimensions.
-       3. Adjust the frame and spacing in .shot-frame / .shot-frame.has-image in style.css
-       4. Add an og:image meta tag in <head> if needed
+     Screenshots (captured on v0.6.1)
 ========================================= -->
 <section class="section" id="screenshots">
   <div class="container">
     <h2 class="section-title">Screenshots</h2>
-    <figure class="shot-frame">
-      <p class="shot-placeholder">
-        <span class="shot-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m21 15-4-4-9 9"/></svg>
-        </span>
-        Real screenshots are coming soon
-      </p>
+    <figure class="shot-frame has-image">
+      <img class="shot" src="../screenshots/main-window.png" width="1280" height="720"
+           alt="Hodozip main window. Drop an archive here or choose a file to extract it." loading="lazy">
     </figure>
-    <p class="note">App screenshots will be added here later.</p>
+    <figure class="shot-frame has-image" style="margin-top: 16px;">
+      <img class="shot" src="../screenshots/progress.png" width="466" height="233"
+           alt="Progress window while extracting a large archive, showing overall and per-file progress and the destination." loading="lazy">
+    </figure>
+    <figure class="shot-frame has-image" style="margin-top: 16px;">
+      <img class="shot" src="../screenshots/context-menu.png" width="560" height="750"
+           alt="Explorer context menu with the three Hodozip commands shown consecutively with icons: Extract, Extract to folder, and Compress." loading="lazy">
+    </figure>
+    <figure class="shot-frame has-image" style="margin-top: 16px;">
+      <img class="shot" src="../screenshots/settings.png" width="686" height="893"
+           alt="Settings window showing the association manager, with a checkbox for each supported format." loading="lazy">
+    </figure>
+    <figure class="shot-frame has-image" style="margin-top: 16px;">
+      <img class="shot" src="../screenshots/compression.png" width="746" height="813"
+           alt="Compression dialog showing the password field, show/copy buttons, and the random password generator." loading="lazy">
+    </figure>
   </div>
 </section>
 

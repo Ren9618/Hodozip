@@ -171,31 +171,31 @@
 </section>
 
 <!-- =========================================
-     スクリーンショット
-     ▼ 差し替え手順（実物が用意できたら実施してください）
-       1. docs/screenshots/ フォルダを作り、実機のスクリーンショットを置く
-          （例: docs/screenshots/main-window.png。ダミー画像や他ソフトの画像は使わないこと）
-       2. 下の <figure class="shot-frame"> … </figure> のブロック全体を、次のタグと置き換える
-            <figure class="shot-frame has-image">
-              <img class="shot" src="screenshots/main-window.png" width="1280" height="720"
-                   alt="Hodozip のメインウィンドウ。ZIP をドラッグ＆ドロップすると解凍が始まる。" loading="lazy">
-            </figure>
-          width / height は実際の画像サイズに書き換えること（指定しておくと表示が安定します）
-       3. 枠線・余白の見た目は style.css の .shot-frame / .shot-frame.has-image で調整できる
-       4. OGP 用の og:image を追加する場合は <head> のコメント箇所に追記する
+     スクリーンショット（実機撮影: v0.6.1）
 ========================================= -->
 <section class="section" id="screenshots">
   <div class="container">
     <h2 class="section-title">スクリーンショット</h2>
-    <figure class="shot-frame">
-      <p class="shot-placeholder">
-        <span class="shot-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m21 15-4-4-9 9"/></svg>
-        </span>
-        実機のスクリーンショットは準備中です
-      </p>
+    <figure class="shot-frame has-image">
+      <img class="shot" src="screenshots/main-window.png" width="1280" height="720"
+           alt="Hodozip のメインウィンドウ。アーカイブをここにドロップするか、ファイルを選択して解凍できます。" loading="lazy">
     </figure>
-    <p class="note">アプリの画面写真は、あとでここに掲載します。</p>
+    <figure class="shot-frame has-image" style="margin-top: 16px;">
+      <img class="shot" src="screenshots/progress.png" width="466" height="233"
+           alt="大きなアーカイブを解凍している進捗ウィンドウ。全体とファイルの進捗率、解凍先が表示されています。" loading="lazy">
+    </figure>
+    <figure class="shot-frame has-image" style="margin-top: 16px;">
+      <img class="shot" src="screenshots/context-menu.png" width="560" height="750"
+           alt="エクスプローラーの右クリックメニューに、アイコン付きで連続表示された「Hodozip で解凍」「Hodozip でフォルダに解凍」「Hodozip で圧縮」。" loading="lazy">
+    </figure>
+    <figure class="shot-frame has-image" style="margin-top: 16px;">
+      <img class="shot" src="screenshots/settings.png" width="686" height="893"
+           alt="設定画面の関連付けマネージャ。対応形式ごとに「プログラムから開く」への登録を切り替えられます。" loading="lazy">
+    </figure>
+    <figure class="shot-frame has-image" style="margin-top: 16px;">
+      <img class="shot" src="screenshots/compression.png" width="746" height="813"
+           alt="圧縮ダイアログ。パスワード欄、表示・コピー、ランダム生成ボタンが表示されています。" loading="lazy">
+    </figure>
   </div>
 </section>
 
