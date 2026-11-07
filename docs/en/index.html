@@ -12,7 +12,12 @@
 <meta property="og:description" content="A free, open-source archive extractor and compressor for Windows. Extract ZIP / 7z / RAR / MSI and more, and create ZIP / 7z archives.">
 <meta property="og:type" content="website">
 
-<!-- favicon: add <link rel="icon" href="..."> here once an app icon asset is available -->
+<!-- favicon: the app icon embedded in the exe (src/Hodozip/Assets/Hodozip.ico) is the source of truth -->
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../icons/icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="../icons/icon-512.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../icons/apple-touch-icon.png">
 <link rel="stylesheet" href="../style.css">
 </head>
 <body>
@@ -23,9 +28,7 @@
 <header class="site-header">
   <div class="container site-header-inner">
     <a class="site-brand" href="./">
-      <span class="site-brand-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
-      </span>
+      <img class="site-brand-icon" src="../icons/icon-32.png" srcset="../icons/icon-32.png 1x, ../icons/icon-192.png 2x" width="30" height="30" alt="Hodozip">
       Hodozip
     </a>
     <nav class="site-nav" aria-label="In-page navigation">

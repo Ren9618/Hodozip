@@ -226,24 +226,12 @@ pre code {
 }
 
 .site-brand-icon {
-  display: grid;
-  place-items: center;
+  display: block;
   width: 30px;
   height: 30px;
-  border-radius: 9px;
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-.site-brand-icon svg {
-  width: 18px;
-  height: 18px;
-  display: block;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  flex: none;
+  border-radius: 8px;
+  object-fit: contain;
 }
 
 .site-nav {
