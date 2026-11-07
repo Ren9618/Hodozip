@@ -64,7 +64,7 @@
       <a class="btn btn-ghost" href="https://github.com/Ren9618/Hodozip">View on GitHub</a>
     </div>
     <ul class="hero-chips" aria-label="Version and requirements">
-      <li class="chip-accent">Current version v0.5.1</li>
+      <li class="chip-accent">Current version v0.6.0</li>
       <li>Windows 10 (19041+) / Windows 11</li>
       <li>MIT License</li>
     </ul>
@@ -134,7 +134,7 @@
           <svg viewBox="0 0 24 24"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="M13 13l6 6"/></svg>
         </span>
         <h3>Context menu support</h3>
-        <p>Right-click a supported archive and choose "Extract with Hodozip" or "Extract to folder with Hodozip", or right-click a file and choose "Compress with Hodozip" (MSIX build uses the new Windows 11 menu; the installer build uses the legacy menu).</p>
+        <p>Right-click a supported archive to see "Extract with Hodozip", "Extract to folder with Hodozip", and "Compress with Hodozip" together with icons (the MSIX build uses the new Windows 11 menu; the installer build uses the unified classic menu).</p>
       </li>
       <li class="card feature">
         <span class="feature-icon" aria-hidden="true">
@@ -142,6 +142,27 @@
         </span>
         <h3>Network access only for update checks</h3>
         <p>Normal extraction and compression do not use the network. Hodozip contacts GitHub Releases only when checking for updates, and you can disable this in Settings. There is no telemetry or advertising.</p>
+      </li>
+      <li class="card feature">
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg>
+        </span>
+        <h3>Manage associations in one place</h3>
+        <p>See all 13 supported formats and choose per format whether Hodozip appears in "Open with". Changes apply immediately; the default app is still chosen in Windows Settings.</p>
+      </li>
+      <li class="card feature">
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        </span>
+        <h3>Notifications and background</h3>
+        <p>Get a toast and a notification sound when a job finishes. Keep processing after closing the progress window, then reopen or cancel the job from "Running jobs" on the main window.</p>
+      </li>
+      <li class="card feature">
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </span>
+        <h3>Friendly with macOS</h3>
+        <p>Skip macOS metadata (__MACOSX, .DS_Store, ._) by default and normalize NFD Japanese names to NFC. "Create with macOS compatibility" makes ZIPs that Finder extracts without garbled names.</p>
       </li>
     </ul>
     <p class="note features-note">Supported extraction formats: ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST. Creation supports ZIP and 7z. The UI is available in Japanese and English.</p>
@@ -190,7 +211,7 @@
           <h3>Installer build</h3>
           <span class="badge">Recommended</span>
         </div>
-        <p class="dl-file">Hodozip-0.5.1-setup.exe</p>
+        <p class="dl-file">Hodozip-0.6.0-setup.exe</p>
         <ul class="dl-list">
           <li>Installs per user into <code>%LOCALAPPDATA%\Programs\Hodozip</code> without administrator rights</li>
           <li>Creates a Start menu shortcut and optionally registers the context menu and "Open with" candidates</li>
@@ -203,7 +224,7 @@
           <h3>zip build</h3>
           <span class="badge">Portable</span>
         </div>
-        <p class="dl-file">Hodozip-0.5.1-win-x64.zip</p>
+        <p class="dl-file">Hodozip-0.6.0-win-x64.zip</p>
         <ul class="dl-list">
           <li>Extract the archive and launch <code>Hodozip.exe</code>; no installation required</li>
           <li>Extract by dragging and dropping an archive or by passing a path</li>
@@ -215,7 +236,7 @@
           <h3>MSIX build</h3>
           <span class="badge badge-warn">Experimental</span>
         </div>
-        <p class="dl-file">Hodozip-0.5.1.msix</p>
+        <p class="dl-file">Hodozip-0.6.0.msix</p>
         <ul class="dl-list">
           <li>Registers file-association candidates for supported archives and the Windows 11 context menu</li>
           <li><strong>Requires registering the self-signed certificate</strong> before installation (see the How to use section)</li>
@@ -242,7 +263,7 @@
       <h3>1. Install and launch</h3>
       <h4>Installer build (recommended)</h4>
       <ol>
-        <li>Download and run <code>Hodozip-0.5.1-setup.exe</code>. It is unsigned; if SmartScreen shows a warning, choose "More info" → "Run".</li>
+        <li>Download and run <code>Hodozip-0.6.0-setup.exe</code>. It is unsigned; if SmartScreen shows a warning, choose "More info" → "Run".</li>
         <li>The install location is fixed to <code>%LOCALAPPDATA%\Programs\Hodozip</code>. Under "Shell integration" you can optionally register the context menu and "Open with" candidates (both enabled by default).</li>
         <li>Launch Hodozip from the Start menu after installation. Uninstall it from Settings → Apps → Installed apps.</li>
       </ol>
@@ -255,14 +276,14 @@
       <h4>MSIX build (experimental)</h4>
       <p>Install the certificate first, then the package. For detailed steps and uninstallation, see "<a class="inline-link" href="https://github.com/Ren9618/Hodozip/blob/main/README.en.md#msix-installation-advanced-experimental">MSIX installation</a>" in the README.</p>
       <ol>
-        <li>Download the public certificate <a class="inline-link" href="https://github.com/Ren9618/Hodozip/raw/v0.5.1/packaging/certs/Hodozip-Test.cer">Hodozip-Test.cer</a>.</li>
+        <li>Download the public certificate <a class="inline-link" href="https://github.com/Ren9618/Hodozip/raw/v0.6.0/packaging/certs/Hodozip-Test.cer">Hodozip-Test.cer</a>.</li>
         <li>Register the certificate in an elevated PowerShell window.</li>
       </ol>
       <pre><code>certutil -addstore -f TrustedPeople .\Hodozip-Test.cer</code></pre>
       <ol start="3">
-        <li>Download <code>Hodozip-0.5.1.msix</code> from GitHub Releases and install it.</li>
+        <li>Download <code>Hodozip-0.6.0.msix</code> from GitHub Releases and install it.</li>
       </ol>
-      <pre><code>Add-AppxPackage -Path .\Hodozip-0.5.1.msix</code></pre>
+      <pre><code>Add-AppxPackage -Path .\Hodozip-0.6.0.msix</code></pre>
       <p class="note">To extract by double-clicking, configure Hodozip as the default app as described in the next section.</p>
     </article>
 
@@ -339,7 +360,7 @@
       <a class="inline-link" href="https://github.com/Ren9618/Hodozip">GitHub repository</a>
       <a class="inline-link" href="https://megrab.mikumiku.online">Megrab Studio website</a>
     </nav>
-    <p class="footer-item footer-copy">© 2026 Ren9618</p>
+    <p class="footer-item footer-copy">© 2026 Rayno Works (Ren9618)</p>
   </div>
 </footer>
 
