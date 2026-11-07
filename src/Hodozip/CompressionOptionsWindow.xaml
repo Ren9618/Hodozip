@@ -157,6 +157,7 @@
                                 AutomationProperties.AutomationId="CompressionPasswordBox" />
                             <TextBlock
                                 x:Name="PasswordNoteText"
+                                AutomationProperties.AutomationId="CompressionPasswordNote"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
                                 TextWrapping="Wrap" />

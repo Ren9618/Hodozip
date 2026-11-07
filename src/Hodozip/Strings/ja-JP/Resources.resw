@@ -102,6 +102,7 @@
   <data name="Settings_SupportNote" xml:space="preserve"><value>Hodozip は無料・オープンソースです。支援は今後の開発とメンテナンスに使われます。</value></data>
   <data name="Settings_ContextMenuTitle" xml:space="preserve"><value>コンテキストメニュー</value></data>
   <data name="Settings_RegisterFailedTitle" xml:space="preserve"><value>登録できませんでした</value></data>
+  <data name="Settings_ContextMenuRegistering" xml:space="preserve"><value>登録しています…</value></data>
   <data name="Settings_Save" xml:space="preserve"><value>保存</value></data>
 
   <data name="About_Title" xml:space="preserve"><value>バージョン情報</value></data>
@@ -171,6 +172,8 @@
   <data name="Legacy_PackagedNotRegistered" xml:space="preserve"><value>MSIX 版では従来型コンテキストメニューを登録していません。</value></data>
   <data name="Legacy_Unregistered" xml:space="preserve"><value>従来型コンテキストメニューから解除しました。</value></data>
   <data name="Legacy_UnregisterFailed" xml:space="preserve"><value>従来型コンテキストメニューの解除に失敗しました: {0}</value></data>
+  <data name="Legacy_VerificationFailed" xml:space="preserve"><value>登録後の確認でレジストリの内容が一致しませんでした。Explorer を再起動してから、設定画面で登録し直してください。</value></data>
+  <data name="Legacy_UnregisterIncomplete" xml:space="preserve"><value>解除後も従来型コンテキストメニューの登録情報が残っています。Explorer を再起動してから、もう一度解除してください。</value></data>
 
   <data name="Issue_ArchiveNotFound" xml:space="preserve"><value>アーカイブが見つかりません。</value></data>
   <data name="Issue_DestinationCreateFailed" xml:space="preserve"><value>解凍先フォルダを作成できません: {0}</value></data>
@@ -256,6 +259,7 @@
   <data name="Compression_Password" xml:space="preserve"><value>パスワード（任意）</value></data>
   <data name="Compression_PasswordPlaceholder" xml:space="preserve"><value>パスワード</value></data>
   <data name="Compression_PasswordNote" xml:space="preserve"><value>ZIP は AES-256 で暗号化します。7z の書き込みはパスワード暗号化に対応していないため、7z では入力したパスワードを無視します。</value></data>
+  <data name="Compression_Password7zNote" xml:space="preserve"><value>7z ではパスワードは使用されません。パスワードは ZIP を選んだときだけ設定できます。</value></data>
   <data name="Compression_ZipEncoding" xml:space="preserve"><value>ZIP のファイル名エンコーディング</value></data>
   <data name="Compression_ZipEncodingUtf8" xml:space="preserve"><value>UTF-8（推奨）</value></data>
   <data name="Compression_ZipEncodingShiftJis" xml:space="preserve"><value>Shift_JIS（旧ツール向け）</value></data>

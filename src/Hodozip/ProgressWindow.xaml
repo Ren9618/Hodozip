@@ -37,12 +37,14 @@
                 x:Name="ProgressBar"
                 Height="10"
                 VerticalAlignment="Center"
+                AutomationProperties.AutomationId="ProgressOverallBar"
                 IsIndeterminate="True" />
             <TextBlock
                 x:Name="PercentText"
                 Grid.Column="1"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
+                AutomationProperties.AutomationId="ProgressPercentText"
                 FontWeight="SemiBold"
                 Text="0%"
                 TextAlignment="Right" />

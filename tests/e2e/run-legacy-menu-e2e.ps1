@@ -282,6 +282,8 @@ $compressHandlerPaths = @(
     'HKCU:\Software\Classes\Directory\shellex\ContextMenuHandlers\HodozipCompress'
 )
 $expectedExtensions = @('.zip', '.7z', '.rar', '.msi', '.tar', '.gz', '.tgz', '.bz2', '.tbz2', '.xz', '.txz', '.zst', '.tzst')
+$legacyHandlerValue = $legacyClsid.ToString('B').ToUpperInvariant()
+$compressHandlerValue = $compressClsid.ToString('B').ToUpperInvariant()
 
 $workRoot = Join-Path $env:TEMP 'HodozipLegacyMenuE2E'
 $archives = Join-Path $workRoot 'archives'
@@ -320,11 +322,137 @@ function Assert-Content {
 function Invoke-Registration {
     param([string]$Switch)
 
-    $process = Start-Process -FilePath $exePath -ArgumentList $Switch -PassThru -Wait
+    $explorerProcesses = @(Get-Process explorer -ErrorAction SilentlyContinue)
+    $process = Start-Process -FilePath $exePath -ArgumentList $Switch -PassThru
+
+    # 登録中も Explorer が応答し続けることを確認する。
+    while (-not $process.HasExited) {
+        foreach ($explorer in $explorerProcesses) {
+            try {
+                $explorer.Refresh()
+                if (-not $explorer.HasExited -and -not $explorer.Responding) {
+                    throw "E2E 失敗: $Switch の実行中に Explorer が応答しなくなりました。"
+                }
+            }
+            catch [System.InvalidOperationException] {
+                # 検査中に Explorer が終了した場合は判定不能なので無視する。
+            }
+        }
+        Start-Sleep -Milliseconds 100
+    }
+
     if ($process.ExitCode -ne 0) {
         throw "E2E 失敗: $Switch が終了コード $($process.ExitCode) で失敗しました。"
     }
     Write-Host "  OK: $Switch"
+}
+
+function Get-ShellVerbNames {
+    param([string]$Path)
+
+    $shell = New-Object -ComObject Shell.Application
+    try {
+        $folder = $shell.NameSpace((Split-Path -Parent $Path))
+        if ($null -eq $folder) {
+            return @()
+        }
+        $item = $folder.ParseName((Split-Path -Leaf $Path))
+        if ($null -eq $item) {
+            return @()
+        }
+        $verbs = $item.Verbs()
+        $names = @()
+        for ($index = 0; $index -lt $verbs.Count; $index++) {
+            $names += [string]$verbs.Item($index).Name
+        }
+        return $names
+    }
+    finally {
+        [System.Runtime.InteropServices.Marshal]::ReleaseComObject($shell) | Out-Null
+    }
+}
+
+function Wait-ShellVerb {
+    param([string]$Path, [string]$VerbName, [int]$TimeoutSeconds = 20)
+
+    $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+    while ([DateTime]::UtcNow -lt $deadline) {
+        if ((Get-ShellVerbNames -Path $Path) -contains $VerbName) {
+            Write-Host "  OK: 実シェル メニューに '$VerbName' を確認"
+            return
+        }
+        Start-Sleep -Milliseconds 250
+    }
+
+    $names = Get-ShellVerbNames -Path $Path
+    throw "E2E 失敗: 実シェル メニューに '$VerbName' がありません。取得した項目: $($names -join ' / ')"
+}
+
+function Wait-ShellVerbGone {
+    param([string]$Path, [string]$VerbName, [int]$TimeoutSeconds = 15)
+
+    $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+    $names = @()
+    while ([DateTime]::UtcNow -lt $deadline) {
+        $names = Get-ShellVerbNames -Path $Path
+        if ($names -notcontains $VerbName) {
+            Write-Host "  OK: 実シェル メニューから '$VerbName' が消えた"
+            return
+        }
+        Start-Sleep -Milliseconds 250
+    }
+
+    throw "E2E 失敗: 解除後も実シェル メニューに '$VerbName' が残っています。取得した項目: $($names -join ' / ')"
+}
+
+function Invoke-ShellVerb {
+    param([string]$Path, [string]$VerbName)
+
+    $shell = New-Object -ComObject Shell.Application
+    try {
+        $folder = $shell.NameSpace((Split-Path -Parent $Path))
+        $item = $folder.ParseName((Split-Path -Leaf $Path))
+        $verbs = $item.Verbs()
+        for ($index = 0; $index -lt $verbs.Count; $index++) {
+            if ([string]$verbs.Item($index).Name -eq $VerbName) {
+                $verbs.Item($index).DoIt()
+                Write-Host "  OK: 実シェル メニュー '$VerbName' を実行"
+                return
+            }
+        }
+    }
+    finally {
+        [System.Runtime.InteropServices.Marshal]::ReleaseComObject($shell) | Out-Null
+    }
+
+    throw "E2E 失敗: 実シェル メニューに '$VerbName' が見つかりません。"
+}
+
+function Set-StaleRegistration {
+    param([string]$StaleDllPath)
+
+    New-Item -Path $clsidKey -Force | Out-Null
+    New-Item -Path $inprocKey -Force | Out-Null
+    Set-ItemProperty -LiteralPath $inprocKey -Name '(default)' -Value $StaleDllPath
+    Set-ItemProperty -LiteralPath $inprocKey -Name 'ThreadingModel' -Value 'Apartment'
+
+    foreach ($extension in $expectedExtensions) {
+        $handlerPath =
+            "HKCU:\Software\Classes\SystemFileAssociations\$extension\shellex\ContextMenuHandlers\Hodozip"
+        New-Item -Path $handlerPath -Force | Out-Null
+        # v0.5.0 までと同じ「中かっこなし」の壊れた値を書く。
+        Set-ItemProperty -LiteralPath $handlerPath -Name '(default)' -Value $legacyClsid.ToString('D')
+    }
+
+    New-Item -Path $compressClsidKey -Force | Out-Null
+    New-Item -Path $compressInprocKey -Force | Out-Null
+    Set-ItemProperty -LiteralPath $compressInprocKey -Name '(default)' -Value $StaleDllPath
+    Set-ItemProperty -LiteralPath $compressInprocKey -Name 'ThreadingModel' -Value 'Apartment'
+
+    foreach ($handlerPath in $compressHandlerPaths) {
+        New-Item -Path $handlerPath -Force | Out-Null
+        Set-ItemProperty -LiteralPath $handlerPath -Name '(default)' -Value $compressClsid.ToString('D')
+    }
 }
 
 function Wait-HodozipExit {
@@ -340,6 +468,18 @@ function Wait-HodozipExit {
     throw "Hodozip が $TimeoutSeconds 秒以内に終了しませんでした。"
 }
 
+function Wait-HodozipStarted {
+    param([int]$TimeoutSeconds = 20)
+    $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+    while ([DateTime]::UtcNow -lt $deadline) {
+        if (Get-Process Hodozip -ErrorAction SilentlyContinue) {
+            return
+        }
+        Start-Sleep -Milliseconds 200
+    }
+    throw "Hodozip が $TimeoutSeconds 秒以内に起動しませんでした。"
+}
+
 function Get-RegistryDefault {
     param([string]$Path)
     $key = Get-Item -LiteralPath $Path -ErrorAction SilentlyContinue
@@ -347,6 +487,36 @@ function Get-RegistryDefault {
         return $null
     }
     return [string]$key.GetValue('')
+}
+
+function Assert-RegistrationLayout {
+    $registeredDll = Get-RegistryDefault -Path $inprocKey
+    if (-not [string]::Equals($registeredDll, $installedComDll, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "E2E 失敗: InprocServer32 が '$installedComDll' ではありません: '$registeredDll'"
+    }
+    Write-Host "  OK: InprocServer32 = $registeredDll"
+
+    foreach ($extension in $expectedExtensions) {
+        $handlerPath =
+            "HKCU:\Software\Classes\SystemFileAssociations\$extension\shellex\ContextMenuHandlers\Hodozip"
+        $handlerClsid = Get-RegistryDefault -Path $handlerPath
+        if (-not [string]::Equals($handlerClsid, $legacyHandlerValue, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "E2E 失敗: $extension のハンドラー CLSID が中かっこ付きではありません: '$handlerClsid'"
+        }
+    }
+    Write-Host "  OK: $($expectedExtensions.Count) 拡張子に中かっこ付き CLSID を登録"
+
+    $compressDll = Get-RegistryDefault -Path $compressInprocKey
+    if (-not [string]::Equals($compressDll, $installedComDll, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "E2E 失敗: 圧縮用 InprocServer32 が '$installedComDll' ではありません: '$compressDll'"
+    }
+    foreach ($handlerPath in $compressHandlerPaths) {
+        $handlerClsid = Get-RegistryDefault -Path $handlerPath
+        if (-not [string]::Equals($handlerClsid, $compressHandlerValue, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "E2E 失敗: 圧縮ハンドラー CLSID が中かっこ付きではありません: '$handlerPath' -> '$handlerClsid'"
+        }
+    }
+    Write-Host '  OK: * と Directory に中かっこ付き圧縮ハンドラーを登録'
 }
 
 function Wait-CompressProcess {
@@ -404,36 +574,43 @@ try {
         OverwritePolicy = 'Overwrite'
     } | ConvertTo-Json | Set-Content -LiteralPath $settingsPath -Encoding utf8
 
-    Write-Host '=== L1: CLI で従来型メニューを登録 ==='
+    # テスト用のアーカイブと素材を先に用意する。
+    $hereZip = Join-Path $archives 'legacy-here.zip'
+    New-TestZip -ZipPath $hereZip
+    $folderZip = Join-Path $archives 'legacy-folder.zip'
+    New-TestZip -ZipPath $folderZip -Scattered
+    $compressSource = Join-Path $payload 'compress-source.txt'
+    Set-Content -LiteralPath $compressSource -Value 'legacy compress source' -Encoding utf8
+
+    Write-Host '=== L0: v0.5.0 の壊れた登録（中かっこなし）からのアップグレード ==='
+    Set-StaleRegistration -StaleDllPath 'C:\Program Files\Hodozip-old\Hodozip.ContextMenu.dll'
+
+    $staleHandlerPath =
+        'HKCU:\Software\Classes\SystemFileAssociations\.zip\shellex\ContextMenuHandlers\Hodozip'
+    $staleHandler = Get-RegistryDefault -Path $staleHandlerPath
+    if ($staleHandler -ne $legacyClsid.ToString('D')) {
+        throw "E2E 失敗: v0.5.0 の壊れた登録を再現できませんでした: '$staleHandler'"
+    }
+    Write-Host "  OK: 中かっこなしの壊れた登録を再現: $staleHandler"
+
+    Wait-ShellVerbGone -Path $hereZip -VerbName 'Hodozip で解凍' -TimeoutSeconds 10
+    Wait-ShellVerbGone -Path $compressSource -VerbName 'Hodozip で圧縮' -TimeoutSeconds 10
+    Write-Host '  OK: 壊れた登録は実シェル メニューに表示されない（v0.5.0 の症状を再現）'
+
+    # v0.5.1 の登録処理（インストーラーも同じ CLI を呼ぶ）で修復する。
     Invoke-Registration -Switch '--register-context-menu'
+    Assert-RegistrationLayout
 
-    $registeredDll = Get-RegistryDefault -Path $inprocKey
-    if (-not [string]::Equals($registeredDll, $installedComDll, [StringComparison]::OrdinalIgnoreCase)) {
-        throw "E2E 失敗: InprocServer32 が '$installedComDll' ではありません: '$registeredDll'"
-    }
-    Write-Host "  OK: InprocServer32 = $registeredDll"
+    Wait-ShellVerb -Path $hereZip -VerbName 'Hodozip で解凍'
+    Wait-ShellVerb -Path $hereZip -VerbName 'Hodozip でフォルダに解凍'
+    Wait-ShellVerb -Path $compressSource -VerbName 'Hodozip で圧縮'
+    Wait-ShellVerb -Path $archives -VerbName 'Hodozip で圧縮'
+    Write-Host '  OK: アップグレード後は実シェル メニューに 3 項目が表示される'
 
-    foreach ($extension in $expectedExtensions) {
-        $handlerPath =
-            "HKCU:\Software\Classes\SystemFileAssociations\$extension\shellex\ContextMenuHandlers\Hodozip"
-        $handlerClsid = Get-RegistryDefault -Path $handlerPath
-        if (-not [string]::Equals($handlerClsid, $legacyClsid.ToString('D'), [StringComparison]::OrdinalIgnoreCase)) {
-            throw "E2E 失敗: $extension のハンドラー CLSID が一致しません: '$handlerClsid'"
-        }
-    }
-    Write-Host "  OK: $($expectedExtensions.Count) 拡張子にハンドラーを登録"
-
-    $compressDll = Get-RegistryDefault -Path $compressInprocKey
-    if (-not [string]::Equals($compressDll, $installedComDll, [StringComparison]::OrdinalIgnoreCase)) {
-        throw "E2E 失敗: 圧縮用 InprocServer32 が '$installedComDll' ではありません: '$compressDll'"
-    }
-    foreach ($handlerPath in $compressHandlerPaths) {
-        $handlerClsid = Get-RegistryDefault -Path $handlerPath
-        if (-not [string]::Equals($handlerClsid, $compressClsid.ToString('D'), [StringComparison]::OrdinalIgnoreCase)) {
-            throw "E2E 失敗: 圧縮ハンドラー CLSID が一致しません: '$handlerPath' -> '$handlerClsid'"
-        }
-    }
-    Write-Host '  OK: * と Directory に圧縮ハンドラーを登録'
+    Write-Host '=== L1: CLI で従来型メニューを再登録（冪等性） ==='
+    Invoke-Registration -Switch '--register-context-menu'
+    Assert-RegistrationLayout
+    Write-Host '  OK: 再登録してもレジストリ内容は同一'
 
     Write-Host '=== L2: COM サーバーを直接作成し、メニュー項目を検証 ==='
     [int]$commandCount = 0
@@ -456,29 +633,20 @@ try {
     }
     Write-Host "  OK: 圧縮メニュー項目 '$($compressMenuItems[0])'"
 
-    Write-Host '=== L3: 従来型メニュー「Hodozip で解凍」を実行 ==='
-    $hereZip = Join-Path $archives 'legacy-here.zip'
-    New-TestZip -ZipPath $hereZip
-
-    [LegacyMenuCom]::InvokeCommand($legacyClsid, $hereZip, 0)
+    Write-Host '=== L3: 実シェル メニュー「Hodozip で解凍」を実行 ==='
+    Invoke-ShellVerb -Path $hereZip -VerbName 'Hodozip で解凍'
     Wait-HodozipExit
     Assert-Content -Path (Join-Path $archives 'Top\a.txt') -Expected 'legacy here A' -Label 'Top\a.txt'
     Assert-Content -Path (Join-Path $archives 'Top\sub\b.txt') -Expected 'legacy here B' -Label 'Top\sub\b.txt'
 
-    Write-Host '=== L4: 従来型メニュー「Hodozip でフォルダに解凍」を実行 ==='
-    $folderZip = Join-Path $archives 'legacy-folder.zip'
-    New-TestZip -ZipPath $folderZip -Scattered
-
-    [LegacyMenuCom]::InvokeCommand($legacyClsid, $folderZip, 1)
+    Write-Host '=== L4: 実シェル メニュー「Hodozip でフォルダに解凍」を実行 ==='
+    Invoke-ShellVerb -Path $folderZip -VerbName 'Hodozip でフォルダに解凍'
     Wait-HodozipExit
     Assert-Content -Path (Join-Path $archives 'legacy-folder\readme.txt') -Expected 'legacy folder readme' -Label 'legacy-folder\readme.txt'
     Assert-Content -Path (Join-Path $archives 'legacy-folder\data\value.txt') -Expected 'legacy folder value' -Label 'legacy-folder\data\value.txt'
 
-    Write-Host '=== L5: 従来型メニュー「Hodozip で圧縮」を実行 ==='
-    $compressSource = Join-Path $payload 'compress-source.txt'
-    Set-Content -LiteralPath $compressSource -Value 'legacy compress source' -Encoding utf8
-
-    [LegacyMenuCom]::InvokeCommand($compressClsid, $compressSource, 0)
+    Write-Host '=== L5: 実シェル メニュー「Hodozip で圧縮」を実行 ==='
+    Invoke-ShellVerb -Path $compressSource -VerbName 'Hodozip で圧縮'
     $compressProcess = Wait-CompressProcess -SourcePath $compressSource
     Write-Host "  OK: Hodozip 起動 (PID=$($compressProcess.ProcessId))"
     if ($compressProcess.CommandLine -notmatch '--compress') {
@@ -513,6 +681,12 @@ try {
         }
     }
     Write-Host '  OK: レジストリ キーを解除しました。'
+
+    Wait-ShellVerbGone -Path $hereZip -VerbName 'Hodozip で解凍' -TimeoutSeconds 10
+    Wait-ShellVerbGone -Path $hereZip -VerbName 'Hodozip でフォルダに解凍' -TimeoutSeconds 10
+    Wait-ShellVerbGone -Path $compressSource -VerbName 'Hodozip で圧縮' -TimeoutSeconds 10
+    Wait-ShellVerbGone -Path $archives -VerbName 'Hodozip で圧縮' -TimeoutSeconds 10
+    Write-Host '  OK: 解除後は実シェル メニューから 3 項目が消えました。'
 
     Write-Host ''
     Write-Host '従来型コンテキストメニュー E2E: すべて成功しました。'

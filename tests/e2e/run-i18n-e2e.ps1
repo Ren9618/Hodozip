@@ -52,7 +52,9 @@ function Get-ProcessCondition {
 }
 
 function Start-Hodozip {
-    $process = Start-Process -FilePath $exePath -PassThru
+    param([string[]]$Arguments = @())
+
+    $process = Start-Process -FilePath $exePath -ArgumentList $Arguments -PassThru
     $deadline = [DateTime]::UtcNow.AddSeconds(30)
     while ([DateTime]::UtcNow -lt $deadline) {
         if ($process.HasExited) {
@@ -82,18 +84,35 @@ function Get-ElementNames {
     param([int]$ProcessId)
 
     $condition = Get-ProcessCondition -ProcessId $ProcessId
-    $all = [System.Windows.Automation.AutomationElement]::RootElement.FindAll(
-        [System.Windows.Automation.TreeScope]::Descendants,
-        $condition)
-    $names = New-Object System.Collections.Generic.List[string]
-    foreach ($element in $all) {
-        $name = $element.Current.Name
-        if (-not [string]::IsNullOrWhiteSpace($name)) {
-            $names.Add($name)
+    $deadline = [DateTime]::UtcNow.AddSeconds(15)
+    while ([DateTime]::UtcNow -lt $deadline) {
+        try {
+            $all = [System.Windows.Automation.AutomationElement]::RootElement.FindAll(
+                [System.Windows.Automation.TreeScope]::Descendants,
+                $condition)
+            $names = New-Object System.Collections.Generic.List[string]
+            foreach ($element in $all) {
+                try {
+                    $name = $element.Current.Name
+                    if (-not [string]::IsNullOrWhiteSpace($name)) {
+                        $names.Add($name)
+                    }
+                }
+                catch {
+                    # 列挙中に閉じたウィンドウの要素は読み飛ばす。
+                }
+            }
+
+            return $names
+        }
+        catch {
+            # ウィンドウ切り替え直後は UIA が一時的に
+            # E_ELEMENTNOTAVAILABLE を返すことがあるため再試行する。
+            Start-Sleep -Milliseconds 150
         }
     }
 
-    return $names
+    throw "E2E 失敗: UIA 要素を列挙できませんでした (PID=$ProcessId)。"
 }
 
 function Assert-NamePresent {
@@ -169,6 +188,118 @@ function Stop-Hodozip {
     }
 }
 
+function Find-ElementById {
+    param(
+        [System.Windows.Automation.AutomationElement]$Root,
+        [string]$AutomationId,
+        [int]$TimeoutSeconds = 10
+    )
+
+    $condition = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
+        $AutomationId)
+    $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+    while ([DateTime]::UtcNow -lt $deadline) {
+        $element = $Root.FindFirst(
+            [System.Windows.Automation.TreeScope]::Descendants,
+            $condition)
+        if ($null -ne $element) {
+            return $element
+        }
+        Start-Sleep -Milliseconds 200
+    }
+    return $null
+}
+
+function Select-CompressionFormat {
+    param(
+        [System.Windows.Automation.AutomationElement]$Root,
+        [string]$ItemName
+    )
+
+    $combo = Find-ElementById -Root $Root -AutomationId 'CompressionFormatComboBox'
+    if ($null -eq $combo) {
+        throw 'E2E 失敗: 圧縮形式のコンボ ボックスが見つかりません。'
+    }
+
+    $expand = $combo.GetCurrentPattern(
+        [System.Windows.Automation.ExpandCollapsePattern]::Pattern)
+    $expand.Expand()
+    Start-Sleep -Milliseconds 400
+
+    $condition = New-Object System.Windows.Automation.AndCondition(
+        (New-Object System.Windows.Automation.PropertyCondition(
+            [System.Windows.Automation.AutomationElement]::NameProperty,
+            $ItemName)),
+        (New-Object System.Windows.Automation.PropertyCondition(
+            [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+            [System.Windows.Automation.ControlType]::ListItem)))
+    $item = $Root.FindFirst(
+        [System.Windows.Automation.TreeScope]::Descendants,
+        $condition)
+    if ($null -eq $item) {
+        throw "E2E 失敗: 圧縮形式 '$ItemName' が見つかりません。"
+    }
+
+    $selection = $item.GetCurrentPattern(
+        [System.Windows.Automation.SelectionItemPattern]::Pattern)
+    $selection.Select()
+    Start-Sleep -Milliseconds 400
+}
+
+function Assert-CompressionPasswordState {
+    param(
+        [System.Windows.Automation.AutomationElement]$Root,
+        [bool]$ExpectedEnabled,
+        [string]$ExpectedNote,
+        [string]$Label
+    )
+
+    $box = Find-ElementById -Root $Root -AutomationId 'CompressionPasswordBox'
+    $note = Find-ElementById -Root $Root -AutomationId 'CompressionPasswordNote'
+    if ($null -eq $box -or $null -eq $note) {
+        throw "E2E 失敗: $Label のパスワード欄または注記が見つかりません。"
+    }
+    if ($box.Current.IsEnabled -ne $ExpectedEnabled) {
+        throw "E2E 失敗: $Label のパスワード欄の有効状態が想定と異なります: $($box.Current.IsEnabled)"
+    }
+    if ($note.Current.Name -ne $ExpectedNote) {
+        throw "E2E 失敗: $Label のパスワード注記が想定と異なります: '$($note.Current.Name)'"
+    }
+    Write-Host "  OK: $Label（パスワード欄 enabled=$ExpectedEnabled、注記='$ExpectedNote'）"
+}
+
+function Test-CompressionPasswordUi {
+    param(
+        [string]$Language,
+        [string]$ZipNote,
+        [string]$SevenZipNote,
+        [string]$Label
+    )
+
+    Write-Host "=== ${Label}: 圧縮オプションの 7z パスワード表示 ==="
+    Write-LanguageSetting -Language $Language
+    $source = Join-Path $env:TEMP 'HodozipI18nCompressSource.txt'
+    Set-Content -LiteralPath $source -Value 'i18n compression source' -Encoding utf8
+
+    $process = Start-Hodozip -Arguments @('--compress', ('"' + $source + '"'))
+    try {
+        $root = [System.Windows.Automation.AutomationElement]::FromHandle($process.MainWindowHandle)
+        if ($null -eq $root) {
+            throw "E2E 失敗: $Label の圧縮オプション ウィンドウを取得できませんでした。"
+        }
+
+        Assert-CompressionPasswordState -Root $root -ExpectedEnabled $true -ExpectedNote $ZipNote -Label "$Label ZIP 初期状態"
+        Select-CompressionFormat -Root $root -ItemName '7z (.7z)'
+        Assert-CompressionPasswordState -Root $root -ExpectedEnabled $false -ExpectedNote $SevenZipNote -Label "$Label 7z 選択時"
+        Select-CompressionFormat -Root $root -ItemName 'ZIP (.zip)'
+        Assert-CompressionPasswordState -Root $root -ExpectedEnabled $true -ExpectedNote $ZipNote -Label "$Label ZIP に戻したとき"
+    }
+    finally {
+        Stop-Hodozip -Process $process
+    }
+}
+
 $settingsBackup = $null
 if (Test-Path -LiteralPath $settingsPath) {
     $settingsBackup = Get-Content -LiteralPath $settingsPath -Raw
@@ -220,6 +351,18 @@ try {
     finally {
         Stop-Hodozip -Process $japanese
     }
+
+    Test-CompressionPasswordUi `
+        -Language 'Japanese' `
+        -ZipNote 'ZIP は AES-256 で暗号化します。7z の書き込みはパスワード暗号化に対応していないため、7z では入力したパスワードを無視します。' `
+        -SevenZipNote '7z ではパスワードは使用されません。パスワードは ZIP を選んだときだけ設定できます。' `
+        -Label '日本語'
+
+    Test-CompressionPasswordUi `
+        -Language 'English' `
+        -ZipNote 'ZIP uses AES-256 encryption. The 7z writer does not support password encryption, so the password is ignored for 7z.' `
+        -SevenZipNote 'Passwords are not used with 7z. A password can be set only when ZIP is selected.' `
+        -Label 'English'
 
     Write-Host ''
     Write-Host '多言語スモーク E2E: すべて成功しました。'

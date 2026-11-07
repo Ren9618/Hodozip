@@ -9,6 +9,8 @@ internal sealed record LegacyContextMenuStatus(
     bool IsRegistered,
     string Message);
 
+internal sealed record LegacyContextMenuResult(bool Succeeded, string Message);
+
 /// <summary>
 /// unpackaged 版の従来型（Windows 10 形式 / Windows 11 の「その他のオプションを表示」）
 /// コンテキストメニューを HKCU に登録する。管理者権限は不要。
@@ -24,6 +26,16 @@ internal static class LegacyContextMenuService
 
     private const int ShcneAssocChanged = 0x08000000;
     private const uint ShcnfIdList = 0x0000;
+    private const uint ShcnfFlushNoWait = 0x3000;
+
+    /// <summary>
+    /// shell\shellex\ContextMenuHandlers の既定値に入れる CLSID は、
+    /// 必ず中かっこ付き（{...}）で書く。中かっこがない値は Explorer が
+    /// ハンドラーとして認識せず、エラーも出さずに無視する。
+    /// </summary>
+    private static string ExtractHandlerClsid => $"{{{Clsid}}}";
+
+    private static string CompressHandlerClsid => $"{{{CompressClsid}}}";
 
     private static string ClsidKeyPath => GetClsidKeyPath(Clsid);
 
@@ -73,12 +85,31 @@ internal static class LegacyContextMenuService
                 Loc.Legacy_DllMissing(DllPath));
         }
 
+        var isRegistered = IsRegistered();
         return new LegacyContextMenuStatus(
             IsSupported: true,
-            IsRegistered: IsRegistered(),
-            IsRegistered()
+            IsRegistered: isRegistered,
+            isRegistered
                 ? Loc.Legacy_Registered
                 : Loc.Legacy_NotRegistered);
+    }
+
+    public static Task<LegacyContextMenuResult> RegisterAsync()
+    {
+        return Task.Run(() =>
+        {
+            var succeeded = Register(out var message);
+            return new LegacyContextMenuResult(succeeded, message);
+        });
+    }
+
+    public static Task<LegacyContextMenuResult> UnregisterAsync()
+    {
+        return Task.Run(() =>
+        {
+            var succeeded = Unregister(out var message);
+            return new LegacyContextMenuResult(succeeded, message);
+        });
     }
 
     public static bool Register(out string message)
@@ -154,7 +185,7 @@ internal static class LegacyContextMenuService
                     return false;
                 }
 
-                handlerKey.SetValue(null, Clsid);
+                handlerKey.SetValue(null, ExtractHandlerClsid);
             }
 
             foreach (var handlerKeyPath in CompressHandlerKeyPaths)
@@ -166,7 +197,15 @@ internal static class LegacyContextMenuService
                     return false;
                 }
 
-                handlerKey.SetValue(null, CompressClsid);
+                handlerKey.SetValue(null, CompressHandlerClsid);
+            }
+
+            // 書き込み後に実際のレジストリ内容を読み直して確認する。
+            // 一部のキーだけ書けた状態を成功として報告しない。
+            if (!IsRegistered())
+            {
+                message = Loc.Legacy_VerificationFailed;
+                return false;
             }
 
             NotifyShell();
@@ -238,6 +277,14 @@ internal static class LegacyContextMenuService
                 }
             }
 
+            // 解除後に残骸がないことまで確認する。削除に失敗した場合は
+            // 成功として報告しない。
+            if (HasRegistrationLeftovers())
+            {
+                message = Loc.Legacy_UnregisterIncomplete;
+                return false;
+            }
+
             NotifyShell();
             message = Loc.Legacy_Unregistered;
             return true;
@@ -265,7 +312,7 @@ internal static class LegacyContextMenuService
                 var handlerKeyPath =
                     $@"Software\Classes\SystemFileAssociations\{extension}\shellex\ContextMenuHandlers\Hodozip";
                 using var handlerKey = Registry.CurrentUser.OpenSubKey(handlerKeyPath);
-                if (!string.Equals(handlerKey?.GetValue(null) as string, Clsid, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(handlerKey?.GetValue(null) as string, ExtractHandlerClsid, StringComparison.OrdinalIgnoreCase))
                 {
                     return false;
                 }
@@ -283,7 +330,7 @@ internal static class LegacyContextMenuService
             foreach (var handlerKeyPath in CompressHandlerKeyPaths)
             {
                 using var handlerKey = Registry.CurrentUser.OpenSubKey(handlerKeyPath);
-                if (!string.Equals(handlerKey?.GetValue(null) as string, CompressClsid, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(handlerKey?.GetValue(null) as string, CompressHandlerClsid, StringComparison.OrdinalIgnoreCase))
                 {
                     return false;
                 }
@@ -297,11 +344,39 @@ internal static class LegacyContextMenuService
         }
     }
 
+    private static bool HasRegistrationLeftovers()
+    {
+        if (KeyExists(ClsidKeyPath) || KeyExists(CompressClsidKeyPath))
+        {
+            return true;
+        }
+
+        foreach (var extension in Extensions)
+        {
+            if (KeyExists(
+                $@"Software\Classes\SystemFileAssociations\{extension}\shellex\ContextMenuHandlers\Hodozip"))
+            {
+                return true;
+            }
+        }
+
+        return CompressHandlerKeyPaths.Any(KeyExists);
+    }
+
+    private static bool KeyExists(string path)
+    {
+        using var key = Registry.CurrentUser.OpenSubKey(path);
+        return key is not null;
+    }
+
     private static void NotifyShell()
     {
         try
         {
-            SHChangeNotify(ShcneAssocChanged, ShcnfIdList, IntPtr.Zero, IntPtr.Zero);
+            // FLUSHNOWAIT を使い、Explorer の応答を待たずに通知する。
+            // 同期フラッシュは Explorer がビジーなときに呼び出し元を
+            // ブロックし、UI や登録処理が応答なしになる原因になる。
+            SHChangeNotify(ShcneAssocChanged, ShcnfIdList | ShcnfFlushNoWait, IntPtr.Zero, IntPtr.Zero);
         }
         catch
         {

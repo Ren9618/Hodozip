@@ -243,6 +243,7 @@ internal static class Loc
     public static string Compression_Password => T("Compression_Password");
     public static string Compression_PasswordPlaceholder => T("Compression_PasswordPlaceholder");
     public static string Compression_PasswordNote => T("Compression_PasswordNote");
+    public static string Compression_Password7zNote => T("Compression_Password7zNote");
     public static string Compression_ZipEncoding => T("Compression_ZipEncoding");
     public static string Compression_ZipEncodingUtf8 => T("Compression_ZipEncodingUtf8");
     public static string Compression_ZipEncodingShiftJis => T("Compression_ZipEncodingShiftJis");
@@ -325,6 +326,7 @@ internal static class Loc
     public static string Settings_SupportNote => T("Settings_SupportNote");
     public static string Settings_ContextMenuTitle => T("Settings_ContextMenuTitle");
     public static string Settings_RegisterFailedTitle => T("Settings_RegisterFailedTitle");
+    public static string Settings_ContextMenuRegistering => T("Settings_ContextMenuRegistering");
     public static string Settings_Save => T("Settings_Save");
     public static string Settings_Updates => T("Settings_Updates");
     public static string Settings_CheckUpdatesStartup => T("Settings_CheckUpdatesStartup");
@@ -399,6 +401,8 @@ internal static class Loc
     public static string Legacy_PackagedNotRegistered => T("Legacy_PackagedNotRegistered");
     public static string Legacy_Unregistered => T("Legacy_Unregistered");
     public static string Legacy_UnregisterFailed(string message) => F("Legacy_UnregisterFailed", message);
+    public static string Legacy_VerificationFailed => T("Legacy_VerificationFailed");
+    public static string Legacy_UnregisterIncomplete => T("Legacy_UnregisterIncomplete");
 
     public static string Issue_Generic => T("Issue_Generic");
 }

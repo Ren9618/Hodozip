@@ -26,6 +26,9 @@ public sealed partial class ProgressWindow : Window
     private readonly CancellationTokenSource _cancellation = new();
 
     private DispatcherTimer? _autoCloseTimer;
+    private DispatcherTimer? _progressTimer;
+    private ExtractionProgress? _latestExtractionProgress;
+    private CompressionProgress? _latestCompressionProgress;
     private OverwriteDecision? _applyToAllDecision;
     private string? _destinationPath;
     private bool _started;
@@ -82,6 +85,16 @@ public sealed partial class ProgressWindow : Window
         CurrentFileText.Text = " ";
         ToolTipService.SetToolTip(CurrentFileText, null);
 
+        // 進捗通知はワーカー スレッドから届くため、最新値だけを保持し、
+        // UI スレッドのタイマーで最大 10 回/秒に間引いて反映する。
+        // 通知のたびに DispatcherQueue へ積むと、数千ファイルの解凍で
+        // UI スレッドが飽和し、描画が止まって「応答なし」になる。
+        _progressTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(100),
+        };
+        _progressTimer.Tick += ProgressTimer_Tick;
+
         RootGrid.Loaded += RootGrid_Loaded;
         AppWindow.Closing += AppWindow_Closing;
         Closed += ProgressWindow_Closed;
@@ -95,6 +108,7 @@ public sealed partial class ProgressWindow : Window
         }
 
         _started = true;
+        _progressTimer?.Start();
         _ = _compressionRequest is null ? RunExtractionAsync() : RunCompressionAsync();
     }
 
@@ -109,7 +123,8 @@ public sealed partial class ProgressWindow : Window
             OverwriteResolver = ResolveOverwriteAsync,
             FolderCollisionResolver = ResolveFolderCollisionAsync,
             PasswordProvider = ProvidePasswordAsync,
-            Progress = new DispatcherProgress(DispatcherQueue, UpdateProgress),
+            Progress = new LatestProgress<ExtractionProgress>(
+                value => Volatile.Write(ref _latestExtractionProgress, value)),
             MaxDegreeOfParallelism = _settings.MaxDegreeOfParallelism,
         };
 
@@ -141,8 +156,24 @@ public sealed partial class ProgressWindow : Window
         CompressionResult result;
         try
         {
+            var request = _compressionRequest!;
+            var options = request.Options;
+            var progressRequest = new CompressionRequest(
+                request.SourcePaths,
+                request.OutputPath,
+                new CompressionOptions
+                {
+                    Format = options.Format,
+                    Level = options.Level,
+                    Password = options.Password,
+                    ZipNameEncoding = options.ZipNameEncoding,
+                    Overwrite = options.Overwrite,
+                    Progress = new LatestProgress<CompressionProgress>(
+                        value => Volatile.Write(ref _latestCompressionProgress, value)),
+                });
+
             result = await _compressor
-                .CompressAsync(_compressionRequest!, _cancellation.Token)
+                .CompressAsync(progressRequest, _cancellation.Token)
                 .ConfigureAwait(false);
         }
         catch (OperationCanceledException)
@@ -210,6 +241,7 @@ public sealed partial class ProgressWindow : Window
             return;
         }
 
+        _progressTimer?.Stop();
         _completed = true;
         ShowResult(result);
 
@@ -234,6 +266,7 @@ public sealed partial class ProgressWindow : Window
             return;
         }
 
+        _progressTimer?.Stop();
         _completed = true;
         ShowCompressionResult(result);
 
@@ -246,6 +279,32 @@ public sealed partial class ProgressWindow : Window
         CompressionCompleted?.Invoke(this, result);
     }
 
+    private void ProgressTimer_Tick(object? sender, object e)
+    {
+        if (_completed || _closed)
+        {
+            _progressTimer?.Stop();
+            return;
+        }
+
+        if (_compressionRequest is null)
+        {
+            var progress = Volatile.Read(ref _latestExtractionProgress);
+            if (progress is not null)
+            {
+                UpdateProgress(progress);
+            }
+        }
+        else
+        {
+            var progress = Volatile.Read(ref _latestCompressionProgress);
+            if (progress is not null)
+            {
+                UpdateCompressionProgress(progress);
+            }
+        }
+    }
+
     private void UpdateProgress(ExtractionProgress progress)
     {
         if (_completed || _closed)
@@ -255,12 +314,14 @@ public sealed partial class ProgressWindow : Window
 
         if (progress.TotalBytes > 0)
         {
-            var percent = Math.Min(100d, progress.ProcessedBytes * 100d / progress.TotalBytes);
+            // タイトル、全体バー、数値表示を同じ丸め済みの値から更新する。
+            // バーは 0-100 に正規化し、3 者が常に同じ % を示すようにする。
+            var percent = Math.Clamp((int)Math.Round(progress.ProcessedBytes * 100d / progress.TotalBytes), 0, 100);
+            PercentText.Text = $"{percent}%";
+            Title = $"{percent}% / {_displayName}";
             ProgressBar.IsIndeterminate = false;
-            ProgressBar.Maximum = Math.Max(1, progress.TotalBytes);
-            ProgressBar.Value = Math.Min(progress.ProcessedBytes, ProgressBar.Maximum);
-            PercentText.Text = $"{percent:0}%";
-            Title = $"{percent:0}% / {_displayName}";
+            ProgressBar.Maximum = 100d;
+            ProgressBar.Value = percent;
         }
         else
         {
@@ -287,12 +348,12 @@ public sealed partial class ProgressWindow : Window
 
         if (progress.TotalBytes > 0)
         {
-            var percent = Math.Min(100d, progress.ProcessedBytes * 100d / progress.TotalBytes);
+            var percent = Math.Clamp((int)Math.Round(progress.ProcessedBytes * 100d / progress.TotalBytes), 0, 100);
+            PercentText.Text = $"{percent}%";
+            Title = $"{percent}% / {_displayName}";
             ProgressBar.IsIndeterminate = false;
-            ProgressBar.Maximum = Math.Max(1, progress.TotalBytes);
-            ProgressBar.Value = Math.Min(progress.ProcessedBytes, ProgressBar.Maximum);
-            PercentText.Text = $"{percent:0}%";
-            Title = $"{percent:0}% / {_displayName}";
+            ProgressBar.Maximum = 100d;
+            ProgressBar.Value = percent;
         }
         else
         {
@@ -656,6 +717,7 @@ public sealed partial class ProgressWindow : Window
     {
         _closed = true;
         _autoCloseTimer?.Stop();
+        _progressTimer?.Stop();
 
         if (!_completed)
         {
@@ -691,20 +753,23 @@ public sealed partial class ProgressWindow : Window
         CloseButton.Content = Loc.Common_Close;
     }
 
-    private sealed class DispatcherProgress : IProgress<ExtractionProgress>
+    /// <summary>
+    /// 最新の進捗値だけを保持する IProgress 実装。
+    /// ワーカー スレッドから呼ばれるが DispatcherQueue には触れず、
+    /// UI スレッドのタイマーが最新値を読み取って反映する。
+    /// </summary>
+    private sealed class LatestProgress<T> : IProgress<T>
     {
-        private readonly DispatcherQueue _dispatcherQueue;
-        private readonly Action<ExtractionProgress> _report;
+        private readonly Action<T> _publish;
 
-        public DispatcherProgress(DispatcherQueue dispatcherQueue, Action<ExtractionProgress> report)
+        public LatestProgress(Action<T> publish)
         {
-            _dispatcherQueue = dispatcherQueue;
-            _report = report;
+            _publish = publish;
         }
 
-        public void Report(ExtractionProgress value)
+        public void Report(T value)
         {
-            _dispatcherQueue.TryEnqueue(() => _report(value));
+            _publish(value);
         }
     }
 }

@@ -167,8 +167,19 @@ public sealed partial class CompressionOptionsWindow : Window
     private void UpdateFormatState()
     {
         var format = GetSelectedFormat();
-        ZipEncodingComboBox.IsEnabled = format == ArchiveCreationFormat.Zip;
-        ZipEncodingNoteText.Opacity = format == ArchiveCreationFormat.Zip ? 1 : 0.5;
+        var isZip = format == ArchiveCreationFormat.Zip;
+
+        ZipEncodingComboBox.IsEnabled = isZip;
+        ZipEncodingNoteText.Opacity = isZip ? 1 : 0.5;
+
+        // 7z の Writer はパスワード暗号化に対応していない。
+        // 入力できてしまうのに無視される状態を避けるため、無効化して
+        // 理由を明示する。
+        PasswordBox.IsEnabled = isZip;
+        PasswordLabelText.Opacity = isZip ? 1 : 0.5;
+        PasswordNoteText.Text = isZip
+            ? Loc.Compression_PasswordNote
+            : Loc.Compression_Password7zNote;
     }
 
     private ArchiveCreationFormat GetSelectedFormat()
@@ -382,7 +393,7 @@ public sealed partial class CompressionOptionsWindow : Window
         }
 
         var outputPath = Path.Combine(folder, name);
-        var password = PasswordBox.Password;
+        var password = format == ArchiveCreationFormat.Zip ? PasswordBox.Password : string.Empty;
         var request = new CompressionRequest(
             _sources.ToList(),
             outputPath,

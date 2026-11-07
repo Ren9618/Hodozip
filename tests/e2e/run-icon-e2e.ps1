@@ -148,7 +148,7 @@ public static class IconNative
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 if ([string]::IsNullOrWhiteSpace($SetupPath)) {
-    $SetupPath = Join-Path $repoRoot 'artifacts\installer\Hodozip-0.5.0-setup.exe'
+    $SetupPath = Join-Path $repoRoot 'artifacts\installer\Hodozip-0.5.1-setup.exe'
 }
 if ([string]::IsNullOrWhiteSpace($PublishedExePath)) {
     $PublishedExePath = Join-Path $repoRoot 'artifacts\installer\publish\Hodozip.exe'

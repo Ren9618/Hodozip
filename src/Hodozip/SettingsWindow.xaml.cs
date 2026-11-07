@@ -9,6 +9,7 @@ namespace Hodozip;
 public sealed partial class SettingsWindow : Window
 {
     private bool _suppressLegacyToggle;
+    private bool _legacyToggleBusy;
 
     public SettingsWindow()
     {
@@ -64,29 +65,44 @@ public sealed partial class SettingsWindow : Window
         Close();
     }
 
-    private void LegacyContextMenuToggle_Toggled(object sender, RoutedEventArgs e)
+    private async void LegacyContextMenuToggle_Toggled(object sender, RoutedEventArgs e)
     {
-        if (_suppressLegacyToggle)
+        if (_suppressLegacyToggle || _legacyToggleBusy)
         {
             return;
         }
 
         var shouldRegister = LegacyContextMenuToggle.IsOn;
-        var succeeded = shouldRegister
-            ? LegacyContextMenuService.Register(out var message)
-            : LegacyContextMenuService.Unregister(out message);
 
-        if (!succeeded)
+        // 登録・解除はレジストリと Explorer への通知を伴うため、
+        // UI スレッドでは実行しない。実行中はトグルを無効にして
+        // 状態を正直に表示する。
+        _legacyToggleBusy = true;
+        LegacyContextMenuToggle.IsEnabled = false;
+        SettingsInfoBar.IsOpen = false;
+        LegacyContextMenuStatusText.Text = Loc.Settings_ContextMenuRegistering;
+
+        LegacyContextMenuResult result;
+        try
         {
-            _suppressLegacyToggle = true;
-            LegacyContextMenuToggle.IsOn = !shouldRegister;
-            _suppressLegacyToggle = false;
+            result = await (shouldRegister
+                ? LegacyContextMenuService.RegisterAsync()
+                : LegacyContextMenuService.UnregisterAsync());
+        }
+        catch (Exception ex)
+        {
+            result = new LegacyContextMenuResult(false, ex.Message);
+        }
+        finally
+        {
+            _legacyToggleBusy = false;
         }
 
         RefreshLegacyContextMenuStatus();
-        SettingsInfoBar.Severity = succeeded ? InfoBarSeverity.Success : InfoBarSeverity.Error;
-        SettingsInfoBar.Title = succeeded ? Loc.Settings_ContextMenuTitle : Loc.Settings_RegisterFailedTitle;
-        SettingsInfoBar.Message = message;
+
+        SettingsInfoBar.Severity = result.Succeeded ? InfoBarSeverity.Success : InfoBarSeverity.Error;
+        SettingsInfoBar.Title = result.Succeeded ? Loc.Settings_ContextMenuTitle : Loc.Settings_RegisterFailedTitle;
+        SettingsInfoBar.Message = result.Message;
         SettingsInfoBar.IsOpen = true;
     }
 
