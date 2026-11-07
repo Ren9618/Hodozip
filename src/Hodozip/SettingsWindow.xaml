@@ -47,16 +47,69 @@
                             <ComboBox
                                 x:Name="DestinationRuleComboBox"
                                 HorizontalAlignment="Stretch"
-                                SelectedIndex="0">
+                                SelectedIndex="0"
+                                SelectionChanged="DestinationRuleComboBox_SelectionChanged">
                                 <ComboBoxItem
                                     x:Name="DestinationSameAsArchiveItem"
                                     Tag="SameAsArchive" />
+                                <ComboBoxItem
+                                    x:Name="DestinationFixedFolderItem"
+                                    Tag="FixedFolder" />
+                                <ComboBoxItem
+                                    x:Name="DestinationAskItem"
+                                    Tag="AskEveryTime" />
                             </ComboBox>
+                            <Grid
+                                x:Name="DestinationFolderRow"
+                                ColumnSpacing="8"
+                                Visibility="Collapsed">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox
+                                    x:Name="DestinationFolderBox"
+                                    AutomationProperties.AutomationId="DestinationFolderBox" />
+                                <Button
+                                    x:Name="DestinationFolderBrowseButton"
+                                    Grid.Column="1"
+                                    Click="DestinationFolderBrowseButton_Click" />
+                            </Grid>
                             <TextBlock
                                 x:Name="DestinationNoteText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
                                 TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock
+                                x:Name="CompressionDestinationSectionText"
+                                Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ComboBox
+                                x:Name="CompressionDestinationComboBox"
+                                HorizontalAlignment="Stretch"
+                                SelectionChanged="CompressionDestinationComboBox_SelectionChanged">
+                                <ComboBoxItem Tag="SameAsArchive" />
+                                <ComboBoxItem Tag="FixedFolder" />
+                                <ComboBoxItem Tag="AskEveryTime" />
+                            </ComboBox>
+                            <Grid
+                                x:Name="CompressionFolderRow"
+                                ColumnSpacing="8"
+                                Visibility="Collapsed">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox
+                                    x:Name="CompressionFolderBox"
+                                    AutomationProperties.AutomationId="CompressionFolderBox" />
+                                <Button
+                                    x:Name="CompressionFolderBrowseButton"
+                                    Grid.Column="1"
+                                    Click="CompressionFolderBrowseButton_Click" />
+                            </Grid>
                         </StackPanel>
 
                         <StackPanel Spacing="6">
@@ -129,6 +182,157 @@
                                 x:Name="CloseAfterExtractToggle" />
                             <TextBlock
                                 x:Name="CloseAfterNoteText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Spacing="4">
+                            <ToggleSwitch
+                                x:Name="SkipNewerToggle"
+                                AutomationProperties.AutomationId="SkipNewerToggle" />
+                            <TextBlock
+                                x:Name="SkipNewerNoteText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Padding="22"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                    <StackPanel Spacing="10">
+                        <TextBlock
+                            x:Name="AssociationsSectionText"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <TextBlock
+                            x:Name="AssociationsNoteText"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            x:Name="AssociationsPackagedText"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            TextWrapping="Wrap"
+                            Visibility="Collapsed" />
+                        <StackPanel
+                            x:Name="AssociationsPanel"
+                            Spacing="2" />
+                        <TextBlock
+                            x:Name="DefaultAppsNoteText"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            TextWrapping="Wrap" />
+                        <Button
+                            x:Name="OpenDefaultAppsButton"
+                            Click="OpenDefaultAppsButton_Click" />
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Padding="22"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                    <StackPanel Spacing="12">
+                        <TextBlock
+                            x:Name="NotificationsSectionText"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <StackPanel Spacing="4">
+                            <ToggleSwitch
+                                x:Name="NotifyToggle"
+                                AutomationProperties.AutomationId="NotifyToggle" />
+                            <TextBlock
+                                x:Name="NotifyNoteText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Spacing="4">
+                            <ToggleSwitch
+                                x:Name="BackgroundToggle"
+                                AutomationProperties.AutomationId="BackgroundToggle" />
+                            <TextBlock
+                                x:Name="BackgroundNoteText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Spacing="6">
+                            <TextBlock
+                                x:Name="SoundSectionText"
+                                Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ComboBox
+                                x:Name="SoundComboBox"
+                                HorizontalAlignment="Stretch"
+                                AutomationProperties.AutomationId="SoundComboBox"
+                                SelectionChanged="SoundComboBox_SelectionChanged">
+                                <ComboBoxItem Tag="None" />
+                                <ComboBoxItem Tag="System" />
+                                <ComboBoxItem Tag="File" />
+                            </ComboBox>
+                            <Grid
+                                x:Name="SoundFileRow"
+                                ColumnSpacing="8"
+                                Visibility="Collapsed">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox
+                                    x:Name="SoundFileBox"
+                                    AutomationProperties.AutomationId="SoundFileBox" />
+                                <Button
+                                    x:Name="SoundBrowseButton"
+                                    Grid.Column="1"
+                                    Click="SoundBrowseButton_Click" />
+                                <Button
+                                    x:Name="TestSoundButton"
+                                    Grid.Column="2"
+                                    Click="TestSoundButton_Click" />
+                            </Grid>
+                            <TextBlock
+                                x:Name="SoundNoteText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Padding="22"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                    <StackPanel Spacing="10">
+                        <TextBlock
+                            x:Name="MacOsSectionText"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <StackPanel Spacing="4">
+                            <ToggleSwitch
+                                x:Name="ExcludeMacOsToggle"
+                                AutomationProperties.AutomationId="ExcludeMacOsToggle" />
+                            <TextBlock
+                                x:Name="ExcludeMacOsNoteText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Spacing="4">
+                            <ToggleSwitch
+                                x:Name="NormalizeNfcToggle"
+                                AutomationProperties.AutomationId="NormalizeNfcToggle" />
+                            <TextBlock
+                                x:Name="NormalizeNfcNoteText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
                                 TextWrapping="Wrap" />

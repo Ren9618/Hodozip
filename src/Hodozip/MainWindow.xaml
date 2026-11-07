@@ -30,6 +30,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <Border
@@ -79,6 +80,7 @@
                         <Button
                             x:Name="SelectFileButton"
                             Padding="24,8"
+                            AutomationProperties.AutomationId="SelectFileButton"
                             Click="SelectFileButton_Click"
                             Style="{StaticResource AccentButtonStyle}" />
                         <Button
@@ -135,6 +137,62 @@
                             x:Name="RecentOpenFolderButton"
                             Click="RecentOpenFolderButton_Click" />
                     </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border
+                x:Name="JobsCard"
+                Grid.Row="4"
+                Margin="0,12,0,0"
+                Padding="20"
+                AutomationProperties.AutomationId="JobsCard"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="12"
+                Visibility="Collapsed">
+                <StackPanel Spacing="8">
+                    <TextBlock
+                        x:Name="JobsTitleText"
+                        Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBlock
+                        x:Name="JobsHintText"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        TextWrapping="Wrap" />
+                    <ItemsControl x:Name="JobsList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,6,0,0" ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Spacing="2">
+                                        <TextBlock FontWeight="SemiBold" Text="{Binding Header}" />
+                                        <ProgressBar Height="6" Maximum="100" Value="{Binding ProgressPercent}" />
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{Binding StatusText}" />
+                                    </StackPanel>
+                                    <Button
+                                        Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        Click="JobShowButton_Click"
+                                        Content="{Binding ShowLabel}"
+                                        Tag="{Binding}" />
+                                    <Button
+                                        Grid.Column="2"
+                                        VerticalAlignment="Center"
+                                        Click="JobCancelButton_Click"
+                                        Content="{Binding CancelLabel}"
+                                        Tag="{Binding}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
             </Border>
         </Grid>

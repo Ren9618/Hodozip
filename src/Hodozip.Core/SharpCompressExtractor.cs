@@ -296,6 +296,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         CancellationToken cancellationToken)
     {
         var workItems = new List<EntryWork>();
+        var skippedMacMetadata = 0;
 
         for (var index = 0; index < rawEntries.Count; index++)
         {
@@ -317,6 +318,19 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                 }
 
                 continue;
+            }
+
+            // macOS が付ける不要ファイルは、解凍もせずにスキップ件数へ数える。
+            if (request.Options.ExcludeMacOsMetadata && IsMacOsMetadata(relativePath))
+            {
+                skippedMacMetadata++;
+                continue;
+            }
+
+            // NFD で格納された日本語ファイル名（濁点が分離した形）を NFC に直す。
+            if (request.Options.NormalizeFileNamesNfc)
+            {
+                relativePath = relativePath.Normalize(System.Text.NormalizationForm.FormC);
             }
 
             var sanitized = PathSanitizer.Sanitize(relativePath);
@@ -350,7 +364,8 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
             archiveLength,
             issues,
             parallelSourcePath,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken,
+            skippedMacMetadata).ConfigureAwait(false);
     }
 
     private static async Task<ExtractionResult> ExtractWorkItemsAsync(
@@ -361,7 +376,8 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         long archiveLength,
         List<ExtractionIssue> issues,
         string? parallelSourcePath,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        int initialSkippedFiles = 0)
     {
         var plan = DestinationPlanner.Create(
             baseDirectory,
@@ -412,11 +428,12 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                     issues,
                     parallelSourcePath,
                     parallelism,
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken,
+                    initialSkippedFiles).ConfigureAwait(false);
             }
         }
 
-        return await ExtractWorkItemsSequentialAsync(workItems, request, plan, totalBytes, issues, cancellationToken)
+        return await ExtractWorkItemsSequentialAsync(workItems, request, plan, totalBytes, issues, cancellationToken, initialSkippedFiles)
             .ConfigureAwait(false);
     }
 
@@ -426,12 +443,13 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         DestinationPlan plan,
         long totalBytes,
         List<ExtractionIssue> issues,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        int initialSkippedFiles = 0)
     {
         var progress = request.Options.Progress;
         long processedBytes = 0;
         var extractedFiles = 0;
-        var skippedFiles = 0;
+        var skippedFiles = initialSkippedFiles;
         var lastProgress = Stopwatch.StartNew();
 
         try
@@ -691,6 +709,24 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         };
     }
 
+    /// <summary>
+    /// macOS が自動生成するメタデータ（__MACOSX フォルダー、.DS_Store、._ で始まる名前）か。
+    /// </summary>
+    private static bool IsMacOsMetadata(string relativePath)
+    {
+        foreach (var segment in relativePath.Split(new[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (segment.Equals("__MACOSX", StringComparison.OrdinalIgnoreCase)
+                || segment.Equals(".DS_Store", StringComparison.OrdinalIgnoreCase)
+                || segment.StartsWith("._", StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static int ResolveParallelism(int requested)
     {
         var maximum = Math.Max(1, Environment.ProcessorCount);
@@ -761,14 +797,15 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         List<ExtractionIssue> issues,
         string sourcePath,
         int parallelism,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        int initialSkippedFiles = 0)
     {
         var options = request.Options;
         var progress = options.Progress;
         var counters = new ExtractionCounters();
         var prepared = new List<PreparedEntry>();
         var reservedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var skippedFiles = 0;
+        var skippedFiles = initialSkippedFiles;
 
         // 上書き確認・フォルダ作成・Zip Slip 検査をすべてワーカー起動前に済ませる。
         // ダイアログが並列ワーカーから同時に要求されることはない。
@@ -909,7 +946,8 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                     plan,
                     totalBytes,
                     issues,
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken,
+                    skippedFiles).ConfigureAwait(false);
             }
 
             var parentDirectory = Path.GetDirectoryName(writePath);
@@ -1519,6 +1557,26 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         string targetPath,
         CancellationToken cancellationToken)
     {
+        // 確認モードでも、既存ファイルの方が新しい場合はダイアログを出さずスキップする。
+        if (options.SkipExistingIfNewer
+            && options.OverwritePolicy == OverwritePolicy.Ask
+            && newLastWriteTime is { } newTime)
+        {
+            try
+            {
+                var existingInfo = new FileInfo(LongPath.ToFileSystemPath(targetPath));
+                if (existingInfo.Exists
+                    && existingInfo.LastWriteTimeUtc > newTime.ToUniversalTime())
+                {
+                    return OverwriteDecision.Skip;
+                }
+            }
+            catch
+            {
+                // 更新日時を読めない場合は通常の確認へ回す。
+            }
+        }
+
         switch (options.OverwritePolicy)
         {
             case OverwritePolicy.Overwrite:

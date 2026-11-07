@@ -35,7 +35,10 @@ public sealed partial class ProgressWindow : Window
     private bool _completed;
     private bool _closed;
     private bool _closeRequested;
+    private bool _hiddenInBackground;
+    private bool _closeConfirmOpen;
     private int _autoCloseSeconds;
+    private JobInfo? _job;
 
     public ProgressWindow(
         string archivePath,
@@ -108,6 +111,11 @@ public sealed partial class ProgressWindow : Window
         }
 
         _started = true;
+
+        _job = new JobInfo(this, _displayName, _compressionRequest is not null);
+        _job.StatusText = _compressionRequest is null ? Loc.Progress_Extracting : Loc.Progress_Compressing;
+        JobRegistry.Add(_job);
+
         _progressTimer?.Start();
         _ = _compressionRequest is null ? RunExtractionAsync() : RunCompressionAsync();
     }
@@ -126,14 +134,28 @@ public sealed partial class ProgressWindow : Window
             Progress = new LatestProgress<ExtractionProgress>(
                 value => Volatile.Write(ref _latestExtractionProgress, value)),
             MaxDegreeOfParallelism = _settings.MaxDegreeOfParallelism,
+            SkipExistingIfNewer = _settings.SkipExistingIfNewer,
+            ExcludeMacOsMetadata = _settings.ExcludeMacOsMetadata,
+            NormalizeFileNamesNfc = _settings.NormalizeFileNamesNfc,
         };
+
+        var destination = await ResolveConfiguredDestinationAsync().ConfigureAwait(false);
+        if (destination.Cancelled)
+        {
+            var cancelledResult = CreateFailureResult(
+                Loc.Progress_CancelledMessage,
+                cancelled: true,
+                "Issue_Cancelled");
+            DispatcherQueue.TryEnqueue(() => CompleteOnUiThread(cancelledResult));
+            return;
+        }
 
         ExtractionResult result;
         try
         {
             result = await _extractor
                 .ExtractAsync(
-                    new ExtractionRequest(_archivePath!, null, options, _destinationMode),
+                    new ExtractionRequest(_archivePath!, destination.Directory, options, _destinationMode),
                     _cancellation.Token)
                 .ConfigureAwait(false);
         }
@@ -167,6 +189,7 @@ public sealed partial class ProgressWindow : Window
                     Level = options.Level,
                     Password = options.Password,
                     ZipNameEncoding = options.ZipNameEncoding,
+                    MacOsCompatible = options.MacOsCompatible,
                     Overwrite = options.Overwrite,
                     Progress = new LatestProgress<CompressionProgress>(
                         value => Volatile.Write(ref _latestCompressionProgress, value)),
@@ -244,6 +267,7 @@ public sealed partial class ProgressWindow : Window
         _progressTimer?.Stop();
         _completed = true;
         ShowResult(result);
+        JobRegistry.Remove(_job);
 
         if (_closeRequested)
         {
@@ -252,6 +276,13 @@ public sealed partial class ProgressWindow : Window
         }
 
         ExtractionCompleted?.Invoke(this, result);
+        NotifyExtractionCompleted(result);
+
+        if (_hiddenInBackground)
+        {
+            Close();
+            return;
+        }
 
         if (_isCommandLine && _settings.CloseAfterAutoExtract && result.Success)
         {
@@ -269,6 +300,7 @@ public sealed partial class ProgressWindow : Window
         _progressTimer?.Stop();
         _completed = true;
         ShowCompressionResult(result);
+        JobRegistry.Remove(_job);
 
         if (_closeRequested)
         {
@@ -277,6 +309,12 @@ public sealed partial class ProgressWindow : Window
         }
 
         CompressionCompleted?.Invoke(this, result);
+        NotifyCompressionCompleted(result);
+
+        if (_hiddenInBackground)
+        {
+            Close();
+        }
     }
 
     private void ProgressTimer_Tick(object? sender, object e)
@@ -322,12 +360,14 @@ public sealed partial class ProgressWindow : Window
             ProgressBar.IsIndeterminate = false;
             ProgressBar.Maximum = 100d;
             ProgressBar.Value = percent;
+            UpdateJob(percent, Loc.Progress_Extracting);
         }
         else
         {
             ProgressBar.IsIndeterminate = true;
             PercentText.Text = "…";
             Title = $"… / {_displayName}";
+            UpdateJob((int)Math.Round(_job?.ProgressPercent ?? 0), Loc.Progress_Extracting);
         }
 
         if (!string.IsNullOrEmpty(progress.DestinationPath))
@@ -354,12 +394,14 @@ public sealed partial class ProgressWindow : Window
             ProgressBar.IsIndeterminate = false;
             ProgressBar.Maximum = 100d;
             ProgressBar.Value = percent;
+            UpdateJob(percent, Loc.Progress_Compressing);
         }
         else
         {
             ProgressBar.IsIndeterminate = true;
             PercentText.Text = "…";
             Title = $"… / {_displayName}";
+            UpdateJob((int)Math.Round(_job?.ProgressPercent ?? 0), Loc.Progress_Compressing);
         }
 
         if (!string.IsNullOrEmpty(progress.OutputPath))
@@ -709,8 +751,186 @@ public sealed partial class ProgressWindow : Window
         }
 
         args.Cancel = true;
-        _closeRequested = true;
+
+        if (_settings.RunInBackground)
+        {
+            HideToBackground();
+            return;
+        }
+
+        if (!_closeConfirmOpen)
+        {
+            _ = ConfirmCancelAsync();
+        }
+    }
+
+    private async Task ConfirmCancelAsync()
+    {
+        _closeConfirmOpen = true;
+        try
+        {
+            var xamlRoot = RootGrid.XamlRoot;
+            if (xamlRoot is null)
+            {
+                _closeRequested = true;
+                RequestCancel();
+                return;
+            }
+
+            var dialog = new ContentDialog
+            {
+                XamlRoot = xamlRoot,
+                Title = Loc.Progress_CloseConfirmTitle,
+                Content = Loc.Progress_CloseConfirmMessage,
+                PrimaryButtonText = Loc.Progress_CloseConfirmYes,
+                CloseButtonText = Loc.Progress_CloseConfirmNo,
+                DefaultButton = ContentDialogButton.Close,
+            };
+
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                _closeRequested = true;
+                RequestCancel();
+            }
+        }
+        catch
+        {
+            // ダイアログを出せない場合は従来どおりキャンセルする。
+            _closeRequested = true;
+            RequestCancel();
+        }
+        finally
+        {
+            _closeConfirmOpen = false;
+        }
+    }
+
+    /// <summary>バックグラウンド設定が ON のとき、ウィンドウを閉じずに隠す。</summary>
+    private void HideToBackground()
+    {
+        if (_hiddenInBackground)
+        {
+            return;
+        }
+
+        _hiddenInBackground = true;
+        try
+        {
+            AppWindow.Hide();
+        }
+        catch
+        {
+            // 非表示にできない場合は表示したままにする。
+            _hiddenInBackground = false;
+        }
+    }
+
+    /// <summary>メイン画面の「再表示」から呼ぶ。非表示にしていた場合も表示する。</summary>
+    public void ShowFromBackground()
+    {
+        _hiddenInBackground = false;
+        try
+        {
+            AppWindow.Show();
+        }
+        catch
+        {
+            // 既に表示されている場合は無視する。
+        }
+
+        Activate();
+    }
+
+    /// <summary>メイン画面の「キャンセル」から呼ぶ。</summary>
+    public void CancelFromHost()
+    {
         RequestCancel();
+    }
+
+    private void UpdateJob(int percent, string status)
+    {
+        if (_job is null)
+        {
+            return;
+        }
+
+        _job.ProgressPercent = percent;
+        _job.StatusText = status;
+    }
+
+    private void NotifyExtractionCompleted(ExtractionResult result)
+    {
+        if (result.Cancelled)
+        {
+            return;
+        }
+
+        var title = result.Success
+            ? Loc.Notification_ExtractCompletedTitle
+            : Loc.Notification_ExtractFailedTitle;
+        var message = result.Success
+            ? Loc.Notification_ExtractCompletedMessage(_displayName, result.ExtractedFileCount, result.SkippedFileCount)
+            : Loc.Notification_ExtractFailedMessage(
+                _displayName,
+                result.Issues.FirstOrDefault(x => x.Severity == ExtractionIssueSeverity.Error) is { } issue
+                    ? LocalizationService.GetIssueMessage(issue)
+                    : Loc.Progress_FailedMessage);
+
+        NotificationService.NotifyCompletion(title, message, _settings);
+    }
+
+    private void NotifyCompressionCompleted(CompressionResult result)
+    {
+        if (result.Cancelled)
+        {
+            return;
+        }
+
+        var title = result.Success
+            ? Loc.Notification_CompressionCompletedTitle
+            : Loc.Notification_CompressionFailedTitle;
+        var message = result.Success
+            ? Loc.Notification_CompressionCompletedMessage(_displayName, result.OutputPath)
+            : Loc.Notification_CompressionFailedMessage(_displayName, LocalizationService.GetCompressionError(result));
+
+        NotificationService.NotifyCompletion(title, message, _settings);
+    }
+
+    private Task<(bool Cancelled, string? Directory)> ResolveConfiguredDestinationAsync()
+    {
+        if (_destinationMode == ExtractionDestinationMode.ForceArchiveFolder)
+        {
+            return Task.FromResult((false, (string?)null));
+        }
+
+        switch (_settings.ExtractionDestination)
+        {
+            case DestinationSelectionMode.FixedFolder:
+                return Task.FromResult((
+                    false,
+                    string.IsNullOrWhiteSpace(_settings.ExtractionDestinationFolder)
+                        ? null
+                        : _settings.ExtractionDestinationFolder));
+
+            case DestinationSelectionMode.AskEveryTime:
+                return RunOnUiThreadAsync(async () =>
+                {
+                    var picker = new Windows.Storage.Pickers.FolderPicker
+                    {
+                        SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary,
+                    };
+                    picker.FileTypeFilter.Add("*");
+                    WinRT.Interop.InitializeWithWindow.Initialize(
+                        picker,
+                        WinRT.Interop.WindowNative.GetWindowHandle(this));
+                    var folder = await picker.PickSingleFolderAsync();
+                    return (folder is null, (string?)folder?.Path);
+                });
+
+            default:
+                return Task.FromResult((false, (string?)null));
+        }
     }
 
     private void ProgressWindow_Closed(object sender, WindowEventArgs args)
@@ -718,6 +938,7 @@ public sealed partial class ProgressWindow : Window
         _closed = true;
         _autoCloseTimer?.Stop();
         _progressTimer?.Stop();
+        JobRegistry.Remove(_job);
 
         if (!_completed)
         {

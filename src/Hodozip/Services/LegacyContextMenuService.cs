@@ -15,14 +15,18 @@ internal sealed record LegacyContextMenuResult(bool Succeeded, string Message);
 /// unpackaged 版の従来型（Windows 10 形式 / Windows 11 の「その他のオプションを表示」）
 /// コンテキストメニューを HKCU に登録する。管理者権限は不要。
 ///
+/// v0.6.0 からは解凍 2 項目と圧縮 1 項目を 1 つのハンドラーに統合した。
+/// 旧バージョンの分割登録（解凍用 / 圧縮用の別 CLSID）は登録時に掃除する。
+///
 /// MSIX 版では従来型シェル拡張を登録できないため、この機能は unpackaged 版だけが対象。
 /// </summary>
 internal static class LegacyContextMenuService
 {
+    /// <summary>統合ハンドラーの CLSID。v0.5.x の解凍ハンドラーと同じ値を使う。</summary>
     public const string Clsid = "4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03";
 
-    /// <summary>圧縮メニュー用の従来型ハンドラー。解凍メニューとは分離して登録する。</summary>
-    public const string CompressClsid = "4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C05";
+    /// <summary>v0.5.x まで圧縮メニューに使っていた CLSID。掃除のためだけに保持する。</summary>
+    private const string LegacyCompressClsid = "4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C05";
 
     private const int ShcneAssocChanged = 0x08000000;
     private const uint ShcnfIdList = 0x0000;
@@ -33,27 +37,28 @@ internal static class LegacyContextMenuService
     /// 必ず中かっこ付き（{...}）で書く。中かっこがない値は Explorer が
     /// ハンドラーとして認識せず、エラーも出さずに無視する。
     /// </summary>
-    private static string ExtractHandlerClsid => $"{{{Clsid}}}";
+    private static string HandlerClsid => $"{{{Clsid}}}";
 
-    private static string CompressHandlerClsid => $"{{{CompressClsid}}}";
+    private static string ClsidKeyPath => $@"Software\Classes\CLSID\{{{Clsid}}}";
 
-    private static string ClsidKeyPath => GetClsidKeyPath(Clsid);
+    private static string ClsidInprocKeyPath => ClsidKeyPath + @"\InprocServer32";
 
-    private static string ClsidInprocKeyPath => GetClsidInprocKeyPath(Clsid);
+    private static string LegacyCompressClsidKeyPath =>
+        $@"Software\Classes\CLSID\{{{LegacyCompressClsid}}}";
 
-    private static string CompressClsidKeyPath => GetClsidKeyPath(CompressClsid);
+    /// <summary>統合ハンドラーを登録する場所。ファイルは *、フォルダーは Directory。</summary>
+    private static readonly string[] UnifiedHandlerKeyPaths =
+    {
+        @"Software\Classes\*\shellex\ContextMenuHandlers\Hodozip",
+        @"Software\Classes\Directory\shellex\ContextMenuHandlers\Hodozip",
+    };
 
-    private static string CompressClsidInprocKeyPath => GetClsidInprocKeyPath(CompressClsid);
-
-    private static readonly string[] CompressHandlerKeyPaths =
+    /// <summary>v0.5.x の圧縮ハンドラー登録。統合版へ移行するときに削除する。</summary>
+    private static readonly string[] OldCompressHandlerKeyPaths =
     {
         @"Software\Classes\*\shellex\ContextMenuHandlers\HodozipCompress",
         @"Software\Classes\Directory\shellex\ContextMenuHandlers\HodozipCompress",
     };
-
-    private static string GetClsidKeyPath(string clsid) => $@"Software\Classes\CLSID\{{{clsid}}}";
-
-    private static string GetClsidInprocKeyPath(string clsid) => GetClsidKeyPath(clsid) + @"\InprocServer32";
 
     public static string DllPath => Path.Combine(AppContext.BaseDirectory, "Hodozip.ContextMenu.dll");
 
@@ -128,6 +133,10 @@ internal static class LegacyContextMenuService
 
         try
         {
+            // 旧レイアウト（拡張子ごとの解凍ハンドラーと別 CLSID の圧縮ハンドラー）を
+            // 先に掃除してから、統合ハンドラーを書き直す。冪等に何度でも実行できる。
+            CleanupOldLayout();
+
             using (var clsidKey = Registry.CurrentUser.CreateSubKey(ClsidKeyPath, writable: true))
             {
                 if (clsidKey is null)
@@ -136,7 +145,7 @@ internal static class LegacyContextMenuService
                     return false;
                 }
 
-                clsidKey.SetValue(null, "Hodozip Legacy Context Menu");
+                clsidKey.SetValue(null, "Hodozip Context Menu");
             }
 
             using (var inprocKey = Registry.CurrentUser.CreateSubKey(ClsidInprocKeyPath, writable: true))
@@ -151,53 +160,16 @@ internal static class LegacyContextMenuService
                 inprocKey.SetValue("ThreadingModel", "Apartment");
             }
 
-            using (var compressClsidKey = Registry.CurrentUser.CreateSubKey(CompressClsidKeyPath, writable: true))
-            {
-                if (compressClsidKey is null)
-                {
-                    message = Loc.Legacy_ClsidCreateFailed;
-                    return false;
-                }
-
-                compressClsidKey.SetValue(null, "Hodozip Legacy Compress Menu");
-            }
-
-            using (var compressInprocKey = Registry.CurrentUser.CreateSubKey(CompressClsidInprocKeyPath, writable: true))
-            {
-                if (compressInprocKey is null)
-                {
-                    message = Loc.Legacy_InprocCreateFailed;
-                    return false;
-                }
-
-                compressInprocKey.SetValue(null, DllPath);
-                compressInprocKey.SetValue("ThreadingModel", "Apartment");
-            }
-
-            foreach (var extension in Extensions)
-            {
-                var handlerKeyPath =
-                    $@"Software\Classes\SystemFileAssociations\{extension}\shellex\ContextMenuHandlers\Hodozip";
-                using var handlerKey = Registry.CurrentUser.CreateSubKey(handlerKeyPath, writable: true);
-                if (handlerKey is null)
-                {
-                    message = Loc.Legacy_HandlerCreateFailed(extension);
-                    return false;
-                }
-
-                handlerKey.SetValue(null, ExtractHandlerClsid);
-            }
-
-            foreach (var handlerKeyPath in CompressHandlerKeyPaths)
+            foreach (var handlerKeyPath in UnifiedHandlerKeyPaths)
             {
                 using var handlerKey = Registry.CurrentUser.CreateSubKey(handlerKeyPath, writable: true);
                 if (handlerKey is null)
                 {
-                    message = Loc.Legacy_HandlerCreateFailed("* / Directory");
+                    message = Loc.Legacy_HandlerCreateFailed(handlerKeyPath);
                     return false;
                 }
 
-                handlerKey.SetValue(null, CompressHandlerClsid);
+                handlerKey.SetValue(null, HandlerClsid);
             }
 
             // 書き込み後に実際のレジストリ内容を読み直して確認する。
@@ -229,20 +201,7 @@ internal static class LegacyContextMenuService
 
         try
         {
-            foreach (var extension in Extensions)
-            {
-                var handlerKeyPath =
-                    $@"Software\Classes\SystemFileAssociations\{extension}\shellex\ContextMenuHandlers";
-                try
-                {
-                    using var handlersKey = Registry.CurrentUser.OpenSubKey(handlerKeyPath, writable: true);
-                    handlersKey?.DeleteSubKeyTree("Hodozip", throwOnMissingSubKey: false);
-                }
-                catch
-                {
-                    // 個別の拡張子の削除失敗は、残りの拡張子の解除を妨げない。
-                }
-            }
+            CleanupOldLayout();
 
             try
             {
@@ -253,28 +212,9 @@ internal static class LegacyContextMenuService
                 // CLSID が既に存在しない場合は無視する。
             }
 
-            try
+            foreach (var handlerKeyPath in UnifiedHandlerKeyPaths)
             {
-                Registry.CurrentUser.DeleteSubKeyTree(CompressClsidKeyPath, throwOnMissingSubKey: false);
-            }
-            catch
-            {
-                // CLSID が既に存在しない場合は無視する。
-            }
-
-            foreach (var handlerKeyPath in CompressHandlerKeyPaths)
-            {
-                try
-                {
-                    using var handlersKey = Registry.CurrentUser.OpenSubKey(
-                        Path.GetDirectoryName(handlerKeyPath)!,
-                        writable: true);
-                    handlersKey?.DeleteSubKeyTree("HodozipCompress", throwOnMissingSubKey: false);
-                }
-                catch
-                {
-                    // 個別の削除失敗は、残りの解除を妨げない。
-                }
+                DeleteHandlerKey(handlerKeyPath);
             }
 
             // 解除後に残骸がないことまで確認する。削除に失敗した場合は
@@ -307,36 +247,17 @@ internal static class LegacyContextMenuService
                 return false;
             }
 
-            foreach (var extension in Extensions)
-            {
-                var handlerKeyPath =
-                    $@"Software\Classes\SystemFileAssociations\{extension}\shellex\ContextMenuHandlers\Hodozip";
-                using var handlerKey = Registry.CurrentUser.OpenSubKey(handlerKeyPath);
-                if (!string.Equals(handlerKey?.GetValue(null) as string, ExtractHandlerClsid, StringComparison.OrdinalIgnoreCase))
-                {
-                    return false;
-                }
-            }
-
-            using (var compressInprocKey = Registry.CurrentUser.OpenSubKey(CompressClsidInprocKeyPath))
-            {
-                var compressRegisteredPath = compressInprocKey?.GetValue(null) as string;
-                if (!string.Equals(compressRegisteredPath, DllPath, StringComparison.OrdinalIgnoreCase))
-                {
-                    return false;
-                }
-            }
-
-            foreach (var handlerKeyPath in CompressHandlerKeyPaths)
+            foreach (var handlerKeyPath in UnifiedHandlerKeyPaths)
             {
                 using var handlerKey = Registry.CurrentUser.OpenSubKey(handlerKeyPath);
-                if (!string.Equals(handlerKey?.GetValue(null) as string, CompressHandlerClsid, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(handlerKey?.GetValue(null) as string, HandlerClsid, StringComparison.OrdinalIgnoreCase))
                 {
                     return false;
                 }
             }
 
-            return Extensions.Count > 0;
+            // 旧レイアウトが残っている間は「統合版として登録済み」と報告しない。
+            return !HasOldLayout();
         }
         catch
         {
@@ -344,23 +265,79 @@ internal static class LegacyContextMenuService
         }
     }
 
-    private static bool HasRegistrationLeftovers()
+    /// <summary>拡張子ごとの旧解凍ハンドラー、旧圧縮ハンドラー、旧圧縮 CLSID を削除する。</summary>
+    private static void CleanupOldLayout()
     {
-        if (KeyExists(ClsidKeyPath) || KeyExists(CompressClsidKeyPath))
+        foreach (var extension in Extensions)
+        {
+            DeleteHandlerKey(
+                $@"Software\Classes\SystemFileAssociations\{extension}\shellex\ContextMenuHandlers\Hodozip");
+        }
+
+        foreach (var handlerKeyPath in OldCompressHandlerKeyPaths)
+        {
+            DeleteHandlerKey(handlerKeyPath);
+        }
+
+        try
+        {
+            Registry.CurrentUser.DeleteSubKeyTree(LegacyCompressClsidKeyPath, throwOnMissingSubKey: false);
+        }
+        catch
+        {
+            // 既に存在しない場合は無視する。
+        }
+    }
+
+    private static void DeleteHandlerKey(string handlerKeyPath)
+    {
+        try
+        {
+            var parentPath = Path.GetDirectoryName(handlerKeyPath);
+            var keyName = Path.GetFileName(handlerKeyPath);
+            if (string.IsNullOrEmpty(parentPath) || string.IsNullOrEmpty(keyName))
+            {
+                return;
+            }
+
+            using var handlersKey = Registry.CurrentUser.OpenSubKey(parentPath, writable: true);
+            handlersKey?.DeleteSubKeyTree(keyName, throwOnMissingSubKey: false);
+        }
+        catch
+        {
+            // 個別の削除失敗は、残りの解除を妨げない。
+        }
+    }
+
+    private static bool HasOldLayout()
+    {
+        if (KeyExists(LegacyCompressClsidKeyPath))
         {
             return true;
         }
 
-        foreach (var extension in Extensions)
+        if (OldCompressHandlerKeyPaths.Any(KeyExists))
         {
-            if (KeyExists(
-                $@"Software\Classes\SystemFileAssociations\{extension}\shellex\ContextMenuHandlers\Hodozip"))
-            {
-                return true;
-            }
+            return true;
         }
 
-        return CompressHandlerKeyPaths.Any(KeyExists);
+        return Extensions.Any(extension => KeyExists(
+            $@"Software\Classes\SystemFileAssociations\{extension}\shellex\ContextMenuHandlers\Hodozip"));
+    }
+
+    private static bool HasRegistrationLeftovers()
+    {
+        if (KeyExists(ClsidKeyPath) || KeyExists(LegacyCompressClsidKeyPath))
+        {
+            return true;
+        }
+
+        if (HasOldLayout())
+        {
+            return true;
+        }
+
+        return UnifiedHandlerKeyPaths.Any(KeyExists);
     }
 
     private static bool KeyExists(string path)

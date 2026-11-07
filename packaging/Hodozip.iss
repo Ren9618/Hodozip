@@ -9,10 +9,10 @@
 ; window.
 
 #ifndef AppVersion
-  #define AppVersion "0.5.1"
+  #define AppVersion "0.6.0"
 #endif
 #ifndef AppVersion4
-  #define AppVersion4 "0.5.1.0"
+  #define AppVersion4 "0.6.0.0"
 #endif
 #ifndef SourceDir
   #define SourceDir "..\artifacts\installer\publish"
@@ -33,7 +33,7 @@ AppPublisher=Ren9618
 AppPublisherURL=https://github.com/Ren9618/Hodozip
 AppSupportURL=https://github.com/Ren9618/Hodozip/issues
 AppUpdatesURL=https://github.com/Ren9618/Hodozip/releases
-AppCopyright=Copyright (c) 2026 Ren9618
+AppCopyright=Copyright (c) 2026 Rayno Works (Ren9618)
 DefaultDirName={localappdata}\Programs\Hodozip
 DefaultGroupName=Hodozip
 DisableDirPage=yes
@@ -124,10 +124,60 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\Hodozip
 [Code]
 var
   ContextMenuRegistrationFailed: Boolean;
+  ExplorerRestartNeeded: Boolean;
+
+// Loaded shell-extension DLLs cannot be overwritten. If the old handler is
+// still loaded in Explorer, restart Explorer before copying files so the
+// upgrade can install the unified handler without a reboot.
+function IsFileLocked(const FileName: String): Boolean;
+var
+  Stream: TFileStream;
+begin
+  Result := False;
+  if not FileExists(FileName) then
+    Exit;
+
+  try
+    Stream := TFileStream.Create(FileName, fmOpenWrite or fmShareExclusive);
+    Stream.Free;
+  except
+    Result := True;
+  end;
+end;
+
+procedure RestartExplorerIfNeeded(const DllPath: String);
+var
+  ResultCode: Integer;
+begin
+  if not IsFileLocked(DllPath) then
+    Exit;
+
+  Log('Context menu DLL is locked; restarting Explorer before install.');
+  if not Exec(ExpandConstant('{sys}\taskkill.exe'), '/f /im explorer.exe', '',
+    SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+  begin
+    Log('Could not run taskkill for explorer.exe.');
+    Exit;
+  end;
+
+  Sleep(1200);
+  ExplorerRestartNeeded := True;
+end;
+
+procedure StartExplorerIfNeeded();
+var
+  ResultCode: Integer;
+begin
+  if not ExplorerRestartNeeded then
+    Exit;
+
+  Log('Restarting Explorer.');
+  Exec(ExpandConstant('{win}\explorer.exe'), '', '', SW_SHOWNORMAL, ewNoWait, ResultCode);
+  ExplorerRestartNeeded := False;
+end;
 
 const
-  HodozipExtractClsid = '{4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03}';
-  HodozipCompressClsid = '{4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C05}';
+  HodozipUnifiedClsid = '{4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03}';
 
 function VerifyLegacyContextMenu(): Boolean;
 var
@@ -138,50 +188,62 @@ begin
   DllPath := ExpandConstant('{app}\Hodozip.ContextMenu.dll');
   Log('Context menu verify: expected DLL = ' + DllPath);
 
-  if not RegQueryStringValue(HKCU64, 'Software\Classes\SystemFileAssociations\.zip\shellex\ContextMenuHandlers\Hodozip', '', Value) then
-  begin
-    Log('Context menu verify: .zip handler value is missing.');
-    Exit;
-  end;
-  Log('Context menu verify: .zip handler = ' + Value);
-  if CompareText(Value, HodozipExtractClsid) <> 0 then
-  begin
-    Log('Context menu verify: .zip handler is not braced extract CLSID.');
-    Exit;
-  end;
-
+  // v0.6.0 の統合ハンドラー: 解凍 2 項目と圧縮を 1 つの CLSID で表示する。
   if not RegQueryStringValue(HKCU64, 'Software\Classes\CLSID\{4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03}\InprocServer32', '', Value) then
   begin
-    Log('Context menu verify: extract InprocServer32 value is missing.');
+    Log('Context menu verify: unified InprocServer32 value is missing.');
     Exit;
   end;
-  Log('Context menu verify: extract InprocServer32 = ' + Value);
+  Log('Context menu verify: unified InprocServer32 = ' + Value);
   if CompareText(Value, DllPath) <> 0 then
   begin
-    Log('Context menu verify: extract InprocServer32 does not match the installed DLL.');
+    Log('Context menu verify: unified InprocServer32 does not match the installed DLL.');
     Exit;
   end;
 
   if not RegQueryStringValue(HKCU64, 'Software\Classes\CLSID\{4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03}\InprocServer32', 'ThreadingModel', Value) then
   begin
-    Log('Context menu verify: extract ThreadingModel value is missing.');
+    Log('Context menu verify: unified ThreadingModel value is missing.');
     Exit;
   end;
   if CompareText(Value, 'Apartment') <> 0 then
   begin
-    Log('Context menu verify: extract ThreadingModel is not Apartment.');
+    Log('Context menu verify: unified ThreadingModel is not Apartment.');
     Exit;
   end;
 
-  if not RegQueryStringValue(HKCU64, 'Software\Classes\*\shellex\ContextMenuHandlers\HodozipCompress', '', Value) then
+  if not RegQueryStringValue(HKCU64, 'Software\Classes\*\shellex\ContextMenuHandlers\Hodozip', '', Value) then
   begin
-    Log('Context menu verify: compress handler value is missing.');
+    Log('Context menu verify: * handler value is missing.');
     Exit;
   end;
-  Log('Context menu verify: compress handler = ' + Value);
-  if CompareText(Value, HodozipCompressClsid) <> 0 then
+  if CompareText(Value, HodozipUnifiedClsid) <> 0 then
   begin
-    Log('Context menu verify: compress handler is not braced compress CLSID.');
+    Log('Context menu verify: * handler is not the braced unified CLSID.');
+    Exit;
+  end;
+
+  if not RegQueryStringValue(HKCU64, 'Software\Classes\Directory\shellex\ContextMenuHandlers\Hodozip', '', Value) then
+  begin
+    Log('Context menu verify: Directory handler value is missing.');
+    Exit;
+  end;
+  if CompareText(Value, HodozipUnifiedClsid) <> 0 then
+  begin
+    Log('Context menu verify: Directory handler is not the braced unified CLSID.');
+    Exit;
+  end;
+
+  // 旧レイアウトが残っていないこと（登録処理が掃除する）。
+  if RegQueryStringValue(HKCU64, 'Software\Classes\SystemFileAssociations\.zip\shellex\ContextMenuHandlers\Hodozip', '', Value) then
+  begin
+    Log('Context menu verify: legacy per-extension handler still exists.');
+    Exit;
+  end;
+
+  if RegQueryStringValue(HKCU64, 'Software\Classes\*\shellex\ContextMenuHandlers\HodozipCompress', '', Value) then
+  begin
+    Log('Context menu verify: legacy compress handler still exists.');
     Exit;
   end;
 
@@ -192,11 +254,18 @@ procedure FailContextMenuRegistration(Reason: String);
 begin
   ContextMenuRegistrationFailed := True;
   Log('Context menu registration failed: ' + Reason);
+  StartExplorerIfNeeded();
   // サイレント インストールではメッセージ ボックスが誰にも閉じられず
   // 停止してしまうため、ログだけ残して中止する。
   if not WizardSilent then
     MsgBox(ExpandConstant('{cm:ContextMenuRegisterFailed}'), mbError, MB_OK);
   Abort;
+end;
+
+procedure DeinitializeSetup();
+begin
+  // If setup aborted after stopping Explorer, bring the shell back.
+  StartExplorerIfNeeded();
 end;
 
 function GetCustomSetupExitCode: Integer;
@@ -211,10 +280,20 @@ procedure CurStepChanged(CurStep: TSetupStep);
 var
   ResultCode: Integer;
 begin
+  if CurStep = ssInstall then
+  begin
+    RestartExplorerIfNeeded(ExpandConstant('{app}\Hodozip.ContextMenu.dll'));
+    Exit;
+  end;
+
   if CurStep <> ssPostInstall then
     Exit;
+
   if not WizardIsTaskSelected('contextmenu') then
+  begin
+    StartExplorerIfNeeded();
     Exit;
+  end;
 
   // 登録はアプリ本体の --register-context-menu に一本化する。
   // ここで終了コードとレジストリ内容を検証し、失敗時は無言で
@@ -230,4 +309,5 @@ begin
     FailContextMenuRegistration('Registry verification failed.');
 
   Log('Context menu registration verified successfully.');
+  StartExplorerIfNeeded();
 end;

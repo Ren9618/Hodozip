@@ -148,19 +148,68 @@
                             </StackPanel>
                         </Grid>
 
-                        <StackPanel Spacing="4">
+                        <StackPanel Spacing="6">
                             <TextBlock
                                 x:Name="PasswordLabelText"
                                 Style="{StaticResource CaptionTextBlockStyle}" />
-                            <PasswordBox
-                                x:Name="PasswordBox"
-                                AutomationProperties.AutomationId="CompressionPasswordBox" />
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <PasswordBox
+                                    x:Name="PasswordBox"
+                                    AutomationProperties.AutomationId="CompressionPasswordBox" />
+                                <Button
+                                    x:Name="ShowPasswordButton"
+                                    Grid.Column="1"
+                                    Click="ShowPasswordButton_Click"
+                                    AutomationProperties.AutomationId="CompressionShowPasswordButton" />
+                                <Button
+                                    x:Name="CopyPasswordButton"
+                                    Grid.Column="2"
+                                    Click="CopyPasswordButton_Click"
+                                    AutomationProperties.AutomationId="CompressionCopyPasswordButton" />
+                            </Grid>
                             <TextBlock
                                 x:Name="PasswordNoteText"
                                 AutomationProperties.AutomationId="CompressionPasswordNote"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
                                 TextWrapping="Wrap" />
+                            <StackPanel x:Name="PasswordGenerationPanel" Spacing="6">
+                                <Button
+                                    x:Name="GeneratePasswordButton"
+                                    Click="GeneratePasswordButton_Click"
+                                    AutomationProperties.AutomationId="CompressionGeneratePasswordButton" />
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <TextBlock
+                                        x:Name="PasswordLengthLabelText"
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource CaptionTextBlockStyle}" />
+                                    <NumberBox
+                                        x:Name="PasswordLengthBox"
+                                        Width="120"
+                                        Minimum="12"
+                                        Maximum="64"
+                                        SmallChange="1"
+                                        SpinButtonPlacementMode="Compact"
+                                        Value="20"
+                                        AutomationProperties.AutomationId="CompressionPasswordLength" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <CheckBox x:Name="PasswordLowerCheckBox" IsChecked="True" />
+                                    <CheckBox x:Name="PasswordUpperCheckBox" IsChecked="True" />
+                                    <CheckBox x:Name="PasswordDigitsCheckBox" IsChecked="True" />
+                                    <CheckBox x:Name="PasswordSymbolsCheckBox" IsChecked="True" />
+                                </StackPanel>
+                                <TextBlock
+                                    x:Name="PasswordGeneratedNoteText"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
                         </StackPanel>
 
                         <StackPanel Spacing="4">
@@ -176,6 +225,18 @@
                             </ComboBox>
                             <TextBlock
                                 x:Name="ZipEncodingNoteText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <ToggleSwitch
+                                x:Name="MacOsCompatibleToggle"
+                                AutomationProperties.AutomationId="CompressionMacOsCompatibleToggle"
+                                Toggled="MacOsCompatibleToggle_Toggled" />
+                            <TextBlock
+                                x:Name="MacOsCompatibleNoteText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
                                 TextWrapping="Wrap" />

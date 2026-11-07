@@ -221,6 +221,22 @@ internal static class Loc
     public static string Main_CompressionFailedTitle => T("Main_CompressionFailedTitle");
     public static string Main_CompressionResultOutput(string path) => F("Main_CompressionResultOutput", path);
     public static string Main_CompressionResultFiles(int files, string source, string output) => F("Main_CompressionResultFiles", files, source, output);
+    public static string Main_JobsTitle => T("Main_JobsTitle");
+    public static string Main_JobsHint => T("Main_JobsHint");
+    public static string Main_JobShow => T("Main_JobShow");
+    public static string Main_JobCancel => T("Main_JobCancel");
+    public static string Main_JobExtract => T("Main_JobExtract");
+    public static string Main_JobCompress => T("Main_JobCompress");
+    public static string Main_JobPercent(int percent) => F("Main_JobPercent", percent);
+
+    public static string Notification_ExtractCompletedTitle => T("Notification_ExtractCompletedTitle");
+    public static string Notification_ExtractFailedTitle => T("Notification_ExtractFailedTitle");
+    public static string Notification_CompressionCompletedTitle => T("Notification_CompressionCompletedTitle");
+    public static string Notification_CompressionFailedTitle => T("Notification_CompressionFailedTitle");
+    public static string Notification_ExtractCompletedMessage(string name, int files, int skipped) => F("Notification_ExtractCompletedMessage", name, files, skipped);
+    public static string Notification_ExtractFailedMessage(string name, string message) => F("Notification_ExtractFailedMessage", name, message);
+    public static string Notification_CompressionCompletedMessage(string name, string output) => F("Notification_CompressionCompletedMessage", name, output);
+    public static string Notification_CompressionFailedMessage(string name, string message) => F("Notification_CompressionFailedMessage", name, message);
 
     public static string Compression_Title => T("Compression_Title");
     public static string Compression_WindowTitle(string product) => F("Compression_WindowTitle", product);
@@ -263,6 +279,20 @@ internal static class Loc
     public static string Compression_ErrorInvalidLevel(string value) => F("Compression_ErrorInvalidLevel", value);
     public static string Compression_ErrorInvalidEncoding(string value) => F("Compression_ErrorInvalidEncoding", value);
     public static string Compression_ErrorOptionValue(string option) => F("Compression_ErrorOptionValue", option);
+    public static string Compression_GeneratePassword => T("Compression_GeneratePassword");
+    public static string Compression_PasswordLength => T("Compression_PasswordLength");
+    public static string Compression_PasswordLower => T("Compression_PasswordLower");
+    public static string Compression_PasswordUpper => T("Compression_PasswordUpper");
+    public static string Compression_PasswordDigits => T("Compression_PasswordDigits");
+    public static string Compression_PasswordSymbols => T("Compression_PasswordSymbols");
+    public static string Compression_PasswordGeneratedNote => T("Compression_PasswordGeneratedNote");
+    public static string Compression_PasswordShow => T("Compression_PasswordShow");
+    public static string Compression_PasswordHide => T("Compression_PasswordHide");
+    public static string Compression_Copy => T("Compression_Copy");
+    public static string Compression_Copied => T("Compression_Copied");
+    public static string Compression_MacOsCompatible => T("Compression_MacOsCompatible");
+    public static string Compression_MacOsCompatibleNote => T("Compression_MacOsCompatibleNote");
+    public static string Compression_PasswordGenerateFailed => T("Compression_PasswordGenerateFailed");
 
     public static string Progress_Extracting => T("Progress_Extracting");
     public static string Progress_Destination(string path) => F("Progress_Destination", path);
@@ -286,6 +316,10 @@ internal static class Loc
     public static string Progress_CompressionCancelledTitle => T("Progress_CompressionCancelledTitle");
     public static string Progress_CompressionCancelledMessage => T("Progress_CompressionCancelledMessage");
     public static string Progress_CompressionUnexpectedError(string message) => F("Progress_CompressionUnexpectedError", message);
+    public static string Progress_CloseConfirmTitle => T("Progress_CloseConfirmTitle");
+    public static string Progress_CloseConfirmMessage => T("Progress_CloseConfirmMessage");
+    public static string Progress_CloseConfirmYes => T("Progress_CloseConfirmYes");
+    public static string Progress_CloseConfirmNo => T("Progress_CloseConfirmNo");
 
     public static string Settings_Title => T("Settings_Title");
     public static string Settings_WindowTitle(string product) => F("Settings_WindowTitle", product);
@@ -332,6 +366,39 @@ internal static class Loc
     public static string Settings_CheckUpdatesStartup => T("Settings_CheckUpdatesStartup");
     public static string Settings_CheckUpdatesNote => T("Settings_CheckUpdatesNote");
     public static string Settings_CheckUpdatesPackaged => T("Settings_CheckUpdatesPackaged");
+    public static string Settings_FixedFolder => T("Settings_FixedFolder");
+    public static string Settings_FolderPath => T("Settings_FolderPath");
+    public static string Settings_ChooseFolder => T("Settings_ChooseFolder");
+    public static string Settings_CompressionDestination => T("Settings_CompressionDestination");
+    public static string Settings_SkipNewer => T("Settings_SkipNewer");
+    public static string Settings_SkipNewerNote => T("Settings_SkipNewerNote");
+    public static string Settings_Associations => T("Settings_Associations");
+    public static string Settings_AssociationsNote => T("Settings_AssociationsNote");
+    public static string Settings_AssociationsPackaged => T("Settings_AssociationsPackaged");
+    public static string Settings_OpenDefaultApps => T("Settings_OpenDefaultApps");
+    public static string Settings_DefaultAppsNote => T("Settings_DefaultAppsNote");
+    public static string Settings_AssociationEnabled(string extension) => F("Settings_AssociationEnabled", extension);
+    public static string Settings_AssociationDisabled(string extension) => F("Settings_AssociationDisabled", extension);
+    public static string Settings_AssociationFailed(string extension) => F("Settings_AssociationFailed", extension);
+    public static string Settings_AssociationVerifyFailed(string extension) => F("Settings_AssociationVerifyFailed", extension);
+    public static string Settings_AssociationFailedDetail(string extension, string message) => F("Settings_AssociationFailedDetail", extension, message);
+    public static string Settings_Notifications => T("Settings_Notifications");
+    public static string Settings_NotifyOnCompletion => T("Settings_NotifyOnCompletion");
+    public static string Settings_NotifyNote => T("Settings_NotifyNote");
+    public static string Settings_Background => T("Settings_Background");
+    public static string Settings_BackgroundNote => T("Settings_BackgroundNote");
+    public static string Settings_Sound => T("Settings_Sound");
+    public static string Settings_SoundNone => T("Settings_SoundNone");
+    public static string Settings_SoundSystem => T("Settings_SoundSystem");
+    public static string Settings_SoundFile => T("Settings_SoundFile");
+    public static string Settings_SoundFileLabel => T("Settings_SoundFileLabel");
+    public static string Settings_TestSound => T("Settings_TestSound");
+    public static string Settings_SoundNote => T("Settings_SoundNote");
+    public static string Settings_MacOs => T("Settings_MacOs");
+    public static string Settings_ExcludeMacOs => T("Settings_ExcludeMacOs");
+    public static string Settings_ExcludeMacOsNote => T("Settings_ExcludeMacOsNote");
+    public static string Settings_NormalizeNfc => T("Settings_NormalizeNfc");
+    public static string Settings_NormalizeNfcNote => T("Settings_NormalizeNfcNote");
 
     public static string About_Title => T("About_Title");
     public static string About_WindowTitle(string product) => F("About_WindowTitle", product);

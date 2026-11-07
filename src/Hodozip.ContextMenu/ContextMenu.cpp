@@ -25,6 +25,7 @@
 namespace
 {
     HINSTANCE g_instance = nullptr;
+    volatile LONG g_liveObjects = 0;
 
     // Extract here: {4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01}
     const CLSID CLSID_HodozipExtractHere =
@@ -230,6 +231,114 @@ namespace
         return LaunchHodozipProcess(arguments);
     }
 
+    HBITMAP IconToBitmap(HICON icon, int width, int height)
+    {
+        if (icon == nullptr)
+        {
+            return nullptr;
+        }
+
+        BITMAPINFO info = {};
+        info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        info.bmiHeader.biWidth = width;
+        info.bmiHeader.biHeight = -height;
+        info.bmiHeader.biPlanes = 1;
+        info.bmiHeader.biBitCount = 32;
+        info.bmiHeader.biCompression = BI_RGB;
+
+        void* bits = nullptr;
+        HDC deviceContext = CreateCompatibleDC(nullptr);
+        if (deviceContext == nullptr)
+        {
+            return nullptr;
+        }
+
+        HBITMAP bitmap = CreateDIBSection(
+            deviceContext,
+            &info,
+            DIB_RGB_COLORS,
+            &bits,
+            nullptr,
+            0);
+        if (bitmap != nullptr)
+        {
+            const HGDIOBJ previous = SelectObject(deviceContext, bitmap);
+            DrawIconEx(deviceContext, 0, 0, icon, width, height, 0, nullptr, DI_NORMAL);
+            SelectObject(deviceContext, previous);
+        }
+
+        DeleteDC(deviceContext);
+        return bitmap;
+    }
+
+    // The legacy menu needs an HBITMAP rather than an HICON. Extract the icon
+    // from Hodozip.exe once and keep it for the lifetime of this small DLL.
+    HBITMAP GetMenuBitmap()
+    {
+        static HBITMAP cached = nullptr;
+        if (cached != nullptr)
+        {
+            return cached;
+        }
+
+        const auto executable = GetHodozipExecutablePath();
+        if (executable.empty())
+        {
+            return nullptr;
+        }
+
+        HICON largeIcon = nullptr;
+        HICON smallIcon = nullptr;
+        const UINT extracted = ExtractIconExW(
+            executable.c_str(),
+            0,
+            &largeIcon,
+            &smallIcon,
+            1);
+
+
+        if (extracted == 0)
+        {
+            return nullptr;
+        }
+
+        cached = IconToBitmap(
+            smallIcon != nullptr ? smallIcon : largeIcon,
+            GetSystemMetrics(SM_CXSMICON),
+            GetSystemMetrics(SM_CYSMICON));
+
+
+        if (smallIcon != nullptr)
+        {
+            DestroyIcon(smallIcon);
+        }
+
+        if (largeIcon != nullptr)
+        {
+            DestroyIcon(largeIcon);
+        }
+
+        return cached;
+    }
+
+
+    // Associate the menu icon. SetMenuItemInfo(MIIM_BITMAP) also lets tests
+    // read the bitmap back with GetMenuItemInfo, which SetMenuItemBitmaps
+    // does not expose reliably.
+    void ApplyMenuIcon(HMENU hmenu, UINT id, HBITMAP icon)
+    {
+        if (icon == nullptr)
+        {
+            return;
+        }
+
+        MENUITEMINFOW info = {};
+        info.cbSize = sizeof(info);
+        info.fMask = MIIM_BITMAP;
+        info.hbmpItem = icon;
+        SetMenuItemInfoW(hmenu, id, FALSE, &info);
+    }
+
     class CExplorerCommand final : public IExplorerCommand
     {
     public:
@@ -237,6 +346,7 @@ namespace
             : _forceArchiveFolder(forceArchiveFolder),
               _compress(compress)
         {
+            InterlockedIncrement(&g_liveObjects);
         }
 
         IFACEMETHODIMP QueryInterface(REFIID riid, void** ppvObject) override
@@ -260,6 +370,7 @@ namespace
 
         IFACEMETHODIMP_(ULONG) AddRef() override
         {
+            InterlockedIncrement(&g_liveObjects);
             return static_cast<ULONG>(InterlockedIncrement(&_referenceCount));
         }
 
@@ -271,6 +382,7 @@ namespace
                 delete this;
             }
 
+            InterlockedDecrement(&g_liveObjects);
             return static_cast<ULONG>(count);
         }
 
@@ -291,12 +403,20 @@ namespace
 
         IFACEMETHODIMP GetIcon(IShellItemArray*, LPWSTR* ppszIcon) override
         {
-            if (ppszIcon != nullptr)
+            if (ppszIcon == nullptr)
             {
-                *ppszIcon = nullptr;
+                return E_POINTER;
             }
 
-            return E_NOTIMPL;
+            *ppszIcon = nullptr;
+            const auto executable = GetHodozipExecutablePath();
+            if (executable.empty())
+            {
+                return E_FAIL;
+            }
+
+            const std::wstring iconReference = executable + L",0";
+            return SHStrDupW(iconReference.c_str(), ppszIcon);
         }
 
         IFACEMETHODIMP GetToolTip(IShellItemArray*, LPWSTR* ppszInfotip) override
@@ -475,12 +595,17 @@ namespace
         const bool _compress;
     };
 
+    // Legacy (Windows 10 style) context menu.
+    //
+    // A single handler inserts all three Hodozip commands consecutively for
+    // archives, and only "Compress" for other files and folders. Registering
+    // one CLSID avoids the commands being scattered by separate handlers.
     class CLegacyContextMenu final : public IShellExtInit, public IContextMenu
     {
     public:
-        explicit CLegacyContextMenu(bool compress)
-            : _compress(compress)
+        CLegacyContextMenu()
         {
+            InterlockedIncrement(&g_liveObjects);
         }
 
         IFACEMETHODIMP QueryInterface(REFIID riid, void** ppvObject) override
@@ -511,6 +636,7 @@ namespace
 
         IFACEMETHODIMP_(ULONG) AddRef() override
         {
+            InterlockedIncrement(&g_liveObjects);
             return static_cast<ULONG>(InterlockedIncrement(&_referenceCount));
         }
 
@@ -522,6 +648,7 @@ namespace
                 delete this;
             }
 
+            InterlockedDecrement(&g_liveObjects);
             return static_cast<ULONG>(count);
         }
 
@@ -598,42 +725,37 @@ namespace
                 return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0);
             }
 
-            if (_compress)
+            const HBITMAP icon = GetMenuBitmap();
+            UINT commandCount = 0;
+
+            // Direct COM tests (and a few shell hosts) query the menu without
+            // Initialize(); show the full archive layout in that case.
+            const bool hasArchive = _paths.empty() || HasSupportedArchive();
+
+            if (hasArchive)
             {
-                if (idCmdFirst > idCmdLast)
+                if (idCmdFirst + commandCount <= idCmdLast)
                 {
-                    return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0);
+                    const UINT id = idCmdFirst + commandCount;
+                    InsertMenuW(hmenu, indexMenu + commandCount, MF_BYPOSITION | MF_STRING, id, ExtractHereMenuText());
+                    ApplyMenuIcon(hmenu, id, icon);
+                    ++commandCount;
                 }
 
-                InsertMenuW(
-                    hmenu,
-                    indexMenu,
-                    MF_BYPOSITION | MF_STRING,
-                    idCmdFirst,
-                    CompressMenuText());
-                return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 1);
+                if (idCmdFirst + commandCount <= idCmdLast)
+                {
+                    const UINT id = idCmdFirst + commandCount;
+                    InsertMenuW(hmenu, indexMenu + commandCount, MF_BYPOSITION | MF_STRING, id, ExtractFolderMenuText());
+                    ApplyMenuIcon(hmenu, id, icon);
+                    ++commandCount;
+                }
             }
 
-            UINT commandCount = 0;
-            if (idCmdFirst <= idCmdLast)
+            if (idCmdFirst + commandCount <= idCmdLast)
             {
-                InsertMenuW(
-                    hmenu,
-                    indexMenu,
-                    MF_BYPOSITION | MF_STRING,
-                    idCmdFirst,
-                    ExtractHereMenuText());
-                ++commandCount;
-            }
-
-            if (idCmdFirst + 1 <= idCmdLast)
-            {
-                InsertMenuW(
-                    hmenu,
-                    indexMenu + 1,
-                    MF_BYPOSITION | MF_STRING,
-                    idCmdFirst + 1,
-                    ExtractFolderMenuText());
+                const UINT id = idCmdFirst + commandCount;
+                InsertMenuW(hmenu, indexMenu + commandCount, MF_BYPOSITION | MF_STRING, id, CompressMenuText());
+                ApplyMenuIcon(hmenu, id, icon);
                 ++commandCount;
             }
 
@@ -652,101 +774,108 @@ namespace
                 return E_POINTER;
             }
 
-            const bool forceArchiveFolder = idCmd == 1;
+            const UINT command = static_cast<UINT>(idCmd);
+            const bool hasArchive = HasSupportedArchive();
 
-            if (_compress)
+            if (uType == GCS_VERBW)
             {
-                switch (uType)
-                {
-                    case GCS_VERBW:
-                        return StringCchCopyW(
-                            reinterpret_cast<LPWSTR>(pszName),
-                            cchMax,
-                            L"HodozipCompress");
-
-                    case GCS_HELPTEXTW:
-                        return StringCchCopyW(
-                            reinterpret_cast<LPWSTR>(pszName),
-                            cchMax,
-                            CompressHelpText());
-
-                    default:
-                        return E_NOTIMPL;
-                }
+                const wchar_t* verb = HasArchiveCommand(command, hasArchive)
+                    ? (command == 0 ? L"HodozipExtractHere"
+                        : command == 1 ? L"HodozipExtractFolder"
+                        : L"HodozipCompress")
+                    : nullptr;
+                return verb == nullptr
+                    ? E_INVALIDARG
+                    : StringCchCopyW(reinterpret_cast<LPWSTR>(pszName), cchMax, verb);
             }
 
-            switch (uType)
+            if (uType == GCS_HELPTEXTW)
             {
-                case GCS_VERBW:
-                    return StringCchCopyW(
-                        reinterpret_cast<LPWSTR>(pszName),
-                        cchMax,
-                        forceArchiveFolder ? L"HodozipExtractFolder" : L"HodozipExtractHere");
-
-                case GCS_HELPTEXTW:
-                    return StringCchCopyW(
-                        reinterpret_cast<LPWSTR>(pszName),
-                        cchMax,
-                        forceArchiveFolder ? ExtractFolderHelpText() : ExtractHereHelpText());
-
-                default:
-                    return E_NOTIMPL;
+                const wchar_t* help = HasArchiveCommand(command, hasArchive)
+                    ? (command == 0 ? ExtractHereHelpText()
+                        : command == 1 ? ExtractFolderHelpText()
+                        : CompressHelpText())
+                    : nullptr;
+                return help == nullptr
+                    ? E_INVALIDARG
+                    : StringCchCopyW(reinterpret_cast<LPWSTR>(pszName), cchMax, help);
             }
+
+            return E_NOTIMPL;
         }
 
         IFACEMETHODIMP InvokeCommand(LPCMINVOKECOMMANDINFO pici) override
         {
-            if (pici == nullptr)
-            {
-                return E_INVALIDARG;
-            }
-
-            if (HIWORD(pici->lpVerb) != 0)
+            if (pici == nullptr || HIWORD(pici->lpVerb) != 0)
             {
                 return E_INVALIDARG;
             }
 
             const UINT command = LOWORD(pici->lpVerb);
-            if (_compress)
+            const bool hasArchive = HasSupportedArchive();
+
+            if (hasArchive)
             {
-                if (command != 0)
+                if (command == 2)
+                {
+                    return LaunchHodozipCompress(_paths);
+                }
+
+                if (command > 1)
                 {
                     return E_INVALIDARG;
                 }
 
-                return LaunchHodozipCompress(_paths);
+                const bool forceArchiveFolder = command == 1;
+                HRESULT firstFailure = S_OK;
+
+                for (const auto& path : _paths)
+                {
+                    if (!IsSupportedArchivePath(path))
+                    {
+                        continue;
+                    }
+
+                    const HRESULT result = LaunchHodozip(path, forceArchiveFolder);
+                    if (FAILED(result) && firstFailure == S_OK)
+                    {
+                        firstFailure = result;
+                    }
+                }
+
+                return firstFailure;
             }
 
-            if (command > 1)
+            if (command != 0)
             {
                 return E_INVALIDARG;
             }
 
-            const bool forceArchiveFolder = command == 1;
-            HRESULT firstFailure = S_OK;
-
-            for (const auto& path : _paths)
-            {
-                if (!IsSupportedArchivePath(path))
-                {
-                    continue;
-                }
-
-                const HRESULT result = LaunchHodozip(path, forceArchiveFolder);
-                if (FAILED(result) && firstFailure == S_OK)
-                {
-                    firstFailure = result;
-                }
-            }
-
-            return firstFailure;
+            return LaunchHodozipCompress(_paths);
         }
 
     private:
         ~CLegacyContextMenu() = default;
 
+        static bool HasArchiveCommand(UINT command, bool hasArchive)
+        {
+            return hasArchive ? command <= 2 : command == 0;
+        }
+
+        bool HasSupportedArchive() const
+        {
+            for (const auto& path : _paths)
+            {
+                if (IsSupportedArchivePath(path))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         LONG _referenceCount = 1;
-        const bool _compress;
         std::vector<std::wstring> _paths;
     };
 
@@ -758,6 +887,7 @@ namespace
               _legacy(legacy),
               _compress(compress)
         {
+            InterlockedIncrement(&g_liveObjects);
         }
 
         IFACEMETHODIMP QueryInterface(REFIID riid, void** ppvObject) override
@@ -781,6 +911,7 @@ namespace
 
         IFACEMETHODIMP_(ULONG) AddRef() override
         {
+            InterlockedIncrement(&g_liveObjects);
             return static_cast<ULONG>(InterlockedIncrement(&_referenceCount));
         }
 
@@ -792,6 +923,7 @@ namespace
                 delete this;
             }
 
+            InterlockedDecrement(&g_liveObjects);
             return static_cast<ULONG>(count);
         }
 
@@ -814,7 +946,7 @@ namespace
 
             if (_legacy)
             {
-                auto* legacyCommand = new (std::nothrow) CLegacyContextMenu(_compress);
+                auto* legacyCommand = new (std::nothrow) CLegacyContextMenu();
                 if (legacyCommand == nullptr)
                 {
                     return E_OUTOFMEMORY;
@@ -864,8 +996,9 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID)
 
 extern "C" HRESULT WINAPI DllCanUnloadNow()
 {
-    // The surrogate server keeps this small DLL loaded while Explorer runs.
-    return S_FALSE;
+    // Let Explorer unload the DLL once no menu objects remain, so a future
+    // upgrade can replace the file without restarting Explorer.
+    return g_liveObjects == 0 ? S_OK : S_FALSE;
 }
 
 extern "C" HRESULT WINAPI DllGetClassObject(

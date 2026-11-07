@@ -3,7 +3,7 @@
 #
 # Verifies:
 #   - v0.5.0 dirty registration (unbraced handler values) is repaired by setup
-#   - the installed app is 0.5.1 and the installer wrote every expected braced value
+#   - the installed app matches Directory.Build.props and the installer wrote every expected braced value
 #   - app --unregister-context-menu leaves no registry leftovers
 #   - app --register-context-menu writes exactly the same registry contents as setup
 #
@@ -18,31 +18,35 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+[xml]$props = Get-Content -LiteralPath (Join-Path $repoRoot 'Directory.Build.props') -Raw
+$version = [string]$props.Project.PropertyGroup.HodozipVersion
 if ([string]::IsNullOrWhiteSpace($SetupPath)) {
-    [xml]$props = Get-Content -LiteralPath (Join-Path $repoRoot 'Directory.Build.props') -Raw
-    $version = [string]$props.Project.PropertyGroup.HodozipVersion
     $SetupPath = Join-Path $repoRoot "artifacts\installer\Hodozip-$version-setup.exe"
 }
 $setupPath = [System.IO.Path]::GetFullPath($SetupPath)
-$expectedVersion = '0.5.1'
+$expectedVersion = $version
 $installDirectory = Join-Path $env:LOCALAPPDATA 'Programs\Hodozip'
 $installedExe = Join-Path $installDirectory 'Hodozip.exe'
 
-$extractClsid = '{4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03}'
-$compressClsid = '{4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C05}'
+$unifiedClsid = '{4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03}'
+$oldCompressClsid = '{4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C05}'
 $extensions = @(
     '.zip', '.7z', '.rar', '.msi', '.tar', '.gz', '.tgz', '.bz2',
     '.tbz2', '.xz', '.txz', '.zst', '.tzst'
 )
-$compressHandlerPaths = @(
+$unifiedHandlerPaths = @(
+    'Software\Classes\*\shellex\ContextMenuHandlers\Hodozip',
+    'Software\Classes\Directory\shellex\ContextMenuHandlers\Hodozip'
+)
+$oldCompressHandlerPaths = @(
     'Software\Classes\*\shellex\ContextMenuHandlers\HodozipCompress',
     'Software\Classes\Directory\shellex\ContextMenuHandlers\HodozipCompress'
 )
 $clsidPaths = @(
-    "Software\Classes\CLSID\$extractClsid",
-    "Software\Classes\CLSID\$extractClsid\InprocServer32",
-    "Software\Classes\CLSID\$compressClsid",
-    "Software\Classes\CLSID\$compressClsid\InprocServer32"
+    "Software\Classes\CLSID\$unifiedClsid",
+    "Software\Classes\CLSID\$unifiedClsid\InprocServer32",
+    "Software\Classes\CLSID\$oldCompressClsid",
+    "Software\Classes\CLSID\$oldCompressClsid\InprocServer32"
 )
 
 if (-not (Test-Path -LiteralPath $setupPath)) {
@@ -91,12 +95,15 @@ function Assert-Equal {
 
 function Get-RegistrationSnapshot {
     $values = [ordered]@{}
-    foreach ($extension in $extensions) {
-        $path = "Software\Classes\SystemFileAssociations\$extension\shellex\ContextMenuHandlers\Hodozip"
+    foreach ($path in $unifiedHandlerPaths) {
         $values["$path|"] = Get-RegValue -Path $path -Name ''
     }
-    foreach ($path in $compressHandlerPaths) {
-        $values["$path|"] = Get-RegValue -Path $path -Name ''
+    foreach ($extension in $extensions) {
+        $path = "Software\Classes\SystemFileAssociations\$extension\shellex\ContextMenuHandlers\Hodozip"
+        $values["legacy:$path|"] = Get-RegValue -Path $path -Name ''
+    }
+    foreach ($path in $oldCompressHandlerPaths) {
+        $values["legacy:$path|"] = Get-RegValue -Path $path -Name ''
     }
     foreach ($path in $clsidPaths) {
         $values["$path|"] = Get-RegValue -Path $path -Name ''
@@ -118,12 +125,15 @@ function Assert-NoRegistrationLeftovers {
     foreach ($extension in $extensions) {
         Assert-KeyMissing "Software\Classes\SystemFileAssociations\$extension\shellex\ContextMenuHandlers\Hodozip"
     }
-    foreach ($path in $compressHandlerPaths) {
+    foreach ($path in $unifiedHandlerPaths) {
+        Assert-KeyMissing $path
+    }
+    foreach ($path in $oldCompressHandlerPaths) {
         Assert-KeyMissing $path
     }
     foreach ($path in @(
-        "Software\Classes\CLSID\$extractClsid",
-        "Software\Classes\CLSID\$compressClsid")) {
+        "Software\Classes\CLSID\$unifiedClsid",
+        "Software\Classes\CLSID\$oldCompressClsid")) {
         Assert-KeyMissing $path
     }
     Write-Host '  OK: 解除後にレジストリの残骸なし'
@@ -131,19 +141,28 @@ function Assert-NoRegistrationLeftovers {
 
 function Assert-InstalledRegistration {
     $expectedDll = Join-Path $installDirectory 'Hodozip.ContextMenu.dll'
+    foreach ($path in $unifiedHandlerPaths) {
+        Assert-Equal "$path のハンドラー値" (Get-RegValue -Path $path -Name '') $unifiedClsid
+    }
+    $inproc = "Software\Classes\CLSID\$unifiedClsid\InprocServer32"
+    Assert-Equal "$unifiedClsid の InprocServer32" (Get-RegValue -Path $inproc -Name '') $expectedDll
+    Assert-Equal "$unifiedClsid の ThreadingModel" (Get-RegValue -Path $inproc -Name 'ThreadingModel') 'Apartment'
     foreach ($extension in $extensions) {
         $path = "Software\Classes\SystemFileAssociations\$extension\shellex\ContextMenuHandlers\Hodozip"
-        Assert-Equal "$extension のハンドラー値" (Get-RegValue -Path $path -Name '') $extractClsid
+        if ($null -ne (Get-RegValue -Path $path -Name '')) {
+            throw "旧レイアウトの拡張子別ハンドラーが残っています: $path"
+        }
     }
-    foreach ($path in $compressHandlerPaths) {
-        Assert-Equal "$path のハンドラー値" (Get-RegValue -Path $path -Name '') $compressClsid
+    foreach ($path in $oldCompressHandlerPaths) {
+        if ($null -ne (Get-RegValue -Path $path -Name '')) {
+            throw "旧圧縮ハンドラーが残っています: $path"
+        }
     }
-    foreach ($clsid in @($extractClsid, $compressClsid)) {
-        $inproc = "Software\Classes\CLSID\$clsid\InprocServer32"
-        Assert-Equal "$clsid の InprocServer32" (Get-RegValue -Path $inproc -Name '') $expectedDll
-        Assert-Equal "$clsid の ThreadingModel" (Get-RegValue -Path $inproc -Name 'ThreadingModel') 'Apartment'
+    if ($null -ne (Get-RegValue -Path "Software\Classes\CLSID\$oldCompressClsid" -Name '')) {
+        throw '旧圧縮 CLSID が残っています。'
     }
-    Write-Host '  OK: 全 13 拡張子と圧縮メニューが中かっこ付き CLSID で登録済み'
+    Write-Host '  OK: * と Directory に統合ハンドラー（中かっこ付き）を登録'
+    Write-Host '  OK: 旧レイアウトは残っていない'
     Write-Host '  OK: CLSID の InprocServer32 はインストール先 DLL を指す'
 }
 
@@ -167,8 +186,8 @@ try {
     # v0.5.0 は中かっこなしの CLSID を書き、Explorer から無視されていた。
     Set-RegValue "Software\Classes\SystemFileAssociations\.zip\shellex\ContextMenuHandlers\Hodozip" '' '4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03'
     Set-RegValue "Software\Classes\SystemFileAssociations\.7z\shellex\ContextMenuHandlers\Hodozip" '' '4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03'
-    Set-RegValue $compressHandlerPaths[0] '' '4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C05'
-    Set-RegValue $compressHandlerPaths[1] '' '4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C05'
+    Set-RegValue $oldCompressHandlerPaths[0] '' '4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C05'
+    Set-RegValue $oldCompressHandlerPaths[1] '' '4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C05'
     Write-Host '  OK: .zip / .7z / * / Directory に中かっこなしの値を書き込み'
 
     Write-Host '=== I2: setup.exe サイレント アップグレード ==='

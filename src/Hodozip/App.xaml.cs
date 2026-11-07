@@ -66,6 +66,7 @@ public partial class App : Application
         string? levelText = null;
         string? encodingText = null;
         var overwrite = false;
+        var macOsCompatible = false;
         string? error = null;
         var sources = new List<string>();
 
@@ -93,6 +94,9 @@ public partial class App : Application
                     break;
                 case "--overwrite":
                     overwrite = true;
+                    break;
+                case "--macos-compatible":
+                    macOsCompatible = true;
                     break;
                 default:
                     if (!string.IsNullOrWhiteSpace(argument) && !argument.StartsWith('-'))
@@ -240,6 +244,7 @@ public partial class App : Application
             Level = level,
             Password = string.IsNullOrEmpty(password) ? null : password,
             ZipNameEncoding = encoding,
+            MacOsCompatible = macOsCompatible,
             Overwrite = overwrite,
         };
 

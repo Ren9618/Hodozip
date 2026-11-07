@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 using Hodozip.Core;
@@ -38,6 +39,14 @@ public sealed partial class CompressionOptionsWindow : Window
         FormatComboBox.SelectedIndex = 0;
         LevelComboBox.SelectedIndex = 1;
         ZipEncodingComboBox.SelectedIndex = 0;
+        PasswordLengthBox.Value = Math.Clamp(
+            settings.GeneratedPasswordLength,
+            PasswordGenerator.MinLength,
+            PasswordGenerator.MaxLength);
+        PasswordLowerCheckBox.IsChecked = settings.GeneratedPasswordLowerCase;
+        PasswordUpperCheckBox.IsChecked = settings.GeneratedPasswordUpperCase;
+        PasswordDigitsCheckBox.IsChecked = settings.GeneratedPasswordDigits;
+        PasswordSymbolsCheckBox.IsChecked = settings.GeneratedPasswordSymbols;
 
         _initializing = false;
         UpdateSourceState();
@@ -66,6 +75,17 @@ public sealed partial class CompressionOptionsWindow : Window
         ZipEncodingLabelText.Text = Loc.Compression_ZipEncoding;
         ZipEncodingNoteText.Text = Loc.Compression_ZipEncodingNote;
         CollisionNoteText.Text = Loc.Compression_CollisionNote;
+        ShowPasswordButton.Content = Loc.Compression_PasswordShow;
+        CopyPasswordButton.Content = Loc.Compression_Copy;
+        GeneratePasswordButton.Content = Loc.Compression_GeneratePassword;
+        PasswordLengthLabelText.Text = Loc.Compression_PasswordLength;
+        PasswordLowerCheckBox.Content = Loc.Compression_PasswordLower;
+        PasswordUpperCheckBox.Content = Loc.Compression_PasswordUpper;
+        PasswordDigitsCheckBox.Content = Loc.Compression_PasswordDigits;
+        PasswordSymbolsCheckBox.Content = Loc.Compression_PasswordSymbols;
+        PasswordGeneratedNoteText.Text = Loc.Compression_PasswordGeneratedNote;
+        MacOsCompatibleToggle.Header = Loc.Compression_MacOsCompatible;
+        MacOsCompatibleNoteText.Text = Loc.Compression_MacOsCompatibleNote;
         CancelButton.Content = Loc.Common_Cancel;
         StartButton.Content = Loc.Compression_Start;
         SourcesHintText.Text = Loc.Compression_NoSources;
@@ -90,6 +110,12 @@ public sealed partial class CompressionOptionsWindow : Window
         IReadOnlyList<string>? sources,
         AppSettings settings)
     {
+        if (settings.CompressionDestination == DestinationSelectionMode.FixedFolder
+            && !string.IsNullOrWhiteSpace(settings.CompressionDestinationFolder))
+        {
+            return settings.CompressionDestinationFolder;
+        }
+
         if (sources is { Count: > 0 })
         {
             var defaultPath = CompressionDefaults.GetDefaultOutputPath(
@@ -168,18 +194,107 @@ public sealed partial class CompressionOptionsWindow : Window
     {
         var format = GetSelectedFormat();
         var isZip = format == ArchiveCreationFormat.Zip;
+        var macCompatible = isZip && MacOsCompatibleToggle.IsOn;
 
-        ZipEncodingComboBox.IsEnabled = isZip;
-        ZipEncodingNoteText.Opacity = isZip ? 1 : 0.5;
+        ZipEncodingComboBox.IsEnabled = isZip && !macCompatible;
+        ZipEncodingNoteText.Opacity = isZip && !macCompatible ? 1 : 0.5;
+
+        // macOS 互換は ZIP だけが対象。7z では選べないことを明示する。
+        MacOsCompatibleToggle.IsEnabled = isZip;
+        MacOsCompatibleNoteText.Opacity = isZip ? 1 : 0.5;
 
         // 7z の Writer はパスワード暗号化に対応していない。
         // 入力できてしまうのに無視される状態を避けるため、無効化して
         // 理由を明示する。
         PasswordBox.IsEnabled = isZip;
+        ShowPasswordButton.IsEnabled = isZip;
+        CopyPasswordButton.IsEnabled = isZip;
+        GeneratePasswordButton.IsEnabled = isZip;
+        PasswordLengthBox.IsEnabled = isZip;
+        PasswordLowerCheckBox.IsEnabled = isZip;
+        PasswordUpperCheckBox.IsEnabled = isZip;
+        PasswordDigitsCheckBox.IsEnabled = isZip;
+        PasswordSymbolsCheckBox.IsEnabled = isZip;
+        PasswordGenerationPanel.Opacity = isZip ? 1 : 0.5;
         PasswordLabelText.Opacity = isZip ? 1 : 0.5;
         PasswordNoteText.Text = isZip
             ? Loc.Compression_PasswordNote
             : Loc.Compression_Password7zNote;
+    }
+
+    private void MacOsCompatibleToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (_initializing)
+        {
+            return;
+        }
+
+        UpdateFormatState();
+    }
+
+    private void ShowPasswordButton_Click(object sender, RoutedEventArgs e)
+    {
+        var reveal = PasswordBox.PasswordRevealMode != PasswordRevealMode.Visible;
+        PasswordBox.PasswordRevealMode = reveal
+            ? PasswordRevealMode.Visible
+            : PasswordRevealMode.Hidden;
+        ShowPasswordButton.Content = reveal
+            ? Loc.Compression_PasswordHide
+            : Loc.Compression_PasswordShow;
+    }
+
+    private void CopyPasswordButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrEmpty(PasswordBox.Password))
+        {
+            return;
+        }
+
+        try
+        {
+            var package = new DataPackage();
+            package.SetText(PasswordBox.Password);
+            Clipboard.SetContent(package);
+            OptionsInfoBar.Severity = InfoBarSeverity.Success;
+            OptionsInfoBar.Title = Loc.Compression_Password;
+            OptionsInfoBar.Message = Loc.Compression_Copied;
+            OptionsInfoBar.IsOpen = true;
+        }
+        catch (Exception ex)
+        {
+            ShowError(ex.Message);
+        }
+    }
+
+    private void GeneratePasswordButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var length = double.IsNaN(PasswordLengthBox.Value)
+                ? 20
+                : (int)Math.Round(PasswordLengthBox.Value);
+            length = Math.Clamp(length, PasswordGenerator.MinLength, PasswordGenerator.MaxLength);
+            PasswordLengthBox.Value = length;
+
+            PasswordBox.Password = PasswordGenerator.Generate(
+                length,
+                PasswordLowerCheckBox.IsChecked == true,
+                PasswordUpperCheckBox.IsChecked == true,
+                PasswordDigitsCheckBox.IsChecked == true,
+                PasswordSymbolsCheckBox.IsChecked == true);
+
+            var settings = SettingsService.Load();
+            settings.GeneratedPasswordLength = length;
+            settings.GeneratedPasswordLowerCase = PasswordLowerCheckBox.IsChecked == true;
+            settings.GeneratedPasswordUpperCase = PasswordUpperCheckBox.IsChecked == true;
+            settings.GeneratedPasswordDigits = PasswordDigitsCheckBox.IsChecked == true;
+            settings.GeneratedPasswordSymbols = PasswordSymbolsCheckBox.IsChecked == true;
+            SettingsService.Save(settings);
+        }
+        catch (Exception)
+        {
+            ShowError(Loc.Compression_PasswordGenerateFailed);
+        }
     }
 
     private ArchiveCreationFormat GetSelectedFormat()
@@ -202,6 +317,11 @@ public sealed partial class CompressionOptionsWindow : Window
 
     private ZipNameEncoding GetSelectedZipEncoding()
     {
+        if (MacOsCompatibleToggle.IsOn)
+        {
+            return ZipNameEncoding.Utf8;
+        }
+
         return string.Equals(
             (ZipEncodingComboBox.SelectedItem as ComboBoxItem)?.Tag as string,
             "ShiftJis",
@@ -329,7 +449,7 @@ public sealed partial class CompressionOptionsWindow : Window
         }
     }
 
-    private void StartButton_Click(object sender, RoutedEventArgs e)
+    private async void StartButton_Click(object sender, RoutedEventArgs e)
     {
         OptionsInfoBar.IsOpen = false;
 
@@ -337,6 +457,18 @@ public sealed partial class CompressionOptionsWindow : Window
         {
             ShowError(Loc.Compression_ErrorNoSources);
             return;
+        }
+
+        var settings = SettingsService.Load();
+        if (settings.CompressionDestination == DestinationSelectionMode.AskEveryTime)
+        {
+            var chosen = await PickOutputFolderAsync();
+            if (chosen is null)
+            {
+                return;
+            }
+
+            OutputFolderBox.Text = chosen;
         }
 
         var folderText = OutputFolderBox.Text.Trim();
@@ -403,15 +535,36 @@ public sealed partial class CompressionOptionsWindow : Window
                 Level = GetSelectedLevel(),
                 Password = string.IsNullOrEmpty(password) ? null : password,
                 ZipNameEncoding = GetSelectedZipEncoding(),
+                MacOsCompatible = format == ArchiveCreationFormat.Zip && MacOsCompatibleToggle.IsOn,
                 Overwrite = false,
             });
 
-        var settings = SettingsService.Load();
+        settings = SettingsService.Load();
         settings.LastCompressionDirectory = folder;
         SettingsService.Save(settings);
 
         CompressionRequested?.Invoke(this, request);
         Close();
+    }
+
+    private async Task<string?> PickOutputFolderAsync()
+    {
+        try
+        {
+            var picker = new FolderPicker
+            {
+                SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
+            };
+            picker.FileTypeFilter.Add("*");
+            InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(this));
+            var folder = await picker.PickSingleFolderAsync();
+            return folder?.Path;
+        }
+        catch (Exception ex)
+        {
+            ShowError(ex.Message);
+            return null;
+        }
     }
 
     private void CancelButton_Click(object sender, RoutedEventArgs e)

@@ -93,6 +93,43 @@ public static class ExplorerCommandTest
         }
     }
 
+    public static string GetIcon(Guid clsid, string path)
+    {
+        IntPtr item = IntPtr.Zero;
+        IntPtr array = IntPtr.Zero;
+        IExplorerCommandRaw command = null;
+        try
+        {
+            Guid iidUnknown = new Guid("00000000-0000-0000-C000-000000000046");
+            Guid iidExplorerCommand = new Guid("a08ce4d0-fa25-44ab-b57c-c7b1c323e0b9");
+            SHCreateItemFromParsingName(path, IntPtr.Zero, ref iidUnknown, out item);
+            SHCreateShellItemArrayFromShellItem(item, ref iidUnknown, out array);
+            CoCreateInstance(ref clsid, IntPtr.Zero, 23, ref iidExplorerCommand, out command);
+
+            int hr = command.GetIcon(array, out string icon);
+            if (hr < 0)
+            {
+                Marshal.ThrowExceptionForHR(hr);
+            }
+            return icon;
+        }
+        finally
+        {
+            if (command != null)
+            {
+                Marshal.ReleaseComObject(command);
+            }
+            if (array != IntPtr.Zero)
+            {
+                Marshal.Release(array);
+            }
+            if (item != IntPtr.Zero)
+            {
+                Marshal.Release(item);
+            }
+        }
+    }
+
     public static void Invoke(Guid clsid, string path)
     {
         InvokeMultiple(clsid, new[] { path });
@@ -294,6 +331,15 @@ try {
     if ($hereTitle -ne 'Hodozip で解凍' -or $folderTitle -ne 'Hodozip でフォルダに解凍' -or $compressTitle -ne 'Hodozip で圧縮') {
         throw 'コンテキストメニューのタイトルが期待値と一致しません。'
     }
+
+    $expectedIcon = "$($package.InstallLocation)\Hodozip.exe,0"
+    foreach ($clsid in @($extractHereClsid, $extractFolderClsid, $compressClsid)) {
+        $icon = [ExplorerCommandTest]::GetIcon($clsid, (Join-Path $archives 'context-here.zip'))
+        if (-not [string]::Equals($icon, $expectedIcon, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "E2E 失敗: IExplorerCommand のアイコンが '$expectedIcon' ではありません: '$icon'"
+        }
+    }
+    Write-Host "  OK: 3 つの Win11 動詞のアイコン = $expectedIcon"
 
     Write-Host '=== コンテキストメニュー verb: Hodozip で解凍 ==='
     [ExplorerCommandTest]::Invoke($extractHereClsid, (Join-Path $archives 'context-here.zip'))

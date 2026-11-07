@@ -68,6 +68,30 @@ public static class LegacyMenuCom
     [DllImport("user32.dll")]
     private static extern uint GetMenuItemID(IntPtr hMenu, int nPos);
 
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct MENUITEMINFO
+    {
+        public uint cbSize;
+        public uint fMask;
+        public uint fType;
+        public uint fState;
+        public uint wID;
+        public IntPtr hSubMenu;
+        public IntPtr hbmpChecked;
+        public IntPtr hbmpUnchecked;
+        public IntPtr dwItemData;
+        public IntPtr dwTypeData;
+        public uint cch;
+        public IntPtr hbmpItem;
+    }
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern bool GetMenuItemInfoW(
+        IntPtr hMenu,
+        uint uItem,
+        bool fByPosition,
+        ref MENUITEMINFO lpmii);
+
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
     private static extern int SHParseDisplayName(
         string pszName,
@@ -146,6 +170,56 @@ public static class LegacyMenuCom
                 }
 
                 return result;
+            }
+            finally
+            {
+                DestroyMenu(hmenu);
+            }
+        }
+        finally
+        {
+            Marshal.ReleaseComObject(comObject);
+        }
+    }
+
+    public static bool QueryMenuIcons(Guid clsid, out int commandCount, out string detail)
+    {
+        commandCount = 0;
+        detail = string.Empty;
+        object comObject = Create(clsid);
+        try
+        {
+            IContextMenu menu = (IContextMenu)comObject;
+            IntPtr hmenu = CreatePopupMenu();
+            if (hmenu == IntPtr.Zero)
+            {
+                throw new InvalidOperationException("CreatePopupMenu に失敗しました。");
+            }
+
+            try
+            {
+                int hr = menu.QueryContextMenu(hmenu, 0, 1, 0x7FFF, 0);
+                if (hr < 0)
+                {
+                    Marshal.ThrowExceptionForHR(hr);
+                }
+
+                commandCount = hr & 0xFFFF;
+                for (int index = 0; index < commandCount; index++)
+                {
+                    var info = new MENUITEMINFO
+                    {
+                        cbSize = (uint)Marshal.SizeOf<MENUITEMINFO>(),
+                        fMask = 0x00000080, // MIIM_BITMAP
+                    };
+                    if (!GetMenuItemInfoW(hmenu, (uint)index, true, ref info) || info.hbmpItem == IntPtr.Zero)
+                    {
+                        detail = "index=" + index;
+                        return false;
+                    }
+                }
+
+                return commandCount > 0;
             }
             finally
             {
@@ -271,19 +345,23 @@ if (-not (Test-Path -LiteralPath $comDllPath)) {
     throw "Hodozip.ContextMenu.dll が見つかりません。先に C++ プロジェクトをビルドしてください: $comDllPath"
 }
 
+# v0.6.0: one unified legacy handler (extract x2 + compress).
 $legacyClsid = [Guid]'4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03'
-$compressClsid = [Guid]'4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C05'
+$oldCompressClsid = [Guid]'4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C05'
 $clsidKey = "HKCU:\Software\Classes\CLSID\$($legacyClsid.ToString('B').ToUpperInvariant())"
 $inprocKey = Join-Path $clsidKey 'InprocServer32'
-$compressClsidKey = "HKCU:\Software\Classes\CLSID\$($compressClsid.ToString('B').ToUpperInvariant())"
-$compressInprocKey = Join-Path $compressClsidKey 'InprocServer32'
-$compressHandlerPaths = @(
+$oldCompressClsidKey = "HKCU:\Software\Classes\CLSID\$($oldCompressClsid.ToString('B').ToUpperInvariant())"
+$oldCompressInprocKey = Join-Path $oldCompressClsidKey 'InprocServer32'
+$unifiedHandlerPaths = @(
+    'HKCU:\Software\Classes\*\shellex\ContextMenuHandlers\Hodozip',
+    'HKCU:\Software\Classes\Directory\shellex\ContextMenuHandlers\Hodozip'
+)
+$oldCompressHandlerPaths = @(
     'HKCU:\Software\Classes\*\shellex\ContextMenuHandlers\HodozipCompress',
     'HKCU:\Software\Classes\Directory\shellex\ContextMenuHandlers\HodozipCompress'
 )
 $expectedExtensions = @('.zip', '.7z', '.rar', '.msi', '.tar', '.gz', '.tgz', '.bz2', '.tbz2', '.xz', '.txz', '.zst', '.tzst')
 $legacyHandlerValue = $legacyClsid.ToString('B').ToUpperInvariant()
-$compressHandlerValue = $compressClsid.ToString('B').ToUpperInvariant()
 
 $workRoot = Join-Path $env:TEMP 'HodozipLegacyMenuE2E'
 $archives = Join-Path $workRoot 'archives'
@@ -431,6 +509,11 @@ function Invoke-ShellVerb {
 function Set-StaleRegistration {
     param([string]$StaleDllPath)
 
+    # Remove any v0.6.0 unified registration before recreating the v0.5.0 layout.
+    foreach ($handlerPath in $unifiedHandlerPaths) {
+        Remove-Item -LiteralPath $handlerPath -Force -ErrorAction SilentlyContinue
+    }
+
     New-Item -Path $clsidKey -Force | Out-Null
     New-Item -Path $inprocKey -Force | Out-Null
     Set-ItemProperty -LiteralPath $inprocKey -Name '(default)' -Value $StaleDllPath
@@ -444,14 +527,14 @@ function Set-StaleRegistration {
         Set-ItemProperty -LiteralPath $handlerPath -Name '(default)' -Value $legacyClsid.ToString('D')
     }
 
-    New-Item -Path $compressClsidKey -Force | Out-Null
-    New-Item -Path $compressInprocKey -Force | Out-Null
-    Set-ItemProperty -LiteralPath $compressInprocKey -Name '(default)' -Value $StaleDllPath
-    Set-ItemProperty -LiteralPath $compressInprocKey -Name 'ThreadingModel' -Value 'Apartment'
+    New-Item -Path $oldCompressClsidKey -Force | Out-Null
+    New-Item -Path $oldCompressInprocKey -Force | Out-Null
+    Set-ItemProperty -LiteralPath $oldCompressInprocKey -Name '(default)' -Value $StaleDllPath
+    Set-ItemProperty -LiteralPath $oldCompressInprocKey -Name 'ThreadingModel' -Value 'Apartment'
 
-    foreach ($handlerPath in $compressHandlerPaths) {
+    foreach ($handlerPath in $oldCompressHandlerPaths) {
         New-Item -Path $handlerPath -Force | Out-Null
-        Set-ItemProperty -LiteralPath $handlerPath -Name '(default)' -Value $compressClsid.ToString('D')
+        Set-ItemProperty -LiteralPath $handlerPath -Name '(default)' -Value $oldCompressClsid.ToString('D')
     }
 }
 
@@ -496,27 +579,32 @@ function Assert-RegistrationLayout {
     }
     Write-Host "  OK: InprocServer32 = $registeredDll"
 
+    foreach ($handlerPath in $unifiedHandlerPaths) {
+        $handlerClsid = Get-RegistryDefault -Path $handlerPath
+        if (-not [string]::Equals($handlerClsid, $legacyHandlerValue, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "E2E 失敗: 統合ハンドラー CLSID が中かっこ付きではありません: '$handlerPath' -> '$handlerClsid'"
+        }
+    }
+    Write-Host '  OK: * と Directory に統合ハンドラー（中かっこ付き CLSID）を登録'
+
     foreach ($extension in $expectedExtensions) {
         $handlerPath =
             "HKCU:\Software\Classes\SystemFileAssociations\$extension\shellex\ContextMenuHandlers\Hodozip"
-        $handlerClsid = Get-RegistryDefault -Path $handlerPath
-        if (-not [string]::Equals($handlerClsid, $legacyHandlerValue, [StringComparison]::OrdinalIgnoreCase)) {
-            throw "E2E 失敗: $extension のハンドラー CLSID が中かっこ付きではありません: '$handlerClsid'"
+        if (Test-Path -LiteralPath $handlerPath) {
+            throw "E2E 失敗: 旧レイアウトの拡張子別ハンドラーが残っています: $handlerPath"
         }
     }
-    Write-Host "  OK: $($expectedExtensions.Count) 拡張子に中かっこ付き CLSID を登録"
+    Write-Host '  OK: 旧レイアウトの拡張子別ハンドラーは掃除済み'
 
-    $compressDll = Get-RegistryDefault -Path $compressInprocKey
-    if (-not [string]::Equals($compressDll, $installedComDll, [StringComparison]::OrdinalIgnoreCase)) {
-        throw "E2E 失敗: 圧縮用 InprocServer32 が '$installedComDll' ではありません: '$compressDll'"
+    if (Test-Path -LiteralPath $oldCompressClsidKey) {
+        throw "E2E 失敗: 旧圧縮 CLSID キーが残っています: $oldCompressClsidKey"
     }
-    foreach ($handlerPath in $compressHandlerPaths) {
-        $handlerClsid = Get-RegistryDefault -Path $handlerPath
-        if (-not [string]::Equals($handlerClsid, $compressHandlerValue, [StringComparison]::OrdinalIgnoreCase)) {
-            throw "E2E 失敗: 圧縮ハンドラー CLSID が中かっこ付きではありません: '$handlerPath' -> '$handlerClsid'"
+    foreach ($handlerPath in $oldCompressHandlerPaths) {
+        if (Test-Path -LiteralPath $handlerPath) {
+            throw "E2E 失敗: 旧圧縮ハンドラー キーが残っています: $handlerPath"
         }
     }
-    Write-Host '  OK: * と Directory に中かっこ付き圧縮ハンドラーを登録'
+    Write-Host '  OK: 旧圧縮ハンドラー（CLSID / 登録キー）は掃除済み'
 }
 
 function Wait-CompressProcess {
@@ -615,23 +703,23 @@ try {
     Write-Host '=== L2: COM サーバーを直接作成し、メニュー項目を検証 ==='
     [int]$commandCount = 0
     $menuItems = [LegacyMenuCom]::QueryMenu($legacyClsid, [ref]$commandCount)
-    if ($commandCount -ne 2) {
-        throw "E2E 失敗: メニュー項目数が 2 ではありません: $commandCount"
+    if ($commandCount -ne 3) {
+        throw "E2E 失敗: 統合メニュー項目数が 3 ではありません: $commandCount"
     }
-    if ($menuItems[0] -ne 'Hodozip で解凍' -or $menuItems[1] -ne 'Hodozip でフォルダに解凍') {
-        throw "E2E 失敗: メニュー文字列が想定と異なります: '$($menuItems[0])' / '$($menuItems[1])'"
+    if ($menuItems[0] -ne 'Hodozip で解凍' -or
+        $menuItems[1] -ne 'Hodozip でフォルダに解凍' -or
+        $menuItems[2] -ne 'Hodozip で圧縮') {
+        throw "E2E 失敗: メニュー文字列が想定と異なります: '$($menuItems -join ' / ')'"
     }
-    Write-Host "  OK: メニュー項目 '$($menuItems[0])' / '$($menuItems[1])'"
+    Write-Host "  OK: 統合メニュー項目 '$($menuItems -join ' / ')"
 
-    [int]$compressCommandCount = 0
-    $compressMenuItems = [LegacyMenuCom]::QueryMenu($compressClsid, [ref]$compressCommandCount)
-    if ($compressCommandCount -ne 1) {
-        throw "E2E 失敗: 圧縮メニュー項目数が 1 ではありません: $compressCommandCount"
+    [int]$iconCommandCount = 0
+    $iconDetail = ''
+    $iconsPresent = [LegacyMenuCom]::QueryMenuIcons($legacyClsid, [ref]$iconCommandCount, [ref]$iconDetail)
+    if (-not $iconsPresent -or $iconCommandCount -ne 3) {
+        throw "E2E 失敗: 従来型メニューのアイコンが 3 項目すべてに設定されていません ($iconDetail)"
     }
-    if ($compressMenuItems[0] -ne 'Hodozip で圧縮') {
-        throw "E2E 失敗: 圧縮メニュー文字列が想定と異なります: '$($compressMenuItems[0])'"
-    }
-    Write-Host "  OK: 圧縮メニュー項目 '$($compressMenuItems[0])'"
+    Write-Host '  OK: 従来型メニュー 3 項目すべてにアイコン ビットマップを設定'
 
     Write-Host '=== L3: 実シェル メニュー「Hodozip で解凍」を実行 ==='
     Invoke-ShellVerb -Path $hereZip -VerbName 'Hodozip で解凍'
@@ -665,8 +753,8 @@ try {
     if (Test-Path -LiteralPath $clsidKey) {
         throw "E2E 失敗: 解除後も CLSID キーが残っています: $clsidKey"
     }
-    if (Test-Path -LiteralPath $compressClsidKey) {
-        throw "E2E 失敗: 解除後も圧縮 CLSID キーが残っています: $compressClsidKey"
+    if (Test-Path -LiteralPath $oldCompressClsidKey) {
+        throw "E2E 失敗: 解除後も旧圧縮 CLSID キーが残っています: $oldCompressClsidKey"
     }
     foreach ($extension in $expectedExtensions) {
         $handlerPath =
@@ -675,9 +763,14 @@ try {
             throw "E2E 失敗: 解除後もハンドラー キーが残っています: $handlerPath"
         }
     }
-    foreach ($handlerPath in $compressHandlerPaths) {
+    foreach ($handlerPath in $unifiedHandlerPaths) {
         if (Test-Path -LiteralPath $handlerPath) {
-            throw "E2E 失敗: 解除後も圧縮ハンドラー キーが残っています: $handlerPath"
+            throw "E2E 失敗: 解除後も統合ハンドラー キーが残っています: $handlerPath"
+        }
+    }
+    foreach ($handlerPath in $oldCompressHandlerPaths) {
+        if (Test-Path -LiteralPath $handlerPath) {
+            throw "E2E 失敗: 解除後も旧圧縮ハンドラー キーが残っています: $handlerPath"
         }
     }
     Write-Host '  OK: レジストリ キーを解除しました。'

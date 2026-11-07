@@ -1,3 +1,4 @@
+using System.Collections.Specialized;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -35,6 +36,10 @@ public sealed partial class MainWindow : Window
 
         _dropZoneDefaultBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"];
         _dropZoneActiveBrush = (Brush)Application.Current.Resources["AccentFillColorDefaultBrush"];
+
+        JobsList.ItemsSource = JobRegistry.Jobs;
+        JobRegistry.Jobs.CollectionChanged += Jobs_CollectionChanged;
+        UpdateJobsCard();
 
         Closed += (_, _) =>
         {
@@ -231,7 +236,7 @@ public sealed partial class MainWindow : Window
 
         if (!_progressWindow.IsCompleted)
         {
-            _progressWindow.Activate();
+            _progressWindow.ShowFromBackground();
             ShowMessage(
                 InfoBarSeverity.Informational,
                 Loc.Main_ExtractingTitle,
@@ -444,6 +449,36 @@ public sealed partial class MainWindow : Window
         SupportLinkButton.Content = Loc.Common_Support;
         AboutButton.Content = Loc.Common_About;
         SettingsButton.Content = Loc.Common_Settings;
+        JobsTitleText.Text = Loc.Main_JobsTitle;
+        JobsHintText.Text = Loc.Main_JobsHint;
+    }
+
+    private void Jobs_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        UpdateJobsCard();
+    }
+
+    private void UpdateJobsCard()
+    {
+        // バックグラウンド設定が ON のときだけ、実行中のジョブをここに出す。
+        var show = JobRegistry.Jobs.Count > 0 && SettingsService.Load().RunInBackground;
+        JobsCard.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void JobShowButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is JobInfo job)
+        {
+            job.Window.ShowFromBackground();
+        }
+    }
+
+    private void JobCancelButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is JobInfo job)
+        {
+            job.Window.CancelFromHost();
+        }
     }
 
     private void RecentOpenFolderButton_Click(object sender, RoutedEventArgs e)
@@ -470,7 +505,17 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        var window = new SettingsWindow();
+        SettingsWindow window;
+        try
+        {
+            window = new SettingsWindow();
+        }
+        catch (Exception ex)
+        {
+            ShowMessage(InfoBarSeverity.Error, Loc.Common_Settings, ex.Message);
+            return;
+        }
+
         _settingsWindow = window;
         window.Closed += (_, _) => _settingsWindow = null;
         window.Activate();

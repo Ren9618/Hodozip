@@ -654,4 +654,4 @@ Hodozip is free and open source. Support is used for ongoing development and mai
 
 ## License
 
-MIT License. Copyright (c) 2026 Ren9618. See [LICENSE](LICENSE) for details.
+MIT License. Copyright (c) 2026 Rayno Works (Ren9618). See [LICENSE](LICENSE) for details.

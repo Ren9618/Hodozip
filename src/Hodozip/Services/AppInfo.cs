@@ -102,7 +102,7 @@ internal static class AppInfo
         """
         MIT License
 
-        Copyright (c) 2026 Ren9618
+        Copyright (c) 2026 Rayno Works (Ren9618)
 
         Permission is hereby granted, free of charge, to any person obtaining a copy
         of this software and associated documentation files (the "Software"), to deal

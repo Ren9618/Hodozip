@@ -654,4 +654,4 @@ Hodozip は無料・オープンソースです。支援は今後の開発とメ
 
 ## ライセンス
 
-MIT License. Copyright (c) 2026 Ren9618. 詳細は [LICENSE](LICENSE) を参照してください。
+MIT License. Copyright (c) 2026 Rayno Works (Ren9618). 詳細は [LICENSE](LICENSE) を参照してください。

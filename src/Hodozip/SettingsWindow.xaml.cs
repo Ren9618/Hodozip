@@ -1,5 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Windows.Storage.Pickers;
+using WinRT.Interop;
 using Hodozip.Core;
 using Hodozip.Dialogs;
 using Hodozip.Services;
@@ -10,6 +12,7 @@ public sealed partial class SettingsWindow : Window
 {
     private bool _suppressLegacyToggle;
     private bool _legacyToggleBusy;
+    private bool _initializing = true;
 
     public SettingsWindow()
     {
@@ -23,21 +26,48 @@ public sealed partial class SettingsWindow : Window
         var settings = SettingsService.Load();
         OpenFolderToggle.IsOn = settings.OpenFolderAfterExtraction;
         CloseAfterExtractToggle.IsOn = settings.CloseAfterAutoExtract;
+        SkipNewerToggle.IsOn = settings.SkipExistingIfNewer;
         CheckUpdatesToggle.IsOn = AppInfo.SupportsAutoUpdate && settings.CheckForUpdatesOnStartup;
         CheckUpdatesToggle.IsEnabled = AppInfo.SupportsAutoUpdate;
-        DestinationRuleComboBox.SelectedIndex = 0;
+        SelectByTag(DestinationRuleComboBox, settings.ExtractionDestination.ToString());
+        DestinationFolderBox.Text = settings.ExtractionDestinationFolder ?? string.Empty;
+        SelectByTag(CompressionDestinationComboBox, settings.CompressionDestination.ToString());
+        CompressionFolderBox.Text = settings.CompressionDestinationFolder ?? string.Empty;
         SelectByTag(FolderCollisionComboBox, settings.FolderCollisionPolicy.ToString());
         SelectByTag(OverwritePolicyComboBox, settings.OverwritePolicy.ToString());
         SelectByTag(LanguageComboBox, settings.Language.ToString());
         SelectParallelism(settings.MaxDegreeOfParallelism);
+        NotifyToggle.IsOn = settings.NotifyOnCompletion;
+        BackgroundToggle.IsOn = settings.RunInBackground;
+        SelectByTag(SoundComboBox, settings.NotificationSound.ToString());
+        SoundFileBox.Text = settings.NotificationSoundPath ?? string.Empty;
+        ExcludeMacOsToggle.IsOn = settings.ExcludeMacOsMetadata;
+        NormalizeNfcToggle.IsOn = settings.NormalizeFileNamesNfc;
 
+        BuildAssociationList();
+        UpdateDestinationRows();
+        UpdateSoundRow();
         RefreshLegacyContextMenuStatus();
+        _initializing = false;
     }
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
         var settings = SettingsService.Load();
         settings.DestinationRule = "SameAsArchive";
+        settings.ExtractionDestination = ParseDestination(SelectedTag(DestinationRuleComboBox));
+        settings.ExtractionDestinationFolder = NormalizeOptionalFolder(DestinationFolderBox.Text);
+        settings.CompressionDestination = ParseDestination(SelectedTag(CompressionDestinationComboBox));
+        settings.CompressionDestinationFolder = NormalizeOptionalFolder(CompressionFolderBox.Text);
+        settings.SkipExistingIfNewer = SkipNewerToggle.IsOn;
+        settings.NotifyOnCompletion = NotifyToggle.IsOn;
+        settings.RunInBackground = BackgroundToggle.IsOn;
+        settings.NotificationSound = ParseSound(SelectedTag(SoundComboBox));
+        settings.NotificationSoundPath = string.IsNullOrWhiteSpace(SoundFileBox.Text)
+            ? null
+            : SoundFileBox.Text.Trim();
+        settings.ExcludeMacOsMetadata = ExcludeMacOsToggle.IsOn;
+        settings.NormalizeFileNamesNfc = NormalizeNfcToggle.IsOn;
         settings.OpenFolderAfterExtraction = OpenFolderToggle.IsOn;
         settings.CloseAfterAutoExtract = CloseAfterExtractToggle.IsOn;
         if (AppInfo.SupportsAutoUpdate)
@@ -137,6 +167,13 @@ public sealed partial class SettingsWindow : Window
         OverwriteAutoRenameItem.Content = Loc.Settings_RenameSave;
         OverwriteNoteText.Text = Loc.Settings_OverwriteNote;
 
+        CompressionDestinationSectionText.Text = Loc.Settings_CompressionDestination;
+        SetItemContent(CompressionDestinationComboBox, Loc.Settings_SameAsArchive, Loc.Settings_FixedFolder, Loc.Settings_AskEveryTime);
+        DestinationFixedFolderItem.Content = Loc.Settings_FixedFolder;
+        DestinationAskItem.Content = Loc.Settings_AskEveryTime;
+        DestinationFolderBrowseButton.Content = Loc.Settings_ChooseFolder;
+        CompressionFolderBrowseButton.Content = Loc.Settings_ChooseFolder;
+
         BehaviorSectionText.Text = Loc.Settings_Behavior;
         OpenFolderToggle.Header = Loc.Settings_OpenFolderAfter;
         OpenFolderToggle.OnContent = Loc.Settings_LegacyOn;
@@ -145,6 +182,41 @@ public sealed partial class SettingsWindow : Window
         CloseAfterExtractToggle.OnContent = Loc.Settings_LegacyOn;
         CloseAfterExtractToggle.OffContent = Loc.Settings_LegacyOff;
         CloseAfterNoteText.Text = Loc.Settings_CloseAfterNote;
+        SkipNewerToggle.Header = Loc.Settings_SkipNewer;
+        SkipNewerToggle.OnContent = Loc.Settings_LegacyOn;
+        SkipNewerToggle.OffContent = Loc.Settings_LegacyOff;
+        SkipNewerNoteText.Text = Loc.Settings_SkipNewerNote;
+
+        AssociationsSectionText.Text = Loc.Settings_Associations;
+        AssociationsNoteText.Text = Loc.Settings_AssociationsNote;
+        AssociationsPackagedText.Text = Loc.Settings_AssociationsPackaged;
+        DefaultAppsNoteText.Text = Loc.Settings_DefaultAppsNote;
+        OpenDefaultAppsButton.Content = Loc.Settings_OpenDefaultApps;
+
+        NotificationsSectionText.Text = Loc.Settings_Notifications;
+        NotifyToggle.Header = Loc.Settings_NotifyOnCompletion;
+        NotifyToggle.OnContent = Loc.Settings_LegacyOn;
+        NotifyToggle.OffContent = Loc.Settings_LegacyOff;
+        NotifyNoteText.Text = Loc.Settings_NotifyNote;
+        BackgroundToggle.Header = Loc.Settings_Background;
+        BackgroundToggle.OnContent = Loc.Settings_LegacyOn;
+        BackgroundToggle.OffContent = Loc.Settings_LegacyOff;
+        BackgroundNoteText.Text = Loc.Settings_BackgroundNote;
+        SoundSectionText.Text = Loc.Settings_Sound;
+        SetItemContent(SoundComboBox, Loc.Settings_SoundNone, Loc.Settings_SoundSystem, Loc.Settings_SoundFile);
+        SoundBrowseButton.Content = Loc.Common_Browse;
+        TestSoundButton.Content = Loc.Settings_TestSound;
+        SoundNoteText.Text = Loc.Settings_SoundNote;
+
+        MacOsSectionText.Text = Loc.Settings_MacOs;
+        ExcludeMacOsToggle.Header = Loc.Settings_ExcludeMacOs;
+        ExcludeMacOsToggle.OnContent = Loc.Settings_LegacyOn;
+        ExcludeMacOsToggle.OffContent = Loc.Settings_LegacyOff;
+        ExcludeMacOsNoteText.Text = Loc.Settings_ExcludeMacOsNote;
+        NormalizeNfcToggle.Header = Loc.Settings_NormalizeNfc;
+        NormalizeNfcToggle.OnContent = Loc.Settings_LegacyOn;
+        NormalizeNfcToggle.OffContent = Loc.Settings_LegacyOff;
+        NormalizeNfcNoteText.Text = Loc.Settings_NormalizeNfcNote;
 
         UpdatesSectionText.Text = Loc.Settings_Updates;
         CheckUpdatesToggle.Header = Loc.Settings_CheckUpdatesStartup;
@@ -241,6 +313,199 @@ public sealed partial class SettingsWindow : Window
     private static string SelectedTag(ComboBox comboBox)
     {
         return (comboBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "Ask";
+    }
+
+    private void BuildAssociationList()
+    {
+        AssociationsPanel.Children.Clear();
+        var supported = AssociationService.IsSupported;
+        AssociationsPanel.Visibility = supported ? Visibility.Visible : Visibility.Collapsed;
+        AssociationsPackagedText.Visibility = supported ? Visibility.Collapsed : Visibility.Visible;
+
+        foreach (var extension in AssociationService.Extensions)
+        {
+            var checkBox = new CheckBox
+            {
+                Content = extension,
+                Tag = extension,
+                IsChecked = AssociationService.IsEnabled(extension),
+                IsEnabled = supported,
+                MinWidth = 88,
+            };
+
+            checkBox.Checked += AssociationCheckBox_Changed;
+            checkBox.Unchecked += AssociationCheckBox_Changed;
+            AssociationsPanel.Children.Add(checkBox);
+        }
+    }
+
+    private void AssociationCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_initializing || sender is not CheckBox checkBox || checkBox.Tag is not string extension)
+        {
+            return;
+        }
+
+        var enabled = checkBox.IsChecked == true;
+        if (AssociationService.SetEnabled(extension, enabled, out var message))
+        {
+            SettingsInfoBar.IsOpen = false;
+            return;
+        }
+
+        // 失敗したら実際の状態へ戻し、成功したように見せない。
+        checkBox.IsChecked = AssociationService.IsEnabled(extension);
+        SettingsInfoBar.Severity = InfoBarSeverity.Error;
+        SettingsInfoBar.Title = Loc.Settings_Associations;
+        SettingsInfoBar.Message = message;
+        SettingsInfoBar.IsOpen = true;
+    }
+
+    private void OpenDefaultAppsButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (AssociationService.OpenDefaultAppsSettings())
+        {
+            return;
+        }
+
+        SettingsInfoBar.Severity = InfoBarSeverity.Error;
+        SettingsInfoBar.Title = Loc.Settings_Associations;
+        SettingsInfoBar.Message = Loc.Settings_DefaultAppsNote;
+        SettingsInfoBar.IsOpen = true;
+    }
+
+    private void DestinationRuleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_initializing)
+        {
+            UpdateDestinationRows();
+        }
+    }
+
+    private void CompressionDestinationComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_initializing)
+        {
+            UpdateDestinationRows();
+        }
+    }
+
+    private void SoundComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_initializing)
+        {
+            UpdateSoundRow();
+        }
+    }
+
+    private void UpdateDestinationRows()
+    {
+        DestinationFolderRow.Visibility = ParseDestination(SelectedTag(DestinationRuleComboBox)) == DestinationSelectionMode.FixedFolder
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        CompressionFolderRow.Visibility = ParseDestination(SelectedTag(CompressionDestinationComboBox)) == DestinationSelectionMode.FixedFolder
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    private void UpdateSoundRow()
+    {
+        SoundFileRow.Visibility = ParseSound(SelectedTag(SoundComboBox)) == NotificationSoundMode.File
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    private async void DestinationFolderBrowseButton_Click(object sender, RoutedEventArgs e)
+    {
+        var folder = await PickFolderAsync();
+        if (folder is not null)
+        {
+            DestinationFolderBox.Text = folder;
+        }
+    }
+
+    private async void CompressionFolderBrowseButton_Click(object sender, RoutedEventArgs e)
+    {
+        var folder = await PickFolderAsync();
+        if (folder is not null)
+        {
+            CompressionFolderBox.Text = folder;
+        }
+    }
+
+    private async Task<string?> PickFolderAsync()
+    {
+        try
+        {
+            var picker = new FolderPicker
+            {
+                SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
+            };
+            picker.FileTypeFilter.Add("*");
+            InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(this));
+            var folder = await picker.PickSingleFolderAsync();
+            return folder?.Path;
+        }
+        catch (Exception ex)
+        {
+            SettingsInfoBar.Severity = InfoBarSeverity.Error;
+            SettingsInfoBar.Title = Loc.Settings_FixedFolder;
+            SettingsInfoBar.Message = ex.Message;
+            SettingsInfoBar.IsOpen = true;
+            return null;
+        }
+    }
+
+    private async void SoundBrowseButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var picker = new FileOpenPicker
+            {
+                SuggestedStartLocation = PickerLocationId.MusicLibrary,
+                ViewMode = PickerViewMode.List,
+            };
+            picker.FileTypeFilter.Add(".wav");
+            picker.FileTypeFilter.Add(".mp3");
+            InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(this));
+            var file = await picker.PickSingleFileAsync();
+            if (file is not null)
+            {
+                SoundFileBox.Text = file.Path;
+            }
+        }
+        catch (Exception ex)
+        {
+            SettingsInfoBar.Severity = InfoBarSeverity.Error;
+            SettingsInfoBar.Title = Loc.Settings_Sound;
+            SettingsInfoBar.Message = ex.Message;
+            SettingsInfoBar.IsOpen = true;
+        }
+    }
+
+    private void TestSoundButton_Click(object sender, RoutedEventArgs e)
+    {
+        NotificationService.PlaySound(ParseSound(SelectedTag(SoundComboBox)), SoundFileBox.Text.Trim());
+    }
+
+    private static DestinationSelectionMode ParseDestination(string tag)
+    {
+        return Enum.TryParse<DestinationSelectionMode>(tag, ignoreCase: true, out var value)
+            ? value
+            : DestinationSelectionMode.SameAsArchive;
+    }
+
+    private static NotificationSoundMode ParseSound(string tag)
+    {
+        return Enum.TryParse<NotificationSoundMode>(tag, ignoreCase: true, out var value)
+            ? value
+            : NotificationSoundMode.None;
+    }
+
+    private static string? NormalizeOptionalFolder(string value)
+    {
+        var trimmed = value.Trim().Trim('"');
+        return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
     }
 
     private static FolderCollisionPolicy ParsePolicy(string tag, FolderCollisionPolicy fallback)

@@ -172,7 +172,7 @@ public sealed class SharpCompressCompressor : IArchiveCompressor
         string outputPath,
         CancellationToken cancellationToken)
     {
-        var isUtf8 = options.ZipNameEncoding == ZipNameEncoding.Utf8;
+        var isUtf8 = options.MacOsCompatible || options.ZipNameEncoding == ZipNameEncoding.Utf8;
         var codec = StringCodec.FromEncoding(isUtf8
             ? Encoding.UTF8
             : Encoding.GetEncoding(932));
@@ -203,12 +203,17 @@ public sealed class SharpCompressCompressor : IArchiveCompressor
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            // macOS 互換では Finder が正しく表示できるよう NFC へ正規化する。
+            var entryPath = options.MacOsCompatible
+                ? entry.EntryPath.Normalize(System.Text.NormalizationForm.FormC)
+                : entry.EntryPath;
+
             if (entry.IsDirectory)
             {
                 // ディレクトリ エントリまで暗号化すると SharpCompress が読めないため、
                 // パスワードを外して格納する。
                 zip.Password = null!;
-                var directoryEntry = new ZipEntry(entry.EntryPath.TrimEnd('/') + "/")
+                var directoryEntry = new ZipEntry(entryPath.TrimEnd('/') + "/")
                 {
                     DateTime = entry.ModifiedTime,
                     CompressionMethod = CompressionMethod.Stored,
@@ -226,13 +231,13 @@ public sealed class SharpCompressCompressor : IArchiveCompressor
             options.Progress?.Report(new CompressionProgress(
                 processedBeforeCurrent,
                 totalBytes,
-                entry.EntryPath,
+                entryPath,
                 0,
                 entry.Length,
                 outputPath));
 
             zip.Password = password ?? null!;
-            var zipEntry = new ZipEntry(entry.EntryPath)
+            var zipEntry = new ZipEntry(entryPath)
             {
                 DateTime = entry.ModifiedTime,
                 CompressionMethod = options.Level == ArchiveCompressionLevel.Store
@@ -264,7 +269,7 @@ public sealed class SharpCompressCompressor : IArchiveCompressor
                     entry.Length,
                     processedBeforeCurrent,
                     totalBytes,
-                    entry.EntryPath,
+                    entryPath,
                     outputPath,
                     options.Progress,
                     cancellationToken);
@@ -276,7 +281,7 @@ public sealed class SharpCompressCompressor : IArchiveCompressor
             options.Progress?.Report(new CompressionProgress(
                 processedBeforeCurrent,
                 totalBytes,
-                entry.EntryPath,
+                entryPath,
                 entry.Length,
                 entry.Length,
                 outputPath));

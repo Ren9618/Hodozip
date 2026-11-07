@@ -4,10 +4,67 @@ using Hodozip.Core;
 
 namespace Hodozip.Services;
 
+/// <summary>解凍先・圧縮先の選び方。</summary>
+public enum DestinationSelectionMode
+{
+    SameAsArchive,
+    FixedFolder,
+    AskEveryTime,
+}
+
+/// <summary>完了時の通知音。</summary>
+public enum NotificationSoundMode
+{
+    None,
+    System,
+    File,
+}
+
 public sealed class AppSettings
 {
-    /// <summary>Phase 1 は「アーカイブと同じ場所」固定。</summary>
+    /// <summary>旧バージョンとの互換用。読み込み時は無視する。</summary>
     public string DestinationRule { get; set; } = "SameAsArchive";
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public DestinationSelectionMode ExtractionDestination { get; set; } = DestinationSelectionMode.SameAsArchive;
+
+    public string? ExtractionDestinationFolder { get; set; }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public DestinationSelectionMode CompressionDestination { get; set; } = DestinationSelectionMode.SameAsArchive;
+
+    public string? CompressionDestinationFolder { get; set; }
+
+    /// <summary>確認モードでも、既存ファイルの方が新しい場合は確認せずスキップする。</summary>
+    public bool SkipExistingIfNewer { get; set; }
+
+    /// <summary>macOS 由来の不要ファイルを除外する（既定 ON）。</summary>
+    public bool ExcludeMacOsMetadata { get; set; } = true;
+
+    /// <summary>ファイル名を NFC に正規化する（既定 ON）。</summary>
+    public bool NormalizeFileNamesNfc { get; set; } = true;
+
+    /// <summary>完了時にトースト通知を出す（既定 OFF）。</summary>
+    public bool NotifyOnCompletion { get; set; }
+
+    /// <summary>進捗ウィンドウを閉じても処理を続ける（既定 OFF）。</summary>
+    public bool RunInBackground { get; set; }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public NotificationSoundMode NotificationSound { get; set; } = NotificationSoundMode.None;
+
+    public string? NotificationSoundPath { get; set; }
+
+    /// <summary>圧縮パスワードの生成設定。</summary>
+    public int GeneratedPasswordLength { get; set; } = 20;
+
+    public bool GeneratedPasswordLowerCase { get; set; } = true;
+
+    public bool GeneratedPasswordUpperCase { get; set; } = true;
+
+    public bool GeneratedPasswordDigits { get; set; } = true;
+
+    public bool GeneratedPasswordSymbols { get; set; } = true;
 
     public bool OpenFolderAfterExtraction { get; set; }
 

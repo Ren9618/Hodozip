@@ -120,7 +120,7 @@
   <data name="About_DotNet" xml:space="preserve"><value>MIT License (runtime)</value></data>
   <data name="About_Privacy" xml:space="preserve"><value>Privacy</value></data>
   <data name="About_PrivacyText" xml:space="preserve"><value>Hodozip sends no telemetry. Network access is limited to the update check (a GitHub Releases API request) when enabled in Settings, and to opening your browser when you press an update or donation button. The MSIX version does not check for updates.</value></data>
-  <data name="About_Copyright" xml:space="preserve"><value>Copyright (c) 2026 Ren9618</value></data>
+  <data name="About_Copyright" xml:space="preserve"><value>Copyright (c) 2026 Rayno Works (Ren9618)</value></data>
 
   <data name="Overwrite_Title" xml:space="preserve"><value>Confirm overwrite</value></data>
   <data name="Overwrite_Exists" xml:space="preserve"><value>"{0}" already exists.</value></data>
@@ -167,7 +167,7 @@
   <data name="Legacy_ClsidCreateFailed" xml:space="preserve"><value>Could not create the CLSID registry key.</value></data>
   <data name="Legacy_InprocCreateFailed" xml:space="preserve"><value>Could not create the InprocServer32 registry key.</value></data>
   <data name="Legacy_HandlerCreateFailed" xml:space="preserve"><value>Could not create the context menu registration key: {0}</value></data>
-  <data name="Legacy_RegisteredCount" xml:space="preserve"><value>Registered in the classic context menu (extract: {0} extensions / compress: all files and folders).</value></data>
+  <data name="Legacy_RegisteredCount" xml:space="preserve"><value>Registered in the classic context menu (two extract commands and compress shown together by one handler; {0} extensions).</value></data>
   <data name="Legacy_RegisterFailed" xml:space="preserve"><value>Failed to register the classic context menu: {0}</value></data>
   <data name="Legacy_PackagedNotRegistered" xml:space="preserve"><value>The MSIX version is not registered in the classic context menu.</value></data>
   <data name="Legacy_Unregistered" xml:space="preserve"><value>Removed from the classic context menu.</value></data>
@@ -297,4 +297,75 @@
   <data name="Settings_CheckUpdatesPackaged" xml:space="preserve"><value>Automatic updates are not available in the MSIX version. Update through the Store or manually.</value></data>
 
   <data name="About_SharpZipLib" xml:space="preserve"><value>MIT License (ZIP AES encryption)</value></data>
+
+  <data name="Settings_FixedFolder" xml:space="preserve"><value>Specified folder</value></data>
+  <data name="Settings_FolderPath" xml:space="preserve"><value>Folder</value></data>
+  <data name="Settings_ChooseFolder" xml:space="preserve"><value>Choose…</value></data>
+  <data name="Settings_CompressionDestination" xml:space="preserve"><value>Compression destination</value></data>
+  <data name="Settings_SkipNewer" xml:space="preserve"><value>Do not ask when the existing file is newer</value></data>
+  <data name="Settings_SkipNewerNote" xml:space="preserve"><value>When overwrite confirmation is set to Ask, entries whose existing file is newer than the archive entry are skipped automatically and counted in the skipped total.</value></data>
+  <data name="Settings_Associations" xml:space="preserve"><value>Associations (Open with)</value></data>
+  <data name="Settings_AssociationsNote" xml:space="preserve"><value>Checked formats are added as "Open with" candidates. Windows protects the default app choice, so choose Hodozip as the default in Windows Settings.</value></data>
+  <data name="Settings_AssociationsPackaged" xml:space="preserve"><value>Associations are managed by the package manifest in the MSIX version and cannot be changed here.</value></data>
+  <data name="Settings_OpenDefaultApps" xml:space="preserve"><value>Open Windows default apps settings</value></data>
+  <data name="Settings_DefaultAppsNote" xml:space="preserve"><value>Hodozip cannot change the default app (UserChoice). Choose it per format in Windows Settings.</value></data>
+  <data name="Settings_AssociationEnabled" xml:space="preserve"><value>Added {0} to "Open with".</value></data>
+  <data name="Settings_AssociationDisabled" xml:space="preserve"><value>Removed {0} from "Open with".</value></data>
+  <data name="Settings_AssociationFailed" xml:space="preserve"><value>Could not create the association key for {0}.</value></data>
+  <data name="Settings_AssociationVerifyFailed" xml:space="preserve"><value>The association for {0} did not match after writing it.</value></data>
+  <data name="Settings_AssociationFailedDetail" xml:space="preserve"><value>Failed to associate {0}: {1}</value></data>
+  <data name="Settings_Notifications" xml:space="preserve"><value>Notifications and background</value></data>
+  <data name="Settings_NotifyOnCompletion" xml:space="preserve"><value>Show a toast notification when finished</value></data>
+  <data name="Settings_NotifyNote" xml:space="preserve"><value>Notifies you of extraction and compression results (success or failure) with a Windows notification.</value></data>
+  <data name="Settings_Background" xml:space="preserve"><value>Keep processing when the progress window is closed</value></data>
+  <data name="Settings_BackgroundNote" xml:space="preserve"><value>When ON, closing the progress window leaves the job running in the background. Reopen or cancel it from "Running jobs" on the main window. When OFF, a cancellation confirmation appears before closing.</value></data>
+  <data name="Settings_Sound" xml:space="preserve"><value>Notification sound</value></data>
+  <data name="Settings_SoundNone" xml:space="preserve"><value>None</value></data>
+  <data name="Settings_SoundSystem" xml:space="preserve"><value>System sound</value></data>
+  <data name="Settings_SoundFile" xml:space="preserve"><value>Choose a file</value></data>
+  <data name="Settings_SoundFileLabel" xml:space="preserve"><value>Audio file (wav / mp3)</value></data>
+  <data name="Settings_TestSound" xml:space="preserve"><value>Test sound</value></data>
+  <data name="Settings_SoundNote" xml:space="preserve"><value>The sound is independent of the toast notification. Even with notifications OFF, the sound plays on completion if configured.</value></data>
+  <data name="Settings_MacOs" xml:space="preserve"><value>macOS compatibility</value></data>
+  <data name="Settings_ExcludeMacOs" xml:space="preserve"><value>Exclude unnecessary macOS files</value></data>
+  <data name="Settings_ExcludeMacOsNote" xml:space="preserve"><value>Entries under __MACOSX/, .DS_Store, and names starting with ._ are skipped and counted in the skipped total.</value></data>
+  <data name="Settings_NormalizeNfc" xml:space="preserve"><value>Normalize file names to NFC</value></data>
+  <data name="Settings_NormalizeNfcNote" xml:space="preserve"><value>Japanese file names stored in NFD (with separated dakuten) are written in NFC.</value></data>
+
+  <data name="Compression_GeneratePassword" xml:space="preserve"><value>Generate randomly</value></data>
+  <data name="Compression_PasswordLength" xml:space="preserve"><value>Length</value></data>
+  <data name="Compression_PasswordLower" xml:space="preserve"><value>Lowercase</value></data>
+  <data name="Compression_PasswordUpper" xml:space="preserve"><value>Uppercase</value></data>
+  <data name="Compression_PasswordDigits" xml:space="preserve"><value>Digits</value></data>
+  <data name="Compression_PasswordSymbols" xml:space="preserve"><value>Symbols</value></data>
+  <data name="Compression_PasswordGeneratedNote" xml:space="preserve"><value>The generated password is not saved by Hodozip. If you lose it, the archive cannot be extracted.</value></data>
+  <data name="Compression_PasswordShow" xml:space="preserve"><value>Show</value></data>
+  <data name="Compression_PasswordHide" xml:space="preserve"><value>Hide</value></data>
+  <data name="Compression_Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="Compression_Copied" xml:space="preserve"><value>Copied</value></data>
+  <data name="Compression_MacOsCompatible" xml:space="preserve"><value>Create with macOS compatibility</value></data>
+  <data name="Compression_MacOsCompatibleNote" xml:space="preserve"><value>Stores names in UTF-8 (with flag) normalized to NFC. Finder on macOS extracts them without garbled characters. ZIP only.</value></data>
+  <data name="Compression_PasswordGenerateFailed" xml:space="preserve"><value>Could not generate a password. Select at least one character type.</value></data>
+
+  <data name="Progress_CloseConfirmTitle" xml:space="preserve"><value>Cancel the operation?</value></data>
+  <data name="Progress_CloseConfirmMessage" xml:space="preserve"><value>Closing the progress window cancels the running operation. Choose "Keep running" to continue.</value></data>
+  <data name="Progress_CloseConfirmYes" xml:space="preserve"><value>Cancel it</value></data>
+  <data name="Progress_CloseConfirmNo" xml:space="preserve"><value>Keep running</value></data>
+
+  <data name="Main_JobsTitle" xml:space="preserve"><value>Running jobs</value></data>
+  <data name="Main_JobsHint" xml:space="preserve"><value>The operation continues after the progress window is closed. Reopen it or cancel it here.</value></data>
+  <data name="Main_JobShow" xml:space="preserve"><value>Reopen</value></data>
+  <data name="Main_JobCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Main_JobExtract" xml:space="preserve"><value>Extract</value></data>
+  <data name="Main_JobCompress" xml:space="preserve"><value>Compress</value></data>
+  <data name="Main_JobPercent" xml:space="preserve"><value>{0}%</value></data>
+
+  <data name="Notification_ExtractCompletedTitle" xml:space="preserve"><value>Extraction completed</value></data>
+  <data name="Notification_ExtractFailedTitle" xml:space="preserve"><value>Extraction failed</value></data>
+  <data name="Notification_CompressionCompletedTitle" xml:space="preserve"><value>Compression completed</value></data>
+  <data name="Notification_CompressionFailedTitle" xml:space="preserve"><value>Compression failed</value></data>
+  <data name="Notification_ExtractCompletedMessage" xml:space="preserve"><value>{0} ({1} files / {2} skipped)</value></data>
+  <data name="Notification_ExtractFailedMessage" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="Notification_CompressionCompletedMessage" xml:space="preserve"><value>{0} → {1}</value></data>
+  <data name="Notification_CompressionFailedMessage" xml:space="preserve"><value>{0}: {1}</value></data>
 </root>

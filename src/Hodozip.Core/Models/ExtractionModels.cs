@@ -106,6 +106,23 @@ public sealed class ExtractionOptions
     public long ExpansionWarningMinBytes { get; init; } = DefaultExpansionWarningMinBytes;
 
     public double ExpansionWarningRatio { get; init; } = DefaultExpansionWarningRatio;
+
+    /// <summary>
+    /// 既存ファイルの更新日時がアーカイブ内のエントリより新しい場合、
+    /// 確認せずにスキップする（Ask 方針のときだけ有効）。
+    /// </summary>
+    public bool SkipExistingIfNewer { get; init; }
+
+    /// <summary>
+    /// macOS 由来の不要ファイル（__MACOSX/、.DS_Store、._ で始まる名前）を
+    /// 解凍せずにスキップし、スキップ件数に数える。既定 ON。
+    /// </summary>
+    public bool ExcludeMacOsMetadata { get; init; } = true;
+
+    /// <summary>
+    /// NFD で格納されたファイル名を NFC へ正規化して書き出す。既定 ON。
+    /// </summary>
+    public bool NormalizeFileNamesNfc { get; init; } = true;
 }
 
 /// <summary>1 回の解凍要求。</summary>

@@ -120,7 +120,7 @@
   <data name="About_DotNet" xml:space="preserve"><value>MIT License（実行環境）</value></data>
   <data name="About_Privacy" xml:space="preserve"><value>プライバシー</value></data>
   <data name="About_PrivacyText" xml:space="preserve"><value>Hodozip はテレメトリを送信しません。ネットワーク通信は、設定で有効な場合の更新確認（GitHub Releases API への問い合わせ）と、更新または寄付ボタンを押したときのブラウザ起動だけです。MSIX 版は更新確認を行いません。</value></data>
-  <data name="About_Copyright" xml:space="preserve"><value>Copyright (c) 2026 Ren9618</value></data>
+  <data name="About_Copyright" xml:space="preserve"><value>Copyright (c) 2026 Rayno Works (Ren9618)</value></data>
 
   <data name="Overwrite_Title" xml:space="preserve"><value>上書きの確認</value></data>
   <data name="Overwrite_Exists" xml:space="preserve"><value>「{0}」は既に存在します。</value></data>
@@ -167,7 +167,7 @@
   <data name="Legacy_ClsidCreateFailed" xml:space="preserve"><value>CLSID のレジストリ キーを作成できませんでした。</value></data>
   <data name="Legacy_InprocCreateFailed" xml:space="preserve"><value>InprocServer32 のレジストリ キーを作成できませんでした。</value></data>
   <data name="Legacy_HandlerCreateFailed" xml:space="preserve"><value>コンテキストメニューの登録キーを作成できませんでした: {0}</value></data>
-  <data name="Legacy_RegisteredCount" xml:space="preserve"><value>従来型コンテキストメニューへ登録しました（解凍 {0} 拡張子 / 圧縮はすべてのファイルとフォルダー）。</value></data>
+  <data name="Legacy_RegisteredCount" xml:space="preserve"><value>従来型コンテキストメニューへ登録しました（解凍 2 項目と圧縮を 1 つのハンドラーで連続表示。対象 {0} 拡張子）。</value></data>
   <data name="Legacy_RegisterFailed" xml:space="preserve"><value>従来型コンテキストメニューの登録に失敗しました: {0}</value></data>
   <data name="Legacy_PackagedNotRegistered" xml:space="preserve"><value>MSIX 版では従来型コンテキストメニューを登録していません。</value></data>
   <data name="Legacy_Unregistered" xml:space="preserve"><value>従来型コンテキストメニューから解除しました。</value></data>
@@ -297,4 +297,75 @@
   <data name="Settings_CheckUpdatesPackaged" xml:space="preserve"><value>MSIX 版では自動更新を利用できません。ストアまたは手動で更新してください。</value></data>
 
   <data name="About_SharpZipLib" xml:space="preserve"><value>MIT License（ZIP AES 暗号化）</value></data>
+
+  <data name="Settings_FixedFolder" xml:space="preserve"><value>指定フォルダ</value></data>
+  <data name="Settings_FolderPath" xml:space="preserve"><value>フォルダ</value></data>
+  <data name="Settings_ChooseFolder" xml:space="preserve"><value>選択…</value></data>
+  <data name="Settings_CompressionDestination" xml:space="preserve"><value>圧縮先</value></data>
+  <data name="Settings_SkipNewer" xml:space="preserve"><value>既存ファイルの方が新しい場合は確認しない</value></data>
+  <data name="Settings_SkipNewerNote" xml:space="preserve"><value>上書き確認が「毎回確認」のとき、既存ファイルの更新日時がアーカイブ内より新しいエントリは自動でスキップし、完了レポートのスキップ件数に数えます。</value></data>
+  <data name="Settings_Associations" xml:space="preserve"><value>関連付け（プログラムから開く）</value></data>
+  <data name="Settings_AssociationsNote" xml:space="preserve"><value>チェックした形式を「プログラムから開く」の候補に登録します。Windows が既定アプリを保護しているため、Hodozip を既定にするかどうかは Windows の設定で選んでください。</value></data>
+  <data name="Settings_AssociationsPackaged" xml:space="preserve"><value>MSIX 版の関連付けはパッケージ マニフェストで管理されます。ここでは変更できません。</value></data>
+  <data name="Settings_OpenDefaultApps" xml:space="preserve"><value>Windows の既定アプリ設定を開く</value></data>
+  <data name="Settings_DefaultAppsNote" xml:space="preserve"><value>既定アプリ（UserChoice）は Hodozip から変更できません。Windows の設定画面で形式ごとに選んでください。</value></data>
+  <data name="Settings_AssociationEnabled" xml:space="preserve"><value>{0} を「プログラムから開く」に登録しました。</value></data>
+  <data name="Settings_AssociationDisabled" xml:space="preserve"><value>{0} を「プログラムから開く」から解除しました。</value></data>
+  <data name="Settings_AssociationFailed" xml:space="preserve"><value>{0} の関連付けキーを作成できませんでした。</value></data>
+  <data name="Settings_AssociationVerifyFailed" xml:space="preserve"><value>{0} の関連付けを書き込んだ後に確認したところ、状態が一致しませんでした。</value></data>
+  <data name="Settings_AssociationFailedDetail" xml:space="preserve"><value>{0} の関連付けに失敗しました: {1}</value></data>
+  <data name="Settings_Notifications" xml:space="preserve"><value>通知とバックグラウンド</value></data>
+  <data name="Settings_NotifyOnCompletion" xml:space="preserve"><value>完了時にトースト通知を表示する</value></data>
+  <data name="Settings_NotifyNote" xml:space="preserve"><value>解凍・圧縮の完了（成功・失敗）を Windows の通知で知らせます。</value></data>
+  <data name="Settings_Background" xml:space="preserve"><value>進捗ウィンドウを閉じても処理を続ける</value></data>
+  <data name="Settings_BackgroundNote" xml:space="preserve"><value>ON のとき、進捗ウィンドウを閉じても処理は裏で続きます。メイン画面の「実行中のジョブ」から再表示・キャンセルできます。OFF のときは閉じる前にキャンセル確認を表示します。</value></data>
+  <data name="Settings_Sound" xml:space="preserve"><value>通知音</value></data>
+  <data name="Settings_SoundNone" xml:space="preserve"><value>なし</value></data>
+  <data name="Settings_SoundSystem" xml:space="preserve"><value>システム音</value></data>
+  <data name="Settings_SoundFile" xml:space="preserve"><value>ファイルを指定</value></data>
+  <data name="Settings_SoundFileLabel" xml:space="preserve"><value>音声ファイル（wav / mp3）</value></data>
+  <data name="Settings_TestSound" xml:space="preserve"><value>テスト再生</value></data>
+  <data name="Settings_SoundNote" xml:space="preserve"><value>通知音はトースト通知とは独立しています。通知が OFF でも、音を設定していれば完了時に鳴ります。</value></data>
+  <data name="Settings_MacOs" xml:space="preserve"><value>macOS 互換</value></data>
+  <data name="Settings_ExcludeMacOs" xml:space="preserve"><value>macOS 由来の不要ファイルを除外する</value></data>
+  <data name="Settings_ExcludeMacOsNote" xml:space="preserve"><value>__MACOSX/ 配下、.DS_Store、._ で始まるエントリを解凍せず、スキップ件数に数えます。</value></data>
+  <data name="Settings_NormalizeNfc" xml:space="preserve"><value>ファイル名を NFC に正規化する</value></data>
+  <data name="Settings_NormalizeNfcNote" xml:space="preserve"><value>NFD で格納された日本語ファイル名（濁点が分離した形）を NFC に直して書き出します。</value></data>
+
+  <data name="Compression_GeneratePassword" xml:space="preserve"><value>ランダム生成</value></data>
+  <data name="Compression_PasswordLength" xml:space="preserve"><value>桁数</value></data>
+  <data name="Compression_PasswordLower" xml:space="preserve"><value>英小文字</value></data>
+  <data name="Compression_PasswordUpper" xml:space="preserve"><value>英大文字</value></data>
+  <data name="Compression_PasswordDigits" xml:space="preserve"><value>数字</value></data>
+  <data name="Compression_PasswordSymbols" xml:space="preserve"><value>記号</value></data>
+  <data name="Compression_PasswordGeneratedNote" xml:space="preserve"><value>生成したパスワードは Hodozip に保存されません。無くすと解凍できません。</value></data>
+  <data name="Compression_PasswordShow" xml:space="preserve"><value>表示</value></data>
+  <data name="Compression_PasswordHide" xml:space="preserve"><value>隠す</value></data>
+  <data name="Compression_Copy" xml:space="preserve"><value>コピー</value></data>
+  <data name="Compression_Copied" xml:space="preserve"><value>コピーしました</value></data>
+  <data name="Compression_MacOsCompatible" xml:space="preserve"><value>macOS 互換で作成する</value></data>
+  <data name="Compression_MacOsCompatibleNote" xml:space="preserve"><value>ファイル名を UTF-8（フラグ付き）で NFC に正規化して格納します。Mac の Finder で文字化けせずに解凍できます。ZIP のみ対象です。</value></data>
+  <data name="Compression_PasswordGenerateFailed" xml:space="preserve"><value>パスワードを生成できません。文字種を 1 つ以上選んでください。</value></data>
+
+  <data name="Progress_CloseConfirmTitle" xml:space="preserve"><value>処理を中止しますか？</value></data>
+  <data name="Progress_CloseConfirmMessage" xml:space="preserve"><value>進捗ウィンドウを閉じると、実行中の処理をキャンセルします。続ける場合は「処理を続ける」を選んでください。</value></data>
+  <data name="Progress_CloseConfirmYes" xml:space="preserve"><value>中止する</value></data>
+  <data name="Progress_CloseConfirmNo" xml:space="preserve"><value>処理を続ける</value></data>
+
+  <data name="Main_JobsTitle" xml:space="preserve"><value>実行中のジョブ</value></data>
+  <data name="Main_JobsHint" xml:space="preserve"><value>進捗ウィンドウを閉じても処理は続いています。再表示するか、キャンセルできます。</value></data>
+  <data name="Main_JobShow" xml:space="preserve"><value>再表示</value></data>
+  <data name="Main_JobCancel" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="Main_JobExtract" xml:space="preserve"><value>解凍</value></data>
+  <data name="Main_JobCompress" xml:space="preserve"><value>圧縮</value></data>
+  <data name="Main_JobPercent" xml:space="preserve"><value>{0}%</value></data>
+
+  <data name="Notification_ExtractCompletedTitle" xml:space="preserve"><value>解凍が完了しました</value></data>
+  <data name="Notification_ExtractFailedTitle" xml:space="preserve"><value>解凍できませんでした</value></data>
+  <data name="Notification_CompressionCompletedTitle" xml:space="preserve"><value>圧縮が完了しました</value></data>
+  <data name="Notification_CompressionFailedTitle" xml:space="preserve"><value>圧縮できませんでした</value></data>
+  <data name="Notification_ExtractCompletedMessage" xml:space="preserve"><value>{0}（{1} ファイル / スキップ {2} 件）</value></data>
+  <data name="Notification_ExtractFailedMessage" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="Notification_CompressionCompletedMessage" xml:space="preserve"><value>{0} → {1}</value></data>
+  <data name="Notification_CompressionFailedMessage" xml:space="preserve"><value>{0}: {1}</value></data>
 </root>

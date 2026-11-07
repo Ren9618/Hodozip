@@ -46,6 +46,12 @@ public sealed class CompressionOptions
 
     public ZipNameEncoding ZipNameEncoding { get; init; } = ZipNameEncoding.Utf8;
 
+    /// <summary>
+    /// macOS（Finder）で文字化けせず解凍できる ZIP を作る。
+    /// UTF-8 フラグを立て、ファイル名を NFC に正規化する。ZIP だけが対象。
+    /// </summary>
+    public bool MacOsCompatible { get; init; }
+
     public IProgress<CompressionProgress>? Progress { get; init; }
 
     /// <summary>出力先が存在する場合に上書きする。false の場合は連番を付ける。</summary>
