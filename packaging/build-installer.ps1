@@ -237,13 +237,21 @@ if ($LASTEXITCODE -ne 0) {
     throw "MSIX アセットの生成が失敗しました (exit $LASTEXITCODE)。"
 }
 
-$iconSource = Join-Path $assetsDirectory 'Square310x310Logo.png'
-if (-not (Test-Path $iconSource)) {
-    throw "アイコンの元画像が見つかりません: $iconSource"
+if (-not (Test-Path $iconPath)) {
+    throw "マルチサイズ ICO が生成されませんでした: $iconPath"
 }
 
-New-IcoFromPng -PngPath $iconSource -IcoPath $iconPath
-Write-Host "  Icon: $iconPath"
+$iconBytes = [System.IO.File]::ReadAllBytes($iconPath)
+if ($iconBytes.Length -lt 6 -or $iconBytes[0] -ne 0 -or $iconBytes[1] -ne 0 -or $iconBytes[2] -ne 1 -or $iconBytes[3] -ne 0) {
+    throw "生成された ICO のヘッダーが不正です: $iconPath"
+}
+
+$iconFrameCount = [BitConverter]::ToUInt16($iconBytes, 4)
+if ($iconFrameCount -lt 8) {
+    throw "生成された ICO のフレーム数が不足しています ($iconFrameCount): $iconPath"
+}
+
+Write-Host "  Icon: $iconPath ($iconFrameCount frames)"
 
 $iscc = Find-InnoCompiler -ExplicitPath $InnoCompilerPath
 Write-Host ''

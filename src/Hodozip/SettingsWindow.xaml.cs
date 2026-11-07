@@ -22,6 +22,8 @@ public sealed partial class SettingsWindow : Window
         var settings = SettingsService.Load();
         OpenFolderToggle.IsOn = settings.OpenFolderAfterExtraction;
         CloseAfterExtractToggle.IsOn = settings.CloseAfterAutoExtract;
+        CheckUpdatesToggle.IsOn = AppInfo.SupportsAutoUpdate && settings.CheckForUpdatesOnStartup;
+        CheckUpdatesToggle.IsEnabled = AppInfo.SupportsAutoUpdate;
         DestinationRuleComboBox.SelectedIndex = 0;
         SelectByTag(FolderCollisionComboBox, settings.FolderCollisionPolicy.ToString());
         SelectByTag(OverwritePolicyComboBox, settings.OverwritePolicy.ToString());
@@ -37,6 +39,10 @@ public sealed partial class SettingsWindow : Window
         settings.DestinationRule = "SameAsArchive";
         settings.OpenFolderAfterExtraction = OpenFolderToggle.IsOn;
         settings.CloseAfterAutoExtract = CloseAfterExtractToggle.IsOn;
+        if (AppInfo.SupportsAutoUpdate)
+        {
+            settings.CheckForUpdatesOnStartup = CheckUpdatesToggle.IsOn;
+        }
         settings.FolderCollisionPolicy = ParsePolicy(
             SelectedTag(FolderCollisionComboBox),
             FolderCollisionPolicy.Ask);
@@ -123,6 +129,14 @@ public sealed partial class SettingsWindow : Window
         CloseAfterExtractToggle.OnContent = Loc.Settings_LegacyOn;
         CloseAfterExtractToggle.OffContent = Loc.Settings_LegacyOff;
         CloseAfterNoteText.Text = Loc.Settings_CloseAfterNote;
+
+        UpdatesSectionText.Text = Loc.Settings_Updates;
+        CheckUpdatesToggle.Header = Loc.Settings_CheckUpdatesStartup;
+        CheckUpdatesToggle.OnContent = Loc.Settings_LegacyOn;
+        CheckUpdatesToggle.OffContent = Loc.Settings_LegacyOff;
+        CheckUpdatesNoteText.Text = AppInfo.SupportsAutoUpdate
+            ? Loc.Settings_CheckUpdatesNote
+            : Loc.Settings_CheckUpdatesPackaged;
 
         LanguageSectionText.Text = Loc.Settings_Language;
         SetItemContent(LanguageComboBox, Loc.Settings_LanguageSystem, Loc.Settings_LanguageJapanese, Loc.Settings_LanguageEnglish);

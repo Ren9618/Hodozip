@@ -15,12 +15,14 @@ public sealed partial class ProgressWindow : Window
     private const int PathMaxLength = 62;
     private const int FileNameMaxLength = 44;
 
-    private readonly string _archivePath;
-    private readonly string _archiveName;
+    private readonly string? _archivePath;
+    private readonly CompressionRequest? _compressionRequest;
+    private readonly string _displayName;
     private readonly bool _isCommandLine;
     private readonly ExtractionDestinationMode _destinationMode;
     private readonly AppSettings _settings;
     private readonly SharpCompressExtractor _extractor = new();
+    private readonly SharpCompressCompressor _compressor = new();
     private readonly CancellationTokenSource _cancellation = new();
 
     private DispatcherTimer? _autoCloseTimer;
@@ -40,16 +42,42 @@ public sealed partial class ProgressWindow : Window
         InitializeComponent();
 
         _archivePath = archivePath;
-        _archiveName = Path.GetFileName(archivePath);
+        _compressionRequest = null;
+        _displayName = Path.GetFileName(archivePath);
         _isCommandLine = isCommandLine;
         _destinationMode = destinationMode;
         _settings = SettingsService.Load();
 
-        Title = $"0% / {_archiveName}";
+        ConfigureCommon();
+        SetDestination(Path.GetDirectoryName(archivePath) ?? Environment.CurrentDirectory);
+    }
+
+    public ProgressWindow(CompressionRequest request, bool isCommandLine)
+    {
+        InitializeComponent();
+
+        _archivePath = null;
+        _compressionRequest = request;
+        _displayName = Path.GetFileName(request.OutputPath);
+        _isCommandLine = isCommandLine;
+        _destinationMode = ExtractionDestinationMode.Auto;
+        _settings = SettingsService.Load();
+
+        ConfigureCommon();
+        SetDestination(Path.GetDirectoryName(request.OutputPath) ?? Environment.CurrentDirectory);
+    }
+
+    public event EventHandler<ExtractionResult>? ExtractionCompleted;
+
+    public event EventHandler<CompressionResult>? CompressionCompleted;
+
+    public bool IsCompleted => _completed;
+
+    private void ConfigureCommon()
+    {
+        Title = $"0% / {_displayName}";
         WindowHelpers.ConfigureFixed(this, 480, 240);
         ApplyLocalization();
-
-        SetDestination(Path.GetDirectoryName(archivePath) ?? Environment.CurrentDirectory);
 
         CurrentFileText.Text = " ";
         ToolTipService.SetToolTip(CurrentFileText, null);
@@ -59,10 +87,6 @@ public sealed partial class ProgressWindow : Window
         Closed += ProgressWindow_Closed;
     }
 
-    public event EventHandler<ExtractionResult>? ExtractionCompleted;
-
-    public bool IsCompleted => _completed;
-
     private void RootGrid_Loaded(object sender, RoutedEventArgs e)
     {
         if (_started)
@@ -71,7 +95,7 @@ public sealed partial class ProgressWindow : Window
         }
 
         _started = true;
-        _ = RunExtractionAsync();
+        _ = _compressionRequest is null ? RunExtractionAsync() : RunCompressionAsync();
     }
 
     private async Task RunExtractionAsync()
@@ -94,7 +118,7 @@ public sealed partial class ProgressWindow : Window
         {
             result = await _extractor
                 .ExtractAsync(
-                    new ExtractionRequest(_archivePath, null, options, _destinationMode),
+                    new ExtractionRequest(_archivePath!, null, options, _destinationMode),
                     _cancellation.Token)
                 .ConfigureAwait(false);
         }
@@ -110,25 +134,72 @@ public sealed partial class ProgressWindow : Window
         DispatcherQueue.TryEnqueue(() => CompleteOnUiThread(result));
     }
 
+    private async Task RunCompressionAsync()
+    {
+        await Task.Delay(120).ConfigureAwait(false);
+
+        CompressionResult result;
+        try
+        {
+            result = await _compressor
+                .CompressAsync(_compressionRequest!, _cancellation.Token)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            result = CreateCompressionFailure(
+                Loc.Progress_CompressionCancelledMessage,
+                cancelled: true,
+                "Issue_Cancelled");
+        }
+        catch (Exception ex)
+        {
+            result = CreateCompressionFailure(
+                Loc.Progress_CompressionUnexpectedError(ex.Message),
+                cancelled: false,
+                "Compression_ErrorUnexpected",
+                ex.Message);
+        }
+
+        DispatcherQueue.TryEnqueue(() => CompleteCompressionOnUiThread(result));
+    }
+
     private ExtractionResult CreateFailureResult(string message, bool cancelled, string? messageKey, params object?[] arguments)
     {
         return new ExtractionResult
         {
             Success = false,
             Cancelled = cancelled,
-            DestinationPath = Path.GetDirectoryName(_archivePath) ?? Environment.CurrentDirectory,
+            DestinationPath = Path.GetDirectoryName(_archivePath!) ?? Environment.CurrentDirectory,
             Issues = new[]
             {
                 new ExtractionIssue(
                     cancelled ? ExtractionIssueSeverity.Warning : ExtractionIssueSeverity.Error,
                     cancelled ? ExtractionIssueKind.Cancelled : ExtractionIssueKind.ArchiveError,
-                    _archivePath,
+                    _archivePath!,
                     message)
                 {
                     MessageKey = messageKey,
                     MessageArguments = arguments,
                 },
             },
+        };
+    }
+
+    private CompressionResult CreateCompressionFailure(
+        string message,
+        bool cancelled,
+        string? messageKey,
+        params object?[] arguments)
+    {
+        return new CompressionResult
+        {
+            Success = false,
+            Cancelled = cancelled,
+            OutputPath = _compressionRequest?.OutputPath ?? string.Empty,
+            ErrorMessage = message,
+            ErrorMessageKey = messageKey,
+            ErrorArguments = arguments,
         };
     }
 
@@ -156,6 +227,25 @@ public sealed partial class ProgressWindow : Window
         }
     }
 
+    private void CompleteCompressionOnUiThread(CompressionResult result)
+    {
+        if (_closed)
+        {
+            return;
+        }
+
+        _completed = true;
+        ShowCompressionResult(result);
+
+        if (_closeRequested)
+        {
+            Close();
+            return;
+        }
+
+        CompressionCompleted?.Invoke(this, result);
+    }
+
     private void UpdateProgress(ExtractionProgress progress)
     {
         if (_completed || _closed)
@@ -170,13 +260,13 @@ public sealed partial class ProgressWindow : Window
             ProgressBar.Maximum = Math.Max(1, progress.TotalBytes);
             ProgressBar.Value = Math.Min(progress.ProcessedBytes, ProgressBar.Maximum);
             PercentText.Text = $"{percent:0}%";
-            Title = $"{percent:0}% / {_archiveName}";
+            Title = $"{percent:0}% / {_displayName}";
         }
         else
         {
             ProgressBar.IsIndeterminate = true;
             PercentText.Text = "…";
-            Title = $"… / {_archiveName}";
+            Title = $"… / {_displayName}";
         }
 
         if (!string.IsNullOrEmpty(progress.DestinationPath))
@@ -184,17 +274,54 @@ public sealed partial class ProgressWindow : Window
             SetDestination(progress.DestinationPath);
         }
 
-        var currentFile = progress.CurrentFile;
+        SetCurrentFile(progress.CurrentFile, progress.CurrentFileProcessedBytes, progress.CurrentFileTotalBytes);
+        StatusText.Text = Loc.Progress_Extracting;
+    }
+
+    private void UpdateCompressionProgress(CompressionProgress progress)
+    {
+        if (_completed || _closed)
+        {
+            return;
+        }
+
+        if (progress.TotalBytes > 0)
+        {
+            var percent = Math.Min(100d, progress.ProcessedBytes * 100d / progress.TotalBytes);
+            ProgressBar.IsIndeterminate = false;
+            ProgressBar.Maximum = Math.Max(1, progress.TotalBytes);
+            ProgressBar.Value = Math.Min(progress.ProcessedBytes, ProgressBar.Maximum);
+            PercentText.Text = $"{percent:0}%";
+            Title = $"{percent:0}% / {_displayName}";
+        }
+        else
+        {
+            ProgressBar.IsIndeterminate = true;
+            PercentText.Text = "…";
+            Title = $"… / {_displayName}";
+        }
+
+        if (!string.IsNullOrEmpty(progress.OutputPath))
+        {
+            SetDestination(Path.GetDirectoryName(progress.OutputPath) ?? _destinationPath ?? string.Empty);
+        }
+
+        SetCurrentFile(progress.CurrentFile, progress.CurrentFileProcessedBytes, progress.CurrentFileTotalBytes);
+        StatusText.Text = Loc.Progress_Compressing;
+    }
+
+    private void SetCurrentFile(string currentFile, long fileProcessed, long fileTotal)
+    {
         CurrentFileText.Text = string.IsNullOrEmpty(currentFile)
             ? " "
             : Loc.Progress_File(MiddleEllipsis.CompactMiddle(currentFile, FileNameMaxLength));
         ToolTipService.SetToolTip(CurrentFileText, string.IsNullOrEmpty(currentFile) ? null : currentFile);
 
-        if (progress.CurrentFileTotalBytes > 0)
+        if (fileTotal > 0)
         {
             FileProgressBar.IsIndeterminate = false;
-            FileProgressBar.Maximum = Math.Max(1, progress.CurrentFileTotalBytes);
-            FileProgressBar.Value = Math.Min(progress.CurrentFileProcessedBytes, FileProgressBar.Maximum);
+            FileProgressBar.Maximum = Math.Max(1, fileTotal);
+            FileProgressBar.Value = Math.Min(fileProcessed, FileProgressBar.Maximum);
         }
         else if (!string.IsNullOrEmpty(currentFile))
         {
@@ -205,8 +332,6 @@ public sealed partial class ProgressWindow : Window
             FileProgressBar.IsIndeterminate = false;
             FileProgressBar.Value = 0;
         }
-
-        StatusText.Text = Loc.Progress_Extracting;
     }
 
     private void SetDestination(string destination)
@@ -217,7 +342,9 @@ public sealed partial class ProgressWindow : Window
         }
 
         _destinationPath = destination;
-        DestinationText.Text = Loc.Progress_Destination(MiddleEllipsis.CompactMiddle(destination, PathMaxLength));
+        DestinationText.Text = _compressionRequest is null
+            ? Loc.Progress_Destination(MiddleEllipsis.CompactMiddle(destination, PathMaxLength))
+            : Loc.Progress_Output(MiddleEllipsis.CompactMiddle(destination, PathMaxLength));
         ToolTipService.SetToolTip(DestinationText, destination);
     }
 
@@ -225,12 +352,7 @@ public sealed partial class ProgressWindow : Window
     {
         SetDestination(result.DestinationPath);
 
-        ProgressBar.IsIndeterminate = false;
-        ProgressBar.Maximum = 1;
-        ProgressBar.Value = result.Success ? 1 : 0;
-        FileProgressBar.IsIndeterminate = false;
-        FileProgressBar.Maximum = 1;
-        FileProgressBar.Value = result.Success ? 1 : 0;
+        ResetProgressBars(result.Success);
         PercentText.Text = result.Success ? "100%" : "—";
         CurrentFileText.Text = " ";
         ToolTipService.SetToolTip(CurrentFileText, null);
@@ -240,7 +362,7 @@ public sealed partial class ProgressWindow : Window
 
         if (result.Success)
         {
-            Title = $"100% / {_archiveName}";
+            Title = $"100% / {_displayName}";
             StatusText.Text = warnings > 0
                 ? Loc.Progress_CompletedWarnings(warnings, result.SkippedFileCount)
                 : Loc.Progress_Completed(result.ExtractedFileCount, result.SkippedFileCount);
@@ -248,13 +370,13 @@ public sealed partial class ProgressWindow : Window
         }
         else if (result.Cancelled)
         {
-            Title = $"{Loc.Progress_CancelledTitle} / {_archiveName}";
+            Title = $"{Loc.Progress_CancelledTitle} / {_displayName}";
             StatusText.Text = Loc.Progress_Cancelled;
             StatusText.Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
         }
         else
         {
-            Title = $"{Loc.Progress_ErrorTitle} / {_archiveName}";
+            Title = $"{Loc.Progress_ErrorTitle} / {_displayName}";
             var error = result.Issues.FirstOrDefault(x => x.Severity == ExtractionIssueSeverity.Error);
             var message = error is null ? Loc.Progress_FailedMessage : LocalizationService.GetIssueMessage(error);
             StatusText.Text = Loc.Progress_ErrorStatus(MiddleEllipsis.CompactMiddle(message, 56));
@@ -262,11 +384,7 @@ public sealed partial class ProgressWindow : Window
             StatusText.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
         }
 
-        CancelButton.Visibility = Visibility.Collapsed;
-        CloseButton.Visibility = Visibility.Visible;
-        OpenFolderButton.Visibility = Directory.Exists(result.DestinationPath)
-            ? Visibility.Visible
-            : Visibility.Collapsed;
+        ShowCompletionButtons(result.Success, result.DestinationPath);
 
         if (_settings.OpenFolderAfterExtraction && result.Success)
         {
@@ -279,6 +397,73 @@ public sealed partial class ProgressWindow : Window
                 // フォルダを開けない場合も解凍結果の表示は続ける。
             }
         }
+    }
+
+    private void ShowCompressionResult(CompressionResult result)
+    {
+        var outputDirectory = string.IsNullOrWhiteSpace(result.OutputPath)
+            ? _destinationPath
+            : Path.GetDirectoryName(result.OutputPath);
+        if (!string.IsNullOrWhiteSpace(outputDirectory))
+        {
+            SetDestination(outputDirectory);
+        }
+
+        ResetProgressBars(result.Success);
+        PercentText.Text = result.Success ? "100%" : "—";
+        CurrentFileText.Text = " ";
+        ToolTipService.SetToolTip(CurrentFileText, null);
+
+        if (result.Success)
+        {
+            Title = $"100% / {_displayName}";
+            StatusText.Text = Loc.Progress_CompressionCompleted(
+                result.FileCount,
+                UiHelpers.FormatBytes(result.SourceBytes),
+                UiHelpers.FormatBytes(result.OutputBytes))
+                + (result.PasswordIgnored ? Loc.Progress_PasswordIgnored : string.Empty);
+            StatusText.Foreground = (Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
+        }
+        else if (result.Cancelled)
+        {
+            Title = $"{Loc.Progress_CompressionCancelledTitle} / {_displayName}";
+            StatusText.Text = Loc.Progress_CompressionCancelled;
+            StatusText.Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
+        }
+        else
+        {
+            Title = $"{Loc.Progress_ErrorTitle} / {_displayName}";
+            var message = LocalizationService.GetCompressionError(result);
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                message = Loc.Progress_FailedMessage;
+            }
+
+            StatusText.Text = Loc.Progress_ErrorStatus(MiddleEllipsis.CompactMiddle(message, 56));
+            ToolTipService.SetToolTip(StatusText, message);
+            StatusText.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
+        }
+
+        ShowCompletionButtons(result.Success, outputDirectory);
+    }
+
+    private void ResetProgressBars(bool success)
+    {
+        ProgressBar.IsIndeterminate = false;
+        ProgressBar.Maximum = 1;
+        ProgressBar.Value = success ? 1 : 0;
+        FileProgressBar.IsIndeterminate = false;
+        FileProgressBar.Maximum = 1;
+        FileProgressBar.Value = success ? 1 : 0;
+    }
+
+    private void ShowCompletionButtons(bool success, string? destination)
+    {
+        CancelButton.Visibility = Visibility.Collapsed;
+        CloseButton.Visibility = Visibility.Visible;
+        OpenFolderButton.Visibility = !string.IsNullOrWhiteSpace(destination) && Directory.Exists(destination)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     private Task<OverwriteDecision> ResolveOverwriteAsync(
@@ -498,7 +683,9 @@ public sealed partial class ProgressWindow : Window
 
     private void ApplyLocalization()
     {
-        StatusText.Text = Loc.Progress_Extracting;
+        StatusText.Text = _compressionRequest is null
+            ? Loc.Progress_Extracting
+            : Loc.Progress_Compressing;
         OpenFolderButton.Content = Loc.Common_OpenFolder;
         CancelButton.Content = Loc.Common_Cancel;
         CloseButton.Content = Loc.Common_Close;

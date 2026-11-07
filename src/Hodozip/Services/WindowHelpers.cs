@@ -10,6 +10,7 @@ internal static class WindowHelpers
     public static void Configure(Window window, int width, int height)
     {
         var appWindow = window.AppWindow;
+        ApplyIcon(appWindow);
         appWindow.Resize(new SizeInt32(width, height));
 
         try
@@ -25,6 +26,29 @@ internal static class WindowHelpers
         catch
         {
             // 位置調整に失敗しても、既定位置で表示を続ける。
+        }
+    }
+
+    private static void ApplyIcon(AppWindow appWindow)
+    {
+        try
+        {
+            var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Hodozip.ico");
+            if (File.Exists(iconPath))
+            {
+                appWindow.SetIcon(iconPath);
+                return;
+            }
+
+            var processPath = Environment.ProcessPath;
+            if (!string.IsNullOrWhiteSpace(processPath))
+            {
+                appWindow.SetIcon(processPath);
+            }
+        }
+        catch
+        {
+            // アイコン設定に失敗しても、既定のアイコンで起動を続ける。
         }
     }
 

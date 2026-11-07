@@ -146,6 +146,23 @@ internal static class LocalizationService
 
         return request.ErrorMessage ?? string.Empty;
     }
+
+    public static string GetCompressionError(Hodozip.Core.CompressionResult result)
+    {
+        if (!string.IsNullOrEmpty(result.ErrorMessageKey))
+        {
+            var arguments = result.ErrorArguments.Count == 0
+                ? Array.Empty<object?>()
+                : result.ErrorArguments.ToArray();
+            var localized = Format(result.ErrorMessageKey!, arguments);
+            if (!string.Equals(localized, result.ErrorMessageKey, StringComparison.Ordinal))
+            {
+                return localized;
+            }
+        }
+
+        return result.ErrorMessage ?? string.Empty;
+    }
 }
 
 /// <summary>型付きのリソース アクセサ。キーの綴り間違いを 1 か所に閉じ込める。</summary>
@@ -162,6 +179,8 @@ internal static class Loc
     public static string Common_Settings => T("Common_Settings");
     public static string Common_About => T("Common_About");
     public static string Common_Support => T("Common_Support");
+    public static string Common_Browse => T("Common_Browse");
+    public static string Common_Remove => T("Common_Remove");
 
     public static string Main_Tagline => T("Main_Tagline");
     public static string Main_DropHere => T("Main_DropHere");
@@ -188,6 +207,61 @@ internal static class Loc
     public static string Main_ResultDestination(string path) => F("Main_ResultDestination", path);
     public static string Main_ResultFiles(int files, int skipped) => F("Main_ResultFiles", files, skipped);
     public static string Main_ResultIssues(int warnings, int errors) => F("Main_ResultIssues", warnings, errors);
+    public static string Main_Compress => T("Main_Compress");
+    public static string Main_UpdateAvailableTitle => T("Main_UpdateAvailableTitle");
+    public static string Main_UpdateAvailableMessage(string version) => F("Main_UpdateAvailableMessage", version);
+    public static string Main_UpdateNow => T("Main_UpdateNow");
+    public static string Main_UpdateLater => T("Main_UpdateLater");
+    public static string Main_UpdateSkip => T("Main_UpdateSkip");
+    public static string Main_UpdateDownloading(int percent) => F("Main_UpdateDownloading", percent);
+    public static string Main_UpdateFailedTitle => T("Main_UpdateFailedTitle");
+    public static string Main_UpdatePortableMessage => T("Main_UpdatePortableMessage");
+    public static string Main_CompressionCompletedTitle => T("Main_CompressionCompletedTitle");
+    public static string Main_CompressionCancelledTitle => T("Main_CompressionCancelledTitle");
+    public static string Main_CompressionFailedTitle => T("Main_CompressionFailedTitle");
+    public static string Main_CompressionResultOutput(string path) => F("Main_CompressionResultOutput", path);
+    public static string Main_CompressionResultFiles(int files, string source, string output) => F("Main_CompressionResultFiles", files, source, output);
+
+    public static string Compression_Title => T("Compression_Title");
+    public static string Compression_WindowTitle(string product) => F("Compression_WindowTitle", product);
+    public static string Compression_Subtitle => T("Compression_Subtitle");
+    public static string Compression_Sources => T("Compression_Sources");
+    public static string Compression_AddFiles => T("Compression_AddFiles");
+    public static string Compression_AddFolder => T("Compression_AddFolder");
+    public static string Compression_RemoveSelected => T("Compression_RemoveSelected");
+    public static string Compression_NoSources => T("Compression_NoSources");
+    public static string Compression_Output => T("Compression_Output");
+    public static string Compression_OutputFolder => T("Compression_OutputFolder");
+    public static string Compression_OutputName => T("Compression_OutputName");
+    public static string Compression_Format => T("Compression_Format");
+    public static string Compression_FormatZip => T("Compression_FormatZip");
+    public static string Compression_Format7z => T("Compression_Format7z");
+    public static string Compression_Level => T("Compression_Level");
+    public static string Compression_LevelStore => T("Compression_LevelStore");
+    public static string Compression_LevelNormal => T("Compression_LevelNormal");
+    public static string Compression_LevelMaximum => T("Compression_LevelMaximum");
+    public static string Compression_Password => T("Compression_Password");
+    public static string Compression_PasswordPlaceholder => T("Compression_PasswordPlaceholder");
+    public static string Compression_PasswordNote => T("Compression_PasswordNote");
+    public static string Compression_ZipEncoding => T("Compression_ZipEncoding");
+    public static string Compression_ZipEncodingUtf8 => T("Compression_ZipEncodingUtf8");
+    public static string Compression_ZipEncodingShiftJis => T("Compression_ZipEncodingShiftJis");
+    public static string Compression_ZipEncodingNote => T("Compression_ZipEncodingNote");
+    public static string Compression_CollisionNote => T("Compression_CollisionNote");
+    public static string Compression_Start => T("Compression_Start");
+    public static string Compression_ErrorTitle => T("Compression_ErrorTitle");
+    public static string Compression_ErrorNoSources => T("Compression_ErrorNoSources");
+    public static string Compression_ErrorNoOutputName => T("Compression_ErrorNoOutputName");
+    public static string Compression_ErrorInvalidName => T("Compression_ErrorInvalidName");
+    public static string Compression_ErrorFolderMissing => T("Compression_ErrorFolderMissing");
+    public static string Compression_ErrorFolderCreate(string path) => F("Compression_ErrorFolderCreate", path);
+    public static string Compression_ErrorSourceMissing(string path) => F("Compression_ErrorSourceMissing", path);
+    public static string Compression_ErrorUnexpected(string message) => F("Compression_ErrorUnexpected", message);
+    public static string Compression_SourceMissing(string path) => F("Compression_SourceMissing", path);
+    public static string Compression_ErrorInvalidFormat(string value) => F("Compression_ErrorInvalidFormat", value);
+    public static string Compression_ErrorInvalidLevel(string value) => F("Compression_ErrorInvalidLevel", value);
+    public static string Compression_ErrorInvalidEncoding(string value) => F("Compression_ErrorInvalidEncoding", value);
+    public static string Compression_ErrorOptionValue(string option) => F("Compression_ErrorOptionValue", option);
 
     public static string Progress_Extracting => T("Progress_Extracting");
     public static string Progress_Destination(string path) => F("Progress_Destination", path);
@@ -203,6 +277,14 @@ internal static class Loc
     public static string Progress_AutoClose(int seconds) => F("Progress_AutoClose", seconds);
     public static string Progress_UnexpectedError(string message) => F("Progress_UnexpectedError", message);
     public static string Progress_CancelledMessage => T("Progress_CancelledMessage");
+    public static string Progress_Compressing => T("Progress_Compressing");
+    public static string Progress_Output(string path) => F("Progress_Output", path);
+    public static string Progress_CompressionCompleted(int files, string source, string output) => F("Progress_CompressionCompleted", files, source, output);
+    public static string Progress_PasswordIgnored => T("Progress_PasswordIgnored");
+    public static string Progress_CompressionCancelled => T("Progress_CompressionCancelled");
+    public static string Progress_CompressionCancelledTitle => T("Progress_CompressionCancelledTitle");
+    public static string Progress_CompressionCancelledMessage => T("Progress_CompressionCancelledMessage");
+    public static string Progress_CompressionUnexpectedError(string message) => F("Progress_CompressionUnexpectedError", message);
 
     public static string Settings_Title => T("Settings_Title");
     public static string Settings_WindowTitle(string product) => F("Settings_WindowTitle", product);
@@ -244,6 +326,10 @@ internal static class Loc
     public static string Settings_ContextMenuTitle => T("Settings_ContextMenuTitle");
     public static string Settings_RegisterFailedTitle => T("Settings_RegisterFailedTitle");
     public static string Settings_Save => T("Settings_Save");
+    public static string Settings_Updates => T("Settings_Updates");
+    public static string Settings_CheckUpdatesStartup => T("Settings_CheckUpdatesStartup");
+    public static string Settings_CheckUpdatesNote => T("Settings_CheckUpdatesNote");
+    public static string Settings_CheckUpdatesPackaged => T("Settings_CheckUpdatesPackaged");
 
     public static string About_Title => T("About_Title");
     public static string About_WindowTitle(string product) => F("About_WindowTitle", product);
@@ -257,6 +343,7 @@ internal static class Loc
     public static string About_Copyright => T("About_Copyright");
     public static string About_Libraries => T("About_Libraries");
     public static string About_SharpCompress => T("About_SharpCompress");
+    public static string About_SharpZipLib => T("About_SharpZipLib");
     public static string About_WindowsAppSdk => T("About_WindowsAppSdk");
     public static string About_DotNet => T("About_DotNet");
     public static string About_Privacy => T("About_Privacy");

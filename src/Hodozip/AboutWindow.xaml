@@ -118,6 +118,7 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <TextBlock
@@ -133,9 +134,9 @@
                             <TextBlock
                                 Grid.Row="1"
                                 Grid.Column="0"
-                                Text="Microsoft Windows App SDK" />
+                                Text="SharpZipLib" />
                             <TextBlock
-                                x:Name="WindowsAppSdkLicenseText"
+                                x:Name="SharpZipLibLicenseText"
                                 Grid.Row="1"
                                 Grid.Column="1"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -143,10 +144,20 @@
                             <TextBlock
                                 Grid.Row="2"
                                 Grid.Column="0"
+                                Text="Microsoft Windows App SDK" />
+                            <TextBlock
+                                x:Name="WindowsAppSdkLicenseText"
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Grid.Row="3"
+                                Grid.Column="0"
                                 Text=".NET" />
                             <TextBlock
                                 x:Name="DotNetLicenseText"
-                                Grid.Row="2"
+                                Grid.Row="3"
                                 Grid.Column="1"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 TextWrapping="Wrap" />

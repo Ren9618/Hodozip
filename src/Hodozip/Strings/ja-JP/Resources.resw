@@ -19,6 +19,8 @@
   <data name="Common_Settings" xml:space="preserve"><value>設定</value></data>
   <data name="Common_About" xml:space="preserve"><value>バージョン情報</value></data>
   <data name="Common_Support" xml:space="preserve"><value>開発を支援する</value></data>
+  <data name="Common_Browse" xml:space="preserve"><value>参照…</value></data>
+  <data name="Common_Remove" xml:space="preserve"><value>削除</value></data>
 
   <data name="Main_Tagline" xml:space="preserve"><value>アーカイブを、ほどく。ドラッグ＆ドロップですぐに解凍できます。</value></data>
   <data name="Main_DropHere" xml:space="preserve"><value>アーカイブをここにドロップ</value></data>
@@ -27,9 +29,9 @@
   <data name="Main_SupportedFormats" xml:space="preserve"><value>ZIP / 7z / RAR / MSI / TAR / TAR.GZ / TAR.BZ2 / TAR.XZ / TAR.ZST / GZ / BZ2 / XZ / ZST に対応しています。単一フォルダのアーカイブは二重フォルダにせず、散らばったファイルはアーカイブ名のフォルダへ解凍します。</value></data>
   <data name="Main_PreviousResult" xml:space="preserve"><value>前回の結果</value></data>
   <data name="Main_FilePickErrorTitle" xml:space="preserve"><value>ファイルを選択できません</value></data>
-  <data name="Main_DropCaption" xml:space="preserve"><value>ここにドロップして解凍</value></data>
-  <data name="Main_NotArchiveTitle" xml:space="preserve"><value>アーカイブではありません</value></data>
-  <data name="Main_DropFileMessage" xml:space="preserve"><value>ファイルをドロップしてください。</value></data>
+  <data name="Main_DropCaption" xml:space="preserve"><value>ここにドロップして解凍・圧縮</value></data>
+  <data name="Main_NotArchiveTitle" xml:space="preserve"><value>項目がありません</value></data>
+  <data name="Main_DropFileMessage" xml:space="preserve"><value>ファイルまたはフォルダーをドロップしてください。</value></data>
   <data name="Main_UnsupportedTitle" xml:space="preserve"><value>対応していない形式です</value></data>
   <data name="Main_UnsupportedDropMessage" xml:space="preserve"><value>ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST などのアーカイブをドロップしてください。</value></data>
   <data name="Main_MultipleTitle" xml:space="preserve"><value>複数のアーカイブがドロップされました</value></data>
@@ -116,7 +118,7 @@
   <data name="About_WindowsAppSdk" xml:space="preserve"><value>MIT License（WinUI 3 実行基盤）</value></data>
   <data name="About_DotNet" xml:space="preserve"><value>MIT License（実行環境）</value></data>
   <data name="About_Privacy" xml:space="preserve"><value>プライバシー</value></data>
-  <data name="About_PrivacyText" xml:space="preserve"><value>Hodozip はテレメトリを送信せず、アプリ本体はネットワーク通信を行いません。寄付ボタンを押したときだけ、既定のブラウザで支援ページを開きます。</value></data>
+  <data name="About_PrivacyText" xml:space="preserve"><value>Hodozip はテレメトリを送信しません。ネットワーク通信は、設定で有効な場合の更新確認（GitHub Releases API への問い合わせ）と、更新または寄付ボタンを押したときのブラウザ起動だけです。MSIX 版は更新確認を行いません。</value></data>
   <data name="About_Copyright" xml:space="preserve"><value>Copyright (c) 2026 Ren9618</value></data>
 
   <data name="Overwrite_Title" xml:space="preserve"><value>上書きの確認</value></data>
@@ -164,7 +166,7 @@
   <data name="Legacy_ClsidCreateFailed" xml:space="preserve"><value>CLSID のレジストリ キーを作成できませんでした。</value></data>
   <data name="Legacy_InprocCreateFailed" xml:space="preserve"><value>InprocServer32 のレジストリ キーを作成できませんでした。</value></data>
   <data name="Legacy_HandlerCreateFailed" xml:space="preserve"><value>コンテキストメニューの登録キーを作成できませんでした: {0}</value></data>
-  <data name="Legacy_RegisteredCount" xml:space="preserve"><value>従来型コンテキストメニューへ登録しました（{0} 拡張子）。</value></data>
+  <data name="Legacy_RegisteredCount" xml:space="preserve"><value>従来型コンテキストメニューへ登録しました（解凍 {0} 拡張子 / 圧縮はすべてのファイルとフォルダー）。</value></data>
   <data name="Legacy_RegisterFailed" xml:space="preserve"><value>従来型コンテキストメニューの登録に失敗しました: {0}</value></data>
   <data name="Legacy_PackagedNotRegistered" xml:space="preserve"><value>MSIX 版では従来型コンテキストメニューを登録していません。</value></data>
   <data name="Legacy_Unregistered" xml:space="preserve"><value>従来型コンテキストメニューから解除しました。</value></data>
@@ -217,4 +219,78 @@
   <data name="Issue_MsiExpandFailed" xml:space="preserve"><value>expand.exe が終了コード {0} で失敗しました。</value></data>
   <data name="Issue_MsiExpandFailedDetail" xml:space="preserve"><value>expand.exe が終了コード {0} で失敗しました: {1}</value></data>
   <data name="Issue_Generic" xml:space="preserve"><value>問題が発生しました。</value></data>
+
+  <data name="Main_Compress" xml:space="preserve"><value>圧縮</value></data>
+  <data name="Main_UpdateAvailableTitle" xml:space="preserve"><value>新しいバージョンがあります</value></data>
+  <data name="Main_UpdateAvailableMessage" xml:space="preserve"><value>Hodozip {0} が公開されています。</value></data>
+  <data name="Main_UpdateNow" xml:space="preserve"><value>更新する</value></data>
+  <data name="Main_UpdateLater" xml:space="preserve"><value>あとで</value></data>
+  <data name="Main_UpdateSkip" xml:space="preserve"><value>このバージョンをスキップ</value></data>
+  <data name="Main_UpdateDownloading" xml:space="preserve"><value>更新をダウンロードしています… {0}%</value></data>
+  <data name="Main_UpdateFailedTitle" xml:space="preserve"><value>更新できませんでした</value></data>
+  <data name="Main_UpdatePortableMessage" xml:space="preserve"><value>zip 版はリリースページから手動で更新してください。</value></data>
+  <data name="Main_CompressionCompletedTitle" xml:space="preserve"><value>圧縮が完了しました</value></data>
+  <data name="Main_CompressionCancelledTitle" xml:space="preserve"><value>圧縮をキャンセルしました</value></data>
+  <data name="Main_CompressionFailedTitle" xml:space="preserve"><value>圧縮できませんでした</value></data>
+  <data name="Main_CompressionResultOutput" xml:space="preserve"><value>出力: {0}</value></data>
+  <data name="Main_CompressionResultFiles" xml:space="preserve"><value>ファイル: {0} 件（{1} → {2}）</value></data>
+
+  <data name="Compression_Title" xml:space="preserve"><value>圧縮</value></data>
+  <data name="Compression_WindowTitle" xml:space="preserve"><value>{0} - 圧縮</value></data>
+  <data name="Compression_Subtitle" xml:space="preserve"><value>ファイルとフォルダーを ZIP または 7z にまとめます。</value></data>
+  <data name="Compression_Sources" xml:space="preserve"><value>圧縮する項目</value></data>
+  <data name="Compression_AddFiles" xml:space="preserve"><value>ファイルを追加</value></data>
+  <data name="Compression_AddFolder" xml:space="preserve"><value>フォルダーを追加</value></data>
+  <data name="Compression_RemoveSelected" xml:space="preserve"><value>選択を削除</value></data>
+  <data name="Compression_NoSources" xml:space="preserve"><value>ファイルまたはフォルダーを 1 つ以上追加してください。</value></data>
+  <data name="Compression_Output" xml:space="preserve"><value>出力先</value></data>
+  <data name="Compression_OutputFolder" xml:space="preserve"><value>保存先フォルダー</value></data>
+  <data name="Compression_OutputName" xml:space="preserve"><value>ファイル名</value></data>
+  <data name="Compression_Format" xml:space="preserve"><value>形式</value></data>
+  <data name="Compression_FormatZip" xml:space="preserve"><value>ZIP (.zip)</value></data>
+  <data name="Compression_Format7z" xml:space="preserve"><value>7z (.7z)</value></data>
+  <data name="Compression_Level" xml:space="preserve"><value>圧縮レベル</value></data>
+  <data name="Compression_LevelStore" xml:space="preserve"><value>無圧縮（高速）</value></data>
+  <data name="Compression_LevelNormal" xml:space="preserve"><value>標準</value></data>
+  <data name="Compression_LevelMaximum" xml:space="preserve"><value>最大（低速）</value></data>
+  <data name="Compression_Password" xml:space="preserve"><value>パスワード（任意）</value></data>
+  <data name="Compression_PasswordPlaceholder" xml:space="preserve"><value>パスワード</value></data>
+  <data name="Compression_PasswordNote" xml:space="preserve"><value>ZIP は AES-256 で暗号化します。7z の書き込みはパスワード暗号化に対応していないため、7z では入力したパスワードを無視します。</value></data>
+  <data name="Compression_ZipEncoding" xml:space="preserve"><value>ZIP のファイル名エンコーディング</value></data>
+  <data name="Compression_ZipEncodingUtf8" xml:space="preserve"><value>UTF-8（推奨）</value></data>
+  <data name="Compression_ZipEncodingShiftJis" xml:space="preserve"><value>Shift_JIS（旧ツール向け）</value></data>
+  <data name="Compression_ZipEncodingNote" xml:space="preserve"><value>古い日本語 ZIP ツールとの互換が必要な場合だけ Shift_JIS を選んでください。</value></data>
+  <data name="Compression_CollisionNote" xml:space="preserve"><value>同名のファイルが既に存在する場合は「名前 (2).zip」のように連番を付けます。</value></data>
+  <data name="Compression_Start" xml:space="preserve"><value>圧縮を開始</value></data>
+  <data name="Compression_ErrorTitle" xml:space="preserve"><value>圧縮できません</value></data>
+  <data name="Compression_ErrorNoSources" xml:space="preserve"><value>圧縮するファイルまたはフォルダーを 1 つ以上追加してください。</value></data>
+  <data name="Compression_ErrorNoOutputName" xml:space="preserve"><value>出力ファイル名を入力してください。</value></data>
+  <data name="Compression_ErrorInvalidName" xml:space="preserve"><value>出力ファイル名に使用できない文字が含まれています。</value></data>
+  <data name="Compression_ErrorFolderMissing" xml:space="preserve"><value>保存先フォルダーを入力してください。</value></data>
+  <data name="Compression_ErrorFolderCreate" xml:space="preserve"><value>保存先フォルダーを作成できません: {0}</value></data>
+  <data name="Compression_ErrorOutputMissing" xml:space="preserve"><value>圧縮先が指定されていません。</value></data>
+  <data name="Compression_ErrorOutputParent" xml:space="preserve"><value>圧縮先フォルダーを特定できません。</value></data>
+  <data name="Compression_ErrorSourceMissing" xml:space="preserve"><value>圧縮するファイルまたはフォルダーが見つかりません: {0}</value></data>
+  <data name="Compression_ErrorUnexpected" xml:space="preserve"><value>圧縮中にエラーが発生しました: {0}</value></data>
+  <data name="Compression_SourceMissing" xml:space="preserve"><value>圧縮するファイルまたはフォルダーが見つかりません: {0}</value></data>
+  <data name="Compression_ErrorInvalidFormat" xml:space="preserve"><value>サポートされていない形式です: {0}（zip または 7z を指定してください）。</value></data>
+  <data name="Compression_ErrorInvalidLevel" xml:space="preserve"><value>サポートされていない圧縮レベルです: {0}（store / normal / maximum を指定してください）。</value></data>
+  <data name="Compression_ErrorInvalidEncoding" xml:space="preserve"><value>サポートされていない ZIP エンコーディングです: {0}（utf8 または shift_jis を指定してください）。</value></data>
+  <data name="Compression_ErrorOptionValue" xml:space="preserve"><value>オプション {0} の値が指定されていません。</value></data>
+
+  <data name="Progress_Compressing" xml:space="preserve"><value>圧縮しています…</value></data>
+  <data name="Progress_Output" xml:space="preserve"><value>出力先: {0}</value></data>
+  <data name="Progress_CompressionCompleted" xml:space="preserve"><value>圧縮が完了しました（{0} ファイル / {1} → {2}）</value></data>
+  <data name="Progress_PasswordIgnored" xml:space="preserve"><value>（7z のためパスワードは無視されました）</value></data>
+  <data name="Progress_CompressionCancelled" xml:space="preserve"><value>圧縮をキャンセルしました</value></data>
+  <data name="Progress_CompressionCancelledTitle" xml:space="preserve"><value>圧縮キャンセル</value></data>
+  <data name="Progress_CompressionCancelledMessage" xml:space="preserve"><value>圧縮をキャンセルしました。</value></data>
+  <data name="Progress_CompressionUnexpectedError" xml:space="preserve"><value>圧縮中に予期しないエラーが発生しました: {0}</value></data>
+
+  <data name="Settings_Updates" xml:space="preserve"><value>更新</value></data>
+  <data name="Settings_CheckUpdatesStartup" xml:space="preserve"><value>起動時に更新を確認する</value></data>
+  <data name="Settings_CheckUpdatesNote" xml:space="preserve"><value>1 日 1 回だけ GitHub Releases を確認します。新しいバージョンがある場合は、控えめな通知を表示します。</value></data>
+  <data name="Settings_CheckUpdatesPackaged" xml:space="preserve"><value>MSIX 版では自動更新を利用できません。ストアまたは手動で更新してください。</value></data>
+
+  <data name="About_SharpZipLib" xml:space="preserve"><value>MIT License（ZIP AES 暗号化）</value></data>
 </root>

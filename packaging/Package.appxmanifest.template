@@ -106,6 +106,10 @@
                 Id="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02"
                 Path="Hodozip.ContextMenu.dll"
                 ThreadingModel="STA" />
+              <com:Class
+                Id="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C04"
+                Path="Hodozip.ContextMenu.dll"
+                ThreadingModel="STA" />
             </com:SurrogateServer>
           </com:ComServer>
         </com:Extension>
@@ -164,6 +168,10 @@
             <desktop4:ItemType Type=".tzst">
               <desktop4:Verb Id="HodozipExtractHereTzst" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />
               <desktop4:Verb Id="HodozipExtractFolderTzst" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02" />
+            </desktop4:ItemType>
+            <!-- 圧縮はすべてのファイルを対象にする。フォルダーは従来型メニューとアプリ画面から圧縮できる。 -->
+            <desktop4:ItemType Type="*">
+              <desktop4:Verb Id="HodozipCompressFile" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C04" />
             </desktop4:ItemType>
           </desktop4:FileExplorerContextMenus>
         </desktop4:Extension>

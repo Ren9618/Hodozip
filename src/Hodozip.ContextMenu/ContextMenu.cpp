@@ -2,8 +2,9 @@
 //
 // This DLL implements the shell's IExplorerCommand interface (Windows 11 new
 // menu) and the legacy IContextMenu interface (unpackaged HKCU registration).
-// It does not contain extraction logic. Invoke() launches Hodozip.exe with
-// either --extract-here or --extract-folder and the selected file path.
+// It does not contain extraction or compression logic. Invoke() launches
+// Hodozip.exe with either --extract-here/--extract-folder and one archive path,
+// or --compress and every selected path.
 
 #include <windows.h>
 #include <shobjidl.h>
@@ -33,9 +34,17 @@ namespace
     const CLSID CLSID_HodozipExtractFolder =
         { 0x4f4c6d2a, 0x71b9, 0x4e4e, { 0x9a, 0x7d, 0x8d, 0x9a, 0x0b, 0x5e, 0x6c, 0x02 } };
 
-    // Legacy IContextMenu handler: {4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03}
+    // Legacy IContextMenu extract handler: {4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03}
     const CLSID CLSID_HodozipLegacyMenu =
         { 0x4f4c6d2a, 0x71b9, 0x4e4e, { 0x9a, 0x7d, 0x8d, 0x9a, 0x0b, 0x5e, 0x6c, 0x03 } };
+
+    // Compress (Windows 11 menu): {4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C04}
+    const CLSID CLSID_HodozipCompress =
+        { 0x4f4c6d2a, 0x71b9, 0x4e4e, { 0x9a, 0x7d, 0x8d, 0x9a, 0x0b, 0x5e, 0x6c, 0x04 } };
+
+    // Legacy IContextMenu compress handler: {4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C05}
+    const CLSID CLSID_HodozipLegacyCompress =
+        { 0x4f4c6d2a, 0x71b9, 0x4e4e, { 0x9a, 0x7d, 0x8d, 0x9a, 0x0b, 0x5e, 0x6c, 0x05 } };
 
     bool IsSupportedArchivePath(const std::wstring& path)
     {
@@ -98,6 +107,18 @@ namespace
             : L"Extract into a folder named after the archive";
     }
 
+    const wchar_t* CompressMenuText()
+    {
+        return IsJapaneseUiLanguage() ? L"Hodozip で圧縮" : L"Compress with Hodozip";
+    }
+
+    const wchar_t* CompressHelpText()
+    {
+        return IsJapaneseUiLanguage()
+            ? L"選択したファイルとフォルダを ZIP または 7z にまとめます"
+            : L"Combine the selected files and folders into a ZIP or 7z archive";
+    }
+
     std::wstring GetModulePath()
     {
         std::wstring buffer(MAX_PATH, L'\0');
@@ -143,19 +164,13 @@ namespace
         return path;
     }
 
-    HRESULT LaunchHodozip(const std::wstring& archivePath, bool forceArchiveFolder)
+    HRESULT LaunchHodozipProcess(const std::wstring& arguments)
     {
         const auto executablePath = GetHodozipExecutablePath();
         if (executablePath.empty())
         {
             return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
         }
-
-        std::wstring arguments = forceArchiveFolder
-            ? L"--extract-folder \""
-            : L"--extract-here \"";
-        arguments += archivePath;
-        arguments += L'"';
 
         std::wstring workingDirectory = executablePath;
         const auto separator = workingDirectory.find_last_of(L"\\/");
@@ -187,11 +202,40 @@ namespace
         return S_OK;
     }
 
+    HRESULT LaunchHodozip(const std::wstring& archivePath, bool forceArchiveFolder)
+    {
+        std::wstring arguments = forceArchiveFolder
+            ? L"--extract-folder \""
+            : L"--extract-here \"";
+        arguments += archivePath;
+        arguments += L'"';
+        return LaunchHodozipProcess(arguments);
+    }
+
+    HRESULT LaunchHodozipCompress(const std::vector<std::wstring>& paths)
+    {
+        if (paths.empty())
+        {
+            return S_OK;
+        }
+
+        std::wstring arguments = L"--compress";
+        for (const auto& path : paths)
+        {
+            arguments += L" \"";
+            arguments += path;
+            arguments += L'"';
+        }
+
+        return LaunchHodozipProcess(arguments);
+    }
+
     class CExplorerCommand final : public IExplorerCommand
     {
     public:
-        explicit CExplorerCommand(bool forceArchiveFolder)
-            : _forceArchiveFolder(forceArchiveFolder)
+        explicit CExplorerCommand(bool forceArchiveFolder, bool compress = false)
+            : _forceArchiveFolder(forceArchiveFolder),
+              _compress(compress)
         {
         }
 
@@ -239,7 +283,9 @@ namespace
 
             *ppszName = nullptr;
             return SHStrDupW(
-                _forceArchiveFolder ? ExtractFolderMenuText() : ExtractHereMenuText(),
+                _compress
+                    ? CompressMenuText()
+                    : (_forceArchiveFolder ? ExtractFolderMenuText() : ExtractHereMenuText()),
                 ppszName);
         }
 
@@ -270,9 +316,9 @@ namespace
                 return E_POINTER;
             }
 
-            *pguidCommandName = _forceArchiveFolder
-                ? CLSID_HodozipExtractFolder
-                : CLSID_HodozipExtractHere;
+            *pguidCommandName = _compress
+                ? CLSID_HodozipCompress
+                : (_forceArchiveFolder ? CLSID_HodozipExtractFolder : CLSID_HodozipExtractHere);
             return S_OK;
         }
 
@@ -292,6 +338,11 @@ namespace
             if (psiItemArray == nullptr)
             {
                 return S_OK;
+            }
+
+            if (_compress)
+            {
+                return InvokeCompress(psiItemArray);
             }
 
             DWORD count = 0;
@@ -368,13 +419,70 @@ namespace
     private:
         ~CExplorerCommand() = default;
 
+        HRESULT InvokeCompress(IShellItemArray* psiItemArray)
+        {
+            DWORD count = 0;
+            HRESULT result = psiItemArray->GetCount(&count);
+            if (FAILED(result))
+            {
+                return result;
+            }
+
+            std::vector<std::wstring> paths;
+            HRESULT firstFailure = S_OK;
+
+            for (DWORD index = 0; index < count; ++index)
+            {
+                IShellItem* item = nullptr;
+                result = psiItemArray->GetItemAt(index, &item);
+                if (FAILED(result) || item == nullptr)
+                {
+                    if (firstFailure == S_OK)
+                    {
+                        firstFailure = result;
+                    }
+                    continue;
+                }
+
+                LPWSTR fileSystemPath = nullptr;
+                result = item->GetDisplayName(SIGDN_FILESYSPATH, &fileSystemPath);
+                item->Release();
+
+                if (FAILED(result) || fileSystemPath == nullptr)
+                {
+                    if (firstFailure == S_OK)
+                    {
+                        firstFailure = result;
+                    }
+                    continue;
+                }
+
+                paths.emplace_back(fileSystemPath);
+                CoTaskMemFree(fileSystemPath);
+            }
+
+            if (paths.empty())
+            {
+                return firstFailure;
+            }
+
+            const HRESULT launchResult = LaunchHodozipCompress(paths);
+            return FAILED(launchResult) ? launchResult : firstFailure;
+        }
+
         LONG _referenceCount = 1;
         const bool _forceArchiveFolder;
+        const bool _compress;
     };
 
     class CLegacyContextMenu final : public IShellExtInit, public IContextMenu
     {
     public:
+        explicit CLegacyContextMenu(bool compress)
+            : _compress(compress)
+        {
+        }
+
         IFACEMETHODIMP QueryInterface(REFIID riid, void** ppvObject) override
         {
             if (ppvObject == nullptr)
@@ -490,6 +598,22 @@ namespace
                 return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0);
             }
 
+            if (_compress)
+            {
+                if (idCmdFirst > idCmdLast)
+                {
+                    return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0);
+                }
+
+                InsertMenuW(
+                    hmenu,
+                    indexMenu,
+                    MF_BYPOSITION | MF_STRING,
+                    idCmdFirst,
+                    CompressMenuText());
+                return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 1);
+            }
+
             UINT commandCount = 0;
             if (idCmdFirst <= idCmdLast)
             {
@@ -530,6 +654,27 @@ namespace
 
             const bool forceArchiveFolder = idCmd == 1;
 
+            if (_compress)
+            {
+                switch (uType)
+                {
+                    case GCS_VERBW:
+                        return StringCchCopyW(
+                            reinterpret_cast<LPWSTR>(pszName),
+                            cchMax,
+                            L"HodozipCompress");
+
+                    case GCS_HELPTEXTW:
+                        return StringCchCopyW(
+                            reinterpret_cast<LPWSTR>(pszName),
+                            cchMax,
+                            CompressHelpText());
+
+                    default:
+                        return E_NOTIMPL;
+                }
+            }
+
             switch (uType)
             {
                 case GCS_VERBW:
@@ -562,6 +707,16 @@ namespace
             }
 
             const UINT command = LOWORD(pici->lpVerb);
+            if (_compress)
+            {
+                if (command != 0)
+                {
+                    return E_INVALIDARG;
+                }
+
+                return LaunchHodozipCompress(_paths);
+            }
+
             if (command > 1)
             {
                 return E_INVALIDARG;
@@ -591,15 +746,17 @@ namespace
         ~CLegacyContextMenu() = default;
 
         LONG _referenceCount = 1;
+        const bool _compress;
         std::vector<std::wstring> _paths;
     };
 
     class CClassFactory final : public IClassFactory
     {
     public:
-        explicit CClassFactory(bool forceArchiveFolder, bool legacy = false)
+        explicit CClassFactory(bool forceArchiveFolder, bool legacy = false, bool compress = false)
             : _forceArchiveFolder(forceArchiveFolder),
-              _legacy(legacy)
+              _legacy(legacy),
+              _compress(compress)
         {
         }
 
@@ -657,7 +814,7 @@ namespace
 
             if (_legacy)
             {
-                auto* legacyCommand = new (std::nothrow) CLegacyContextMenu();
+                auto* legacyCommand = new (std::nothrow) CLegacyContextMenu(_compress);
                 if (legacyCommand == nullptr)
                 {
                     return E_OUTOFMEMORY;
@@ -668,7 +825,7 @@ namespace
                 return legacyResult;
             }
 
-            auto* command = new (std::nothrow) CExplorerCommand(_forceArchiveFolder);
+            auto* command = new (std::nothrow) CExplorerCommand(_forceArchiveFolder, _compress);
             if (command == nullptr)
             {
                 return E_OUTOFMEMORY;
@@ -690,6 +847,7 @@ namespace
         LONG _referenceCount = 1;
         const bool _forceArchiveFolder;
         const bool _legacy;
+        const bool _compress;
     };
 }
 
@@ -734,6 +892,14 @@ extern "C" HRESULT WINAPI DllGetClassObject(
     else if (IsEqualCLSID(classId, CLSID_HodozipLegacyMenu))
     {
         factory = new (std::nothrow) CClassFactory(false, true);
+    }
+    else if (IsEqualCLSID(classId, CLSID_HodozipCompress))
+    {
+        factory = new (std::nothrow) CClassFactory(false, false, true);
+    }
+    else if (IsEqualCLSID(classId, CLSID_HodozipLegacyCompress))
+    {
+        factory = new (std::nothrow) CClassFactory(false, true, true);
     }
     else
     {

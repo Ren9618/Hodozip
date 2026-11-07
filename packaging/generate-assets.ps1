@@ -145,6 +145,66 @@ function New-IconBitmap {
     $bitmap.Dispose()
 }
 
+function New-MultiSizeIco {
+    param(
+        [string]$Path,
+        [int[]]$Sizes = @(16, 20, 24, 32, 48, 64, 128, 256)
+    )
+
+    $temporaryDirectory = Join-Path ([System.IO.Path]::GetTempPath()) ('HodozipIco_' + [Guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $temporaryDirectory -Force | Out-Null
+
+    try {
+        $frames = @()
+        foreach ($size in $Sizes) {
+            $framePath = Join-Path $temporaryDirectory ("$size.png")
+            New-IconBitmap -Width $size -Height $size -Path $framePath
+            $frames += @{
+                Size = $size
+                Bytes = [System.IO.File]::ReadAllBytes($framePath)
+            }
+        }
+
+        $stream = [System.IO.MemoryStream]::new()
+        $writer = [System.IO.BinaryWriter]::new($stream)
+        try {
+            # ICO header: reserved, type (1 = icon), image count.
+            $writer.Write([UInt16]0)
+            $writer.Write([UInt16]1)
+            $writer.Write([UInt16]$frames.Count)
+
+            # PNG-compressed frames. A dimension byte of 0 means 256.
+            $offset = 6 + (16 * $frames.Count)
+            foreach ($frame in $frames) {
+                $dimension = if ($frame.Size -ge 256) { [Byte]0 } else { [Byte]$frame.Size }
+                $writer.Write($dimension)
+                $writer.Write($dimension)
+                $writer.Write([Byte]0)
+                $writer.Write([Byte]0)
+                $writer.Write([UInt16]1)
+                $writer.Write([UInt16]32)
+                $writer.Write([UInt32]$frame.Bytes.Length)
+                $writer.Write([UInt32]$offset)
+                $offset += $frame.Bytes.Length
+            }
+
+            foreach ($frame in $frames) {
+                $writer.Write($frame.Bytes)
+            }
+
+            $writer.Flush()
+            [System.IO.File]::WriteAllBytes($Path, $stream.ToArray())
+        }
+        finally {
+            $writer.Dispose()
+            $stream.Dispose()
+        }
+    }
+    finally {
+        Remove-Item -LiteralPath $temporaryDirectory -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 function New-SplashBitmap {
     param(
         [int]$Width,
@@ -202,5 +262,9 @@ Write-Host '  生成: Wide310x150Logo.png (310x150)'
 $splashPath = Join-Path $resolvedOutput 'SplashScreen.png'
 New-SplashBitmap -Width 620 -Height 300 -Path $splashPath
 Write-Host '  生成: SplashScreen.png (620x300)'
+
+$icoPath = Join-Path $resolvedOutput 'Hodozip.ico'
+New-MultiSizeIco -Path $icoPath
+Write-Host '  生成: Hodozip.ico (16/20/24/32/48/64/128/256)'
 
 Write-Host "MSIX アセットを生成しました: $resolvedOutput"

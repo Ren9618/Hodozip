@@ -6,6 +6,7 @@ using Windows.Storage;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 using Hodozip.Core;
+using Hodozip.Dialogs;
 using Hodozip.Services;
 
 namespace Hodozip;
@@ -14,17 +15,21 @@ public sealed partial class MainWindow : Window
 {
     private readonly Brush _dropZoneDefaultBrush;
     private readonly Brush _dropZoneActiveBrush;
+    private readonly UpdateService _updateService = new();
     private ProgressWindow? _progressWindow;
+    private CompressionOptionsWindow? _compressionOptionsWindow;
     private SettingsWindow? _settingsWindow;
     private AboutWindow? _aboutWindow;
+    private UpdateRelease? _pendingUpdate;
     private string? _lastDestination;
+    private bool _closed;
 
     public MainWindow()
     {
         InitializeComponent();
 
         Title = AppInfo.ProductName;
-        WindowHelpers.Configure(this, 940, 760);
+        WindowHelpers.Configure(this, 860, 680);
         VersionText.Text = $"Version {AppInfo.Version}";
         ApplyLocalization();
 
@@ -33,10 +38,14 @@ public sealed partial class MainWindow : Window
 
         Closed += (_, _) =>
         {
+            _closed = true;
             _progressWindow?.Close();
+            _compressionOptionsWindow?.Close();
             _settingsWindow?.Close();
             _aboutWindow?.Close();
         };
+
+        _ = CheckForUpdatesAsync();
     }
 
     private async void SelectFileButton_Click(object sender, RoutedEventArgs e)
@@ -66,6 +75,11 @@ public sealed partial class MainWindow : Window
         {
             ShowMessage(InfoBarSeverity.Error, Loc.Main_FilePickErrorTitle, ex.Message);
         }
+    }
+
+    private void CompressButton_Click(object sender, RoutedEventArgs e)
+    {
+        OpenCompressionOptions(null);
     }
 
     private void DropZone_DragEnter(object sender, DragEventArgs e)
@@ -108,23 +122,26 @@ public sealed partial class MainWindow : Window
             }
 
             var items = await e.DataView.GetStorageItemsAsync();
-            var files = items.OfType<StorageFile>().ToList();
-            if (files.Count == 0)
+            var paths = items
+                .Select(x => x.Path)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Where(x => File.Exists(x) || Directory.Exists(x))
+                .ToList();
+
+            if (paths.Count == 0)
             {
                 ShowMessage(InfoBarSeverity.Warning, Loc.Main_NotArchiveTitle, Loc.Main_DropFileMessage);
                 return;
             }
 
-            var archiveFiles = files
-                .Where(x => ArchiveFormats.IsSupportedArchive(x.Path))
+            var archiveFiles = paths
+                .Where(x => File.Exists(x) && ArchiveFormats.IsSupportedArchive(x))
                 .ToList();
 
             if (archiveFiles.Count == 0)
             {
-                ShowMessage(
-                    InfoBarSeverity.Warning,
-                    Loc.Main_UnsupportedTitle,
-                    Loc.Main_UnsupportedDropMessage);
+                // アーカイブ以外は圧縮の入力として扱う。
+                OpenCompressionOptions(paths);
                 return;
             }
 
@@ -136,7 +153,7 @@ public sealed partial class MainWindow : Window
                     Loc.Main_MultipleMessage);
             }
 
-            BeginExtraction(archiveFiles[0].Path);
+            BeginExtraction(archiveFiles[0]);
         }
         catch (Exception ex)
         {
@@ -161,20 +178,9 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        if (_progressWindow is not null)
+        if (!TryPrepareProgressWindow())
         {
-            if (!_progressWindow.IsCompleted)
-            {
-                _progressWindow.Activate();
-                ShowMessage(
-                    InfoBarSeverity.Informational,
-                    Loc.Main_ExtractingTitle,
-                    Loc.Main_ExtractingMessage);
-                return;
-            }
-
-            _progressWindow.Close();
-            _progressWindow = null;
+            return;
         }
 
         StatusInfoBar.IsOpen = false;
@@ -191,6 +197,51 @@ public sealed partial class MainWindow : Window
         };
 
         progressWindow.Activate();
+    }
+
+    private void StartCompression(CompressionRequest request)
+    {
+        if (!TryPrepareProgressWindow())
+        {
+            return;
+        }
+
+        StatusInfoBar.IsOpen = false;
+
+        var progressWindow = new ProgressWindow(request, isCommandLine: false);
+        _progressWindow = progressWindow;
+        progressWindow.CompressionCompleted += ProgressWindow_CompressionCompleted;
+        progressWindow.Closed += (_, _) =>
+        {
+            if (ReferenceEquals(_progressWindow, progressWindow))
+            {
+                _progressWindow = null;
+            }
+        };
+
+        progressWindow.Activate();
+    }
+
+    private bool TryPrepareProgressWindow()
+    {
+        if (_progressWindow is null)
+        {
+            return true;
+        }
+
+        if (!_progressWindow.IsCompleted)
+        {
+            _progressWindow.Activate();
+            ShowMessage(
+                InfoBarSeverity.Informational,
+                Loc.Main_ExtractingTitle,
+                Loc.Main_ExtractingMessage);
+            return false;
+        }
+
+        _progressWindow.Close();
+        _progressWindow = null;
+        return true;
     }
 
     private void ProgressWindow_ExtractionCompleted(object? sender, ExtractionResult result)
@@ -230,15 +281,167 @@ public sealed partial class MainWindow : Window
                 : string.Empty);
     }
 
+    private void ProgressWindow_CompressionCompleted(object? sender, CompressionResult result)
+    {
+        var outputDirectory = string.IsNullOrWhiteSpace(result.OutputPath)
+            ? null
+            : Path.GetDirectoryName(result.OutputPath);
+        _lastDestination = outputDirectory;
+        RecentResultCard.Visibility = Visibility.Visible;
+        RecentOpenFolderButton.Visibility = outputDirectory is not null && Directory.Exists(outputDirectory)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+        if (result.Success)
+        {
+            RecentResultTitle.Text = Loc.Main_CompressionCompletedTitle;
+        }
+        else if (result.Cancelled)
+        {
+            RecentResultTitle.Text = Loc.Main_CompressionCancelledTitle;
+        }
+        else
+        {
+            RecentResultTitle.Text = Loc.Main_CompressionFailedTitle;
+            ShowMessage(
+                InfoBarSeverity.Error,
+                Loc.Main_CompressionFailedTitle,
+                LocalizationService.GetCompressionError(result));
+        }
+
+        RecentResultDetails.Text =
+            Loc.Main_CompressionResultOutput(result.OutputPath) + Environment.NewLine +
+            Loc.Main_CompressionResultFiles(
+                result.FileCount,
+                UiHelpers.FormatBytes(result.SourceBytes),
+                UiHelpers.FormatBytes(result.OutputBytes)) +
+            (result.PasswordIgnored
+                ? Environment.NewLine + Loc.Progress_PasswordIgnored
+                : string.Empty);
+    }
+
+    private void OpenCompressionOptions(IReadOnlyList<string>? sources)
+    {
+        if (_compressionOptionsWindow is not null)
+        {
+            _compressionOptionsWindow.Activate();
+            return;
+        }
+
+        var window = new CompressionOptionsWindow(sources);
+        _compressionOptionsWindow = window;
+        window.CompressionRequested += (_, request) => StartCompression(request);
+        window.Closed += (_, _) =>
+        {
+            if (ReferenceEquals(_compressionOptionsWindow, window))
+            {
+                _compressionOptionsWindow = null;
+            }
+        };
+        window.Activate();
+    }
+
+    private async Task CheckForUpdatesAsync()
+    {
+        var release = await _updateService.CheckForUpdateAsync();
+        if (release is null || _closed)
+        {
+            return;
+        }
+
+        _pendingUpdate = release;
+        UpdateBannerTitleText.Text = Loc.Main_UpdateAvailableTitle;
+        UpdateBannerMessageText.Text = Loc.Main_UpdateAvailableMessage(release.Version.ToString())
+            + (AppInfo.IsSetupInstalled ? string.Empty : " " + Loc.Main_UpdatePortableMessage);
+        UpdateNowButton.Content = Loc.Main_UpdateNow;
+        UpdateLaterButton.Content = Loc.Main_UpdateLater;
+        UpdateSkipButton.Content = Loc.Main_UpdateSkip;
+        UpdateBanner.Visibility = Visibility.Visible;
+    }
+
+    private async void UpdateNowButton_Click(object sender, RoutedEventArgs e)
+    {
+        var release = _pendingUpdate;
+        if (release is null)
+        {
+            return;
+        }
+
+        if (!AppInfo.IsSetupInstalled)
+        {
+            UpdateService.OpenReleasePage(release);
+            UpdateBanner.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        UpdateNowButton.IsEnabled = false;
+        UpdateLaterButton.IsEnabled = false;
+        UpdateSkipButton.IsEnabled = false;
+        UpdateBannerMessageText.Text = Loc.Main_UpdateDownloading(0);
+
+        var progress = new Progress<double>(value =>
+        {
+            var percent = (int)Math.Round(value * 100);
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (!_closed)
+                {
+                    UpdateBannerMessageText.Text = Loc.Main_UpdateDownloading(percent);
+                }
+            });
+        });
+
+        var installerPath = await _updateService.DownloadSetupAsync(release, progress);
+        if (installerPath is null)
+        {
+            UpdateBannerMessageText.Text = Loc.Main_UpdateAvailableMessage(release.Version.ToString())
+                + (AppInfo.IsSetupInstalled ? string.Empty : " " + Loc.Main_UpdatePortableMessage);
+            UpdateNowButton.IsEnabled = true;
+            UpdateLaterButton.IsEnabled = true;
+            UpdateSkipButton.IsEnabled = true;
+            ShowMessage(InfoBarSeverity.Error, Loc.Main_UpdateFailedTitle, Loc.Main_UpdatePortableMessage);
+            return;
+        }
+
+        if (UpdateService.TryLaunchInstaller(installerPath))
+        {
+            Close();
+            return;
+        }
+
+        UpdateBannerMessageText.Text = Loc.Main_UpdateAvailableMessage(release.Version.ToString());
+        UpdateNowButton.IsEnabled = true;
+        UpdateLaterButton.IsEnabled = true;
+        UpdateSkipButton.IsEnabled = true;
+        ShowMessage(InfoBarSeverity.Error, Loc.Main_UpdateFailedTitle, Loc.Main_UpdatePortableMessage);
+    }
+
+    private void UpdateLaterButton_Click(object sender, RoutedEventArgs e)
+    {
+        UpdateBanner.Visibility = Visibility.Collapsed;
+    }
+
+    private void UpdateSkipButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_pendingUpdate is not null)
+        {
+            UpdateService.SkipVersion(_pendingUpdate);
+        }
+
+        UpdateBanner.Visibility = Visibility.Collapsed;
+    }
+
     private void ApplyLocalization()
     {
         TaglineText.Text = Loc.Main_Tagline;
         DropHereText.Text = Loc.Main_DropHere;
         OrText.Text = Loc.Main_Or;
         SelectFileButton.Content = Loc.Main_SelectFile;
+        CompressButton.Content = Loc.Main_Compress;
         SupportedFormatsText.Text = Loc.Main_SupportedFormats;
         PreviousResultText.Text = Loc.Main_PreviousResult;
         RecentOpenFolderButton.Content = Loc.Common_OpenFolder;
+        SupportLinkButton.Content = Loc.Common_Support;
         AboutButton.Content = Loc.Common_About;
         SettingsButton.Content = Loc.Common_Settings;
     }
@@ -248,6 +451,14 @@ public sealed partial class MainWindow : Window
         if (_lastDestination is not null)
         {
             UiHelpers.OpenFolder(_lastDestination);
+        }
+    }
+
+    private async void SupportLinkButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (RootGrid.XamlRoot is { } xamlRoot)
+        {
+            await DonationDialog.ShowAsync(xamlRoot);
         }
     }
 

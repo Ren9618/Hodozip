@@ -142,6 +142,28 @@
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1"
                     CornerRadius="12">
+                    <StackPanel Spacing="8">
+                        <TextBlock
+                            x:Name="UpdatesSectionText"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <ToggleSwitch
+                            x:Name="CheckUpdatesToggle"
+                            AutomationProperties.AutomationId="CheckUpdatesToggle" />
+                        <TextBlock
+                            x:Name="CheckUpdatesNoteText"
+                            AutomationProperties.AutomationId="CheckUpdatesNoteText"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Padding="22"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
                     <StackPanel Spacing="16">
                         <StackPanel Spacing="6">
                             <TextBlock

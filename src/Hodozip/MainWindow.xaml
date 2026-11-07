@@ -8,11 +8,12 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Margin="36,28,36,12" Spacing="4">
+        <StackPanel Grid.Row="0" Margin="32,20,32,6" Spacing="3">
             <TextBlock
-                FontSize="34"
+                FontSize="32"
                 FontWeight="SemiBold"
                 Text="Hodozip" />
             <TextBlock
@@ -20,107 +21,169 @@
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
         </StackPanel>
 
-        <ScrollViewer
+        <Grid
             Grid.Row="1"
-            Padding="36,8,36,16"
-            VerticalScrollBarVisibility="Auto">
-            <StackPanel
-                MaxWidth="840"
-                HorizontalAlignment="Center"
-                Spacing="16">
-                <Border
-                    x:Name="DropZone"
-                    MinHeight="280"
-                    Padding="32"
-                    AllowDrop="True"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="2"
-                    CornerRadius="16"
-                    DragEnter="DropZone_DragEnter"
-                    DragLeave="DropZone_DragLeave"
-                    DragOver="DropZone_DragOver"
-                    Drop="DropZone_Drop">
+            Margin="32,4,32,10"
+            HorizontalAlignment="Stretch">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Border
+                x:Name="DropZone"
+                MinHeight="220"
+                Padding="32"
+                AllowDrop="True"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="2"
+                CornerRadius="16"
+                DragEnter="DropZone_DragEnter"
+                DragLeave="DropZone_DragLeave"
+                DragOver="DropZone_DragOver"
+                Drop="DropZone_Drop">
+                <StackPanel
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="10">
+                    <Border
+                        Width="72"
+                        Height="72"
+                        HorizontalAlignment="Center"
+                        Background="{ThemeResource AccentFillColorSecondaryBrush}"
+                        CornerRadius="18">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontSize="19"
+                            FontWeight="Bold"
+                            Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                            Text="ZIP/7z" />
+                    </Border>
+                    <TextBlock
+                        x:Name="DropHereText"
+                        HorizontalAlignment="Center"
+                        FontSize="21"
+                        FontWeight="SemiBold" />
+                    <TextBlock
+                        x:Name="OrText"
+                        HorizontalAlignment="Center"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                     <StackPanel
                         HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Spacing="10">
-                        <Border
-                            Width="76"
-                            Height="76"
-                            HorizontalAlignment="Center"
-                            Background="{ThemeResource AccentFillColorSecondaryBrush}"
-                            CornerRadius="18">
-                            <TextBlock
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontSize="20"
-                                FontWeight="Bold"
-                                Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                                Text="ZIP/7z" />
-                        </Border>
-                        <TextBlock
-                            x:Name="DropHereText"
-                            HorizontalAlignment="Center"
-                            FontSize="21"
-                            FontWeight="SemiBold" />
-                        <TextBlock
-                            x:Name="OrText"
-                            HorizontalAlignment="Center"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        Orientation="Horizontal"
+                        Spacing="8">
                         <Button
                             x:Name="SelectFileButton"
-                            Padding="26,8"
+                            Padding="24,8"
                             Click="SelectFileButton_Click"
                             Style="{StaticResource AccentButtonStyle}" />
+                        <Button
+                            x:Name="CompressButton"
+                            Padding="24,8"
+                            AutomationProperties.AutomationId="CompressButton"
+                            Click="CompressButton_Click" />
                     </StackPanel>
-                </Border>
+                </StackPanel>
+            </Border>
 
-                <InfoBar
-                    x:Name="StatusInfoBar"
-                    IsClosable="True"
-                    IsOpen="False" />
+            <TextBlock
+                x:Name="SupportedFormatsText"
+                Grid.Row="1"
+                Margin="2,10,2,0"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                TextWrapping="Wrap" />
 
-                <TextBlock
-                    x:Name="SupportedFormatsText"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    TextWrapping="Wrap" />
+            <InfoBar
+                x:Name="StatusInfoBar"
+                Grid.Row="2"
+                Margin="0,10,0,0"
+                IsClosable="True"
+                IsOpen="False" />
 
-                <Border
-                    x:Name="RecentResultCard"
-                    Padding="20"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="12"
-                    Visibility="Collapsed">
-                    <StackPanel Spacing="8">
-                        <TextBlock
-                            x:Name="PreviousResultText"
-                            Style="{StaticResource BodyStrongTextBlockStyle}" />
-                        <TextBlock
-                            x:Name="RecentResultTitle"
-                            FontSize="16"
-                            FontWeight="SemiBold" />
-                        <TextBlock
-                            x:Name="RecentResultDetails"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            TextWrapping="Wrap" />
-                        <StackPanel
-                            Margin="0,4,0,0"
-                            Orientation="Horizontal"
-                            Spacing="8">
-                            <Button
-                                x:Name="RecentOpenFolderButton"
-                                Click="RecentOpenFolderButton_Click" />
-                        </StackPanel>
+            <Border
+                x:Name="RecentResultCard"
+                Grid.Row="3"
+                Margin="0,12,0,0"
+                Padding="20"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="12"
+                Visibility="Collapsed">
+                <StackPanel Spacing="8">
+                    <TextBlock
+                        x:Name="PreviousResultText"
+                        Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBlock
+                        x:Name="RecentResultTitle"
+                        FontSize="16"
+                        FontWeight="SemiBold" />
+                    <TextBlock
+                        x:Name="RecentResultDetails"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        TextWrapping="Wrap" />
+                    <StackPanel
+                        Margin="0,4,0,0"
+                        Orientation="Horizontal"
+                        Spacing="8">
+                        <Button
+                            x:Name="RecentOpenFolderButton"
+                            Click="RecentOpenFolderButton_Click" />
                     </StackPanel>
-                </Border>
-            </StackPanel>
-        </ScrollViewer>
+                </StackPanel>
+            </Border>
+        </Grid>
 
-        <Grid Grid.Row="2" Padding="36,12,36,20">
+        <Border
+            x:Name="UpdateBanner"
+            Grid.Row="2"
+            Margin="32,0,32,8"
+            Padding="14,10"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="10"
+            Visibility="Collapsed">
+            <Grid ColumnSpacing="14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Spacing="2">
+                    <TextBlock
+                        x:Name="UpdateBannerTitleText"
+                        FontWeight="SemiBold" />
+                    <TextBlock
+                        x:Name="UpdateBannerMessageText"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Button
+                        x:Name="UpdateNowButton"
+                        Click="UpdateNowButton_Click"
+                        Style="{StaticResource AccentButtonStyle}" />
+                    <Button
+                        x:Name="UpdateLaterButton"
+                        Click="UpdateLaterButton_Click" />
+                    <Button
+                        x:Name="UpdateSkipButton"
+                        Click="UpdateSkipButton_Click" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="3" Padding="32,6,32,14">
             <TextBlock
                 x:Name="VersionText"
                 VerticalAlignment="Center"
@@ -130,11 +193,17 @@
                 HorizontalAlignment="Right"
                 Orientation="Horizontal"
                 Spacing="8">
+                <HyperlinkButton
+                    x:Name="SupportLinkButton"
+                    Padding="8,4"
+                    AutomationProperties.AutomationId="SupportLinkButton"
+                    Click="SupportLinkButton_Click" />
                 <Button
                     x:Name="AboutButton"
                     Click="AboutButton_Click" />
                 <Button
                     x:Name="SettingsButton"
+                    AutomationProperties.AutomationId="SettingsButton"
                     Click="SettingsButton_Click" />
             </StackPanel>
         </Grid>

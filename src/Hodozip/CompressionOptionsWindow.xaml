@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="Hodozip.CompressionOptionsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid x:Name="RootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="28,24,28,8" Spacing="3">
+            <TextBlock
+                x:Name="CompressionTitleText"
+                FontSize="28"
+                FontWeight="SemiBold" />
+            <TextBlock
+                x:Name="CompressionSubtitleText"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+        </StackPanel>
+
+        <ScrollViewer
+            Grid.Row="1"
+            Padding="28,8,28,12"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel
+                MaxWidth="680"
+                HorizontalAlignment="Center"
+                Spacing="16">
+                <InfoBar
+                    x:Name="OptionsInfoBar"
+                    IsClosable="True"
+                    IsOpen="False" />
+
+                <Border
+                    Padding="22"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                    <StackPanel Spacing="10">
+                        <TextBlock
+                            x:Name="SourcesSectionText"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <ListBox
+                            x:Name="SourcesList"
+                            Height="140"
+                            AutomationProperties.AutomationId="CompressionSourcesList"
+                            SelectionChanged="SourcesList_SelectionChanged"
+                            SelectionMode="Extended" />
+                        <StackPanel
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <Button
+                                x:Name="AddFilesButton"
+                                Click="AddFilesButton_Click" />
+                            <Button
+                                x:Name="AddFolderButton"
+                                Click="AddFolderButton_Click" />
+                            <Button
+                                x:Name="RemoveSelectedButton"
+                                Click="RemoveSelectedButton_Click" />
+                        </StackPanel>
+                        <TextBlock
+                            x:Name="SourcesHintText"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Padding="22"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                    <StackPanel Spacing="14">
+                        <TextBlock
+                            x:Name="OutputSectionText"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+                        <StackPanel Spacing="4">
+                            <TextBlock
+                                x:Name="OutputFolderLabelText"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox
+                                    x:Name="OutputFolderBox"
+                                    AutomationProperties.AutomationId="CompressionOutputFolderBox" />
+                                <Button
+                                    x:Name="BrowseFolderButton"
+                                    Grid.Column="1"
+                                    Click="BrowseFolderButton_Click" />
+                            </Grid>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock
+                                x:Name="OutputNameLabelText"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+                            <TextBox
+                                x:Name="OutputNameBox"
+                                AutomationProperties.AutomationId="CompressionOutputNameBox" />
+                        </StackPanel>
+
+                        <Grid ColumnSpacing="16" RowSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock
+                                    x:Name="FormatLabelText"
+                                    Style="{StaticResource CaptionTextBlockStyle}" />
+                                <ComboBox
+                                    x:Name="FormatComboBox"
+                                    HorizontalAlignment="Stretch"
+                                    AutomationProperties.AutomationId="CompressionFormatComboBox"
+                                    SelectionChanged="FormatComboBox_SelectionChanged">
+                                    <ComboBoxItem Tag="Zip" />
+                                    <ComboBoxItem Tag="SevenZip" />
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="4">
+                                <TextBlock
+                                    x:Name="LevelLabelText"
+                                    Style="{StaticResource CaptionTextBlockStyle}" />
+                                <ComboBox
+                                    x:Name="LevelComboBox"
+                                    HorizontalAlignment="Stretch"
+                                    AutomationProperties.AutomationId="CompressionLevelComboBox">
+                                    <ComboBoxItem Tag="Store" />
+                                    <ComboBoxItem Tag="Normal" />
+                                    <ComboBoxItem Tag="Maximum" />
+                                </ComboBox>
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock
+                                x:Name="PasswordLabelText"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+                            <PasswordBox
+                                x:Name="PasswordBox"
+                                AutomationProperties.AutomationId="CompressionPasswordBox" />
+                            <TextBlock
+                                x:Name="PasswordNoteText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock
+                                x:Name="ZipEncodingLabelText"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+                            <ComboBox
+                                x:Name="ZipEncodingComboBox"
+                                HorizontalAlignment="Stretch"
+                                AutomationProperties.AutomationId="CompressionZipEncodingComboBox">
+                                <ComboBoxItem Tag="Utf8" />
+                                <ComboBoxItem Tag="ShiftJis" />
+                            </ComboBox>
+                            <TextBlock
+                                x:Name="ZipEncodingNoteText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <TextBlock
+                            x:Name="CollisionNoteText"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel
+            Grid.Row="2"
+            Margin="28,8,28,20"
+            HorizontalAlignment="Right"
+            Orientation="Horizontal"
+            Spacing="8">
+            <Button
+                x:Name="CancelButton"
+                Click="CancelButton_Click" />
+            <Button
+                x:Name="StartButton"
+                Click="StartButton_Click"
+                Style="{StaticResource AccentButtonStyle}" />
+        </StackPanel>
+    </Grid>
+</Window>

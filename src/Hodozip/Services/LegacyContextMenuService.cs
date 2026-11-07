@@ -19,12 +19,29 @@ internal static class LegacyContextMenuService
 {
     public const string Clsid = "4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C03";
 
+    /// <summary>圧縮メニュー用の従来型ハンドラー。解凍メニューとは分離して登録する。</summary>
+    public const string CompressClsid = "4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C05";
+
     private const int ShcneAssocChanged = 0x08000000;
     private const uint ShcnfIdList = 0x0000;
 
-    private static string ClsidKeyPath => $@"Software\Classes\CLSID\{{{Clsid}}}";
+    private static string ClsidKeyPath => GetClsidKeyPath(Clsid);
 
-    private static string ClsidInprocKeyPath => ClsidKeyPath + @"\InprocServer32";
+    private static string ClsidInprocKeyPath => GetClsidInprocKeyPath(Clsid);
+
+    private static string CompressClsidKeyPath => GetClsidKeyPath(CompressClsid);
+
+    private static string CompressClsidInprocKeyPath => GetClsidInprocKeyPath(CompressClsid);
+
+    private static readonly string[] CompressHandlerKeyPaths =
+    {
+        @"Software\Classes\*\shellex\ContextMenuHandlers\HodozipCompress",
+        @"Software\Classes\Directory\shellex\ContextMenuHandlers\HodozipCompress",
+    };
+
+    private static string GetClsidKeyPath(string clsid) => $@"Software\Classes\CLSID\{{{clsid}}}";
+
+    private static string GetClsidInprocKeyPath(string clsid) => GetClsidKeyPath(clsid) + @"\InprocServer32";
 
     public static string DllPath => Path.Combine(AppContext.BaseDirectory, "Hodozip.ContextMenu.dll");
 
@@ -103,6 +120,29 @@ internal static class LegacyContextMenuService
                 inprocKey.SetValue("ThreadingModel", "Apartment");
             }
 
+            using (var compressClsidKey = Registry.CurrentUser.CreateSubKey(CompressClsidKeyPath, writable: true))
+            {
+                if (compressClsidKey is null)
+                {
+                    message = Loc.Legacy_ClsidCreateFailed;
+                    return false;
+                }
+
+                compressClsidKey.SetValue(null, "Hodozip Legacy Compress Menu");
+            }
+
+            using (var compressInprocKey = Registry.CurrentUser.CreateSubKey(CompressClsidInprocKeyPath, writable: true))
+            {
+                if (compressInprocKey is null)
+                {
+                    message = Loc.Legacy_InprocCreateFailed;
+                    return false;
+                }
+
+                compressInprocKey.SetValue(null, DllPath);
+                compressInprocKey.SetValue("ThreadingModel", "Apartment");
+            }
+
             foreach (var extension in Extensions)
             {
                 var handlerKeyPath =
@@ -115,6 +155,18 @@ internal static class LegacyContextMenuService
                 }
 
                 handlerKey.SetValue(null, Clsid);
+            }
+
+            foreach (var handlerKeyPath in CompressHandlerKeyPaths)
+            {
+                using var handlerKey = Registry.CurrentUser.CreateSubKey(handlerKeyPath, writable: true);
+                if (handlerKey is null)
+                {
+                    message = Loc.Legacy_HandlerCreateFailed("* / Directory");
+                    return false;
+                }
+
+                handlerKey.SetValue(null, CompressClsid);
             }
 
             NotifyShell();
@@ -162,6 +214,30 @@ internal static class LegacyContextMenuService
                 // CLSID が既に存在しない場合は無視する。
             }
 
+            try
+            {
+                Registry.CurrentUser.DeleteSubKeyTree(CompressClsidKeyPath, throwOnMissingSubKey: false);
+            }
+            catch
+            {
+                // CLSID が既に存在しない場合は無視する。
+            }
+
+            foreach (var handlerKeyPath in CompressHandlerKeyPaths)
+            {
+                try
+                {
+                    using var handlersKey = Registry.CurrentUser.OpenSubKey(
+                        Path.GetDirectoryName(handlerKeyPath)!,
+                        writable: true);
+                    handlersKey?.DeleteSubKeyTree("HodozipCompress", throwOnMissingSubKey: false);
+                }
+                catch
+                {
+                    // 個別の削除失敗は、残りの解除を妨げない。
+                }
+            }
+
             NotifyShell();
             message = Loc.Legacy_Unregistered;
             return true;
@@ -190,6 +266,24 @@ internal static class LegacyContextMenuService
                     $@"Software\Classes\SystemFileAssociations\{extension}\shellex\ContextMenuHandlers\Hodozip";
                 using var handlerKey = Registry.CurrentUser.OpenSubKey(handlerKeyPath);
                 if (!string.Equals(handlerKey?.GetValue(null) as string, Clsid, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+            }
+
+            using (var compressInprocKey = Registry.CurrentUser.OpenSubKey(CompressClsidInprocKeyPath))
+            {
+                var compressRegisteredPath = compressInprocKey?.GetValue(null) as string;
+                if (!string.Equals(compressRegisteredPath, DllPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+            }
+
+            foreach (var handlerKeyPath in CompressHandlerKeyPaths)
+            {
+                using var handlerKey = Registry.CurrentUser.OpenSubKey(handlerKeyPath);
+                if (!string.Equals(handlerKey?.GetValue(null) as string, CompressClsid, StringComparison.OrdinalIgnoreCase))
                 {
                     return false;
                 }

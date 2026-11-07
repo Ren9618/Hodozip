@@ -41,6 +41,20 @@ public static class ExplorerCommandTest
         ref Guid riid,
         out IntPtr ppsiItemArray);
 
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode, PreserveSig = false)]
+    private static extern void SHParseDisplayName(
+        string pszName,
+        IntPtr pbc,
+        out IntPtr ppidl,
+        uint sfgaoIn,
+        out uint psfgaoOut);
+
+    [DllImport("shell32.dll", PreserveSig = false)]
+    private static extern void SHCreateShellItemArrayFromIDLists(
+        uint cidl,
+        IntPtr[] rgpidl,
+        out IntPtr ppsiItemArray);
+
 
     public static string GetTitle(Guid clsid, string path)
     {
@@ -81,15 +95,23 @@ public static class ExplorerCommandTest
 
     public static void Invoke(Guid clsid, string path)
     {
-        IntPtr item = IntPtr.Zero;
+        InvokeMultiple(clsid, new[] { path });
+    }
+
+    public static void InvokeMultiple(Guid clsid, string[] paths)
+    {
+        var pidls = new IntPtr[paths.Length];
         IntPtr array = IntPtr.Zero;
         IExplorerCommandRaw command = null;
         try
         {
-            Guid iidUnknown = new Guid("00000000-0000-0000-C000-000000000046");
             Guid iidExplorerCommand = new Guid("a08ce4d0-fa25-44ab-b57c-c7b1c323e0b9");
-            SHCreateItemFromParsingName(path, IntPtr.Zero, ref iidUnknown, out item);
-            SHCreateShellItemArrayFromShellItem(item, ref iidUnknown, out array);
+            for (int index = 0; index < paths.Length; index++)
+            {
+                SHParseDisplayName(paths[index], IntPtr.Zero, out pidls[index], 0, out uint attributes);
+            }
+
+            SHCreateShellItemArrayFromIDLists((uint)pidls.Length, pidls, out array);
             CoCreateInstance(ref clsid, IntPtr.Zero, 23, ref iidExplorerCommand, out command);
 
             int hr = command.Invoke(array, IntPtr.Zero);
@@ -108,9 +130,12 @@ public static class ExplorerCommandTest
             {
                 Marshal.Release(array);
             }
-            if (item != IntPtr.Zero)
+            foreach (IntPtr pidl in pidls)
             {
-                Marshal.Release(item);
+                if (pidl != IntPtr.Zero)
+                {
+                    Marshal.FreeCoTaskMem(pidl);
+                }
             }
         }
     }
@@ -120,6 +145,7 @@ public static class ExplorerCommandTest
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $extractHereClsid = [Guid]'4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01'
 $extractFolderClsid = [Guid]'4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02'
+$compressClsid = [Guid]'4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C04'
 $sevenZipFixture = Join-Path $repoRoot 'tests\Hodozip.Core.Tests\Fixtures\formats\sample.7z'
 $workRoot = Join-Path $env:TEMP 'HodozipContextMenuE2E'
 $archives = Join-Path $workRoot 'archives'
@@ -135,7 +161,7 @@ if ($null -eq $package) {
 Write-Host "  Package: $($package.PackageFullName)"
 
 $classIndex = Get-ChildItem 'HKLM:\SOFTWARE\Classes\PackagedCom\ClassIndex' -ErrorAction SilentlyContinue
-foreach ($clsid in @($extractHereClsid.ToString('B'), $extractFolderClsid.ToString('B'))) {
+foreach ($clsid in @($extractHereClsid.ToString('B'), $extractFolderClsid.ToString('B'), $compressClsid.ToString('B'))) {
     if ($null -eq ($classIndex | Where-Object { $_.PSChildName -ieq $clsid })) {
         throw "PackagedCom の CLSID が登録されていません: $clsid"
     }
@@ -194,6 +220,36 @@ function Wait-HodozipExit {
     throw "Hodozip が $TimeoutSeconds 秒以内に終了しませんでした。"
 }
 
+function Wait-CompressProcess {
+    param([string[]]$SourcePaths, [int]$TimeoutSeconds = 30)
+
+    $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+    while ([DateTime]::UtcNow -lt $deadline) {
+        $processes = Get-CimInstance Win32_Process -Filter "Name='Hodozip.exe'" -ErrorAction SilentlyContinue
+        foreach ($process in $processes) {
+            if ($null -eq $process.CommandLine) {
+                continue
+            }
+
+            $matchesAll = $true
+            foreach ($sourcePath in $SourcePaths) {
+                if (-not $process.CommandLine.Contains($sourcePath)) {
+                    $matchesAll = $false
+                    break
+                }
+            }
+
+            if ($matchesAll) {
+                return $process
+            }
+        }
+        Start-Sleep -Milliseconds 250
+    }
+
+    Get-Process Hodozip -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+    throw "圧縮用の Hodozip プロセスが $TimeoutSeconds 秒以内に起動しませんでした。"
+}
+
 $settingsBackup = $null
 if (Test-Path -LiteralPath $settingsPath) {
     $settingsBackup = Get-Content -LiteralPath $settingsPath -Raw
@@ -227,9 +283,15 @@ try {
     Write-Host '=== COM 登録とタイトル ==='
     $hereTitle = [ExplorerCommandTest]::GetTitle($extractHereClsid, (Join-Path $archives 'context-here.zip'))
     $folderTitle = [ExplorerCommandTest]::GetTitle($extractFolderClsid, (Join-Path $archives 'context-folder.zip'))
+    $compressSourceA = Join-Path $payload 'context-compress-a.txt'
+    $compressSourceB = Join-Path $payload 'context-compress-b.txt'
+    Set-Content -LiteralPath $compressSourceA -Value 'context compress A' -Encoding utf8
+    Set-Content -LiteralPath $compressSourceB -Value 'context compress B' -Encoding utf8
+    $compressTitle = [ExplorerCommandTest]::GetTitle($compressClsid, $compressSourceA)
     Write-Host "  ExtractHere:   $hereTitle"
     Write-Host "  ExtractFolder: $folderTitle"
-    if ($hereTitle -ne 'Hodozip で解凍' -or $folderTitle -ne 'Hodozip でフォルダに解凍') {
+    Write-Host "  Compress:      $compressTitle"
+    if ($hereTitle -ne 'Hodozip で解凍' -or $folderTitle -ne 'Hodozip でフォルダに解凍' -or $compressTitle -ne 'Hodozip で圧縮') {
         throw 'コンテキストメニューのタイトルが期待値と一致しません。'
     }
 
@@ -255,6 +317,17 @@ try {
     Wait-HodozipExit
     Assert-Exists -Path (Join-Path $archives 'context-seven\hello.txt') -Label 'context-seven\hello.txt'
     Assert-Exists -Path (Join-Path $archives 'context-seven\Top\a.txt') -Label 'context-seven\Top\a.txt'
+
+    Write-Host '=== コンテキストメニュー verb: Hodozip で圧縮（複数選択） ==='
+    [ExplorerCommandTest]::InvokeMultiple($compressClsid, @($compressSourceA, $compressSourceB))
+    $compressProcess = Wait-CompressProcess -SourcePaths @($compressSourceA, $compressSourceB)
+    Write-Host "  OK: Hodozip 起動 (PID=$($compressProcess.ProcessId))"
+    if ($compressProcess.CommandLine -notmatch '--compress') {
+        throw "E2E 失敗: 圧縮コマンド ラインに --compress がありません: $($compressProcess.CommandLine)"
+    }
+    Write-Host '  OK: コマンド ラインに --compress と 2 ファイルを含む'
+    Stop-Process -Id $compressProcess.ProcessId -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Milliseconds 500
 
     Write-Host 'コンテキストメニュー E2E: すべて成功しました。'
 }

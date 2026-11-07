@@ -27,6 +27,18 @@ public sealed class AppSettings
 
     /// <summary>ZIP 並列解凍の最大並列度。0 は CPU コア数に合わせる自動。</summary>
     public int MaxDegreeOfParallelism { get; set; }
+
+    /// <summary>起動時に GitHub Releases を確認する（既定 ON）。</summary>
+    public bool CheckForUpdatesOnStartup { get; set; } = true;
+
+    /// <summary>最後に更新確認を試みた日時（UTC）。1 日 1 回の制限に使う。</summary>
+    public DateTimeOffset? LastUpdateCheckUtc { get; set; }
+
+    /// <summary>ユーザーが「このバージョンをスキップ」した更新。</summary>
+    public string? SkippedUpdateVersion { get; set; }
+
+    /// <summary>前回の圧縮先フォルダー。</summary>
+    public string? LastCompressionDirectory { get; set; }
 }
 
 public static class SettingsService

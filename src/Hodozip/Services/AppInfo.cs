@@ -15,6 +15,54 @@ internal static class AppInfo
 
     public const string StripeDonationUrl = "https://buy.stripe.com/5kQ9AU8Xva8T7tAbnj67S00";
 
+    public const string ReleasesUrl = "https://github.com/Ren9618/Hodozip/releases";
+
+    public const string LatestReleaseApiUrl = "https://api.github.com/repos/Ren9618/Hodozip/releases/latest";
+
+    private const string UninstallRegistryKey =
+        @"Software\Microsoft\Windows\CurrentVersion\Uninstall\{A7C4E2B1-6D3F-4E8A-9B5C-1F2D3E4A5B6C}_is1";
+
+    /// <summary>Inno Setup 版としてインストールされているか。</summary>
+    public static bool IsSetupInstalled
+    {
+        get
+        {
+            if (IsPackaged)
+            {
+                return false;
+            }
+
+            try
+            {
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(UninstallRegistryKey);
+                var location = key?.GetValue("InstallLocation") as string;
+                if (!string.IsNullOrWhiteSpace(location))
+                {
+                    return string.Equals(
+                        Path.TrimEndingDirectorySeparator(Path.GetFullPath(location)),
+                        Path.TrimEndingDirectorySeparator(Path.GetFullPath(AppContext.BaseDirectory)),
+                        StringComparison.OrdinalIgnoreCase);
+                }
+            }
+            catch
+            {
+                // レジストリを読めない場合はパスで判定する。
+            }
+
+            var expected = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Programs",
+                "Hodozip");
+            return string.Equals(
+                Path.TrimEndingDirectorySeparator(Path.GetFullPath(expected)),
+                Path.TrimEndingDirectorySeparator(Path.GetFullPath(AppContext.BaseDirectory)),
+                StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    /// <summary>自動アップデートは unpackaged 版だけが対象。</summary>
+    public static bool SupportsAutoUpdate => !IsPackaged;
+
     public static string Version
     {
         get

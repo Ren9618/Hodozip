@@ -9,10 +9,10 @@
 ; window.
 
 #ifndef AppVersion
-  #define AppVersion "0.4.0"
+  #define AppVersion "0.5.0"
 #endif
 #ifndef AppVersion4
-  #define AppVersion4 "0.4.0.0"
+  #define AppVersion4 "0.5.0.0"
 #endif
 #ifndef SourceDir
   #define SourceDir "..\artifacts\installer\publish"
@@ -44,7 +44,7 @@ MinVersion=10.0.19041
 OutputDir={#OutputDir}
 OutputBaseFilename=Hodozip-{#AppVersion}-setup
 SetupIconFile={#IconFile}
-UninstallDisplayIcon={app}\Hodozip.exe
+UninstallDisplayIcon={app}\Hodozip.ico
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
@@ -78,11 +78,12 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\src\Hodozip\Assets\Hodozip.ico"; DestDir: "{app}"; DestName: "Hodozip.ico"; Flags: ignoreversion
 Source: "..\LICENSE"; DestDir: "{app}"; DestName: "LICENSE.txt"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\Hodozip"; Filename: "{app}\Hodozip.exe"; WorkingDir: "{app}"
-Name: "{autodesktop}\Hodozip"; Filename: "{app}\Hodozip.exe"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autoprograms}\Hodozip"; Filename: "{app}\Hodozip.exe"; WorkingDir: "{app}"; IconFilename: "{app}\Hodozip.ico"
+Name: "{autodesktop}\Hodozip"; Filename: "{app}\Hodozip.exe"; WorkingDir: "{app}"; IconFilename: "{app}\Hodozip.ico"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\Hodozip.exe"; Parameters: "--register-context-menu"; Flags: runhidden waituntilterminated; Tasks: contextmenu

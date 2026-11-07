@@ -19,6 +19,8 @@
   <data name="Common_Settings" xml:space="preserve"><value>Settings</value></data>
   <data name="Common_About" xml:space="preserve"><value>About</value></data>
   <data name="Common_Support" xml:space="preserve"><value>Support development</value></data>
+  <data name="Common_Browse" xml:space="preserve"><value>Browse…</value></data>
+  <data name="Common_Remove" xml:space="preserve"><value>Remove</value></data>
 
   <data name="Main_Tagline" xml:space="preserve"><value>Unpack archives in a snap. Just drag and drop to extract.</value></data>
   <data name="Main_DropHere" xml:space="preserve"><value>Drop an archive here</value></data>
@@ -27,9 +29,9 @@
   <data name="Main_SupportedFormats" xml:space="preserve"><value>Supports ZIP / 7z / RAR / MSI / TAR / TAR.GZ / TAR.BZ2 / TAR.XZ / TAR.ZST / GZ / BZ2 / XZ / ZST. Single-folder archives are not nested twice; scattered files go into a folder named after the archive.</value></data>
   <data name="Main_PreviousResult" xml:space="preserve"><value>Last result</value></data>
   <data name="Main_FilePickErrorTitle" xml:space="preserve"><value>Could not select the file</value></data>
-  <data name="Main_DropCaption" xml:space="preserve"><value>Drop here to extract</value></data>
-  <data name="Main_NotArchiveTitle" xml:space="preserve"><value>Not an archive</value></data>
-  <data name="Main_DropFileMessage" xml:space="preserve"><value>Please drop a file.</value></data>
+  <data name="Main_DropCaption" xml:space="preserve"><value>Drop here to extract or compress</value></data>
+  <data name="Main_NotArchiveTitle" xml:space="preserve"><value>No items</value></data>
+  <data name="Main_DropFileMessage" xml:space="preserve"><value>Please drop files or folders.</value></data>
   <data name="Main_UnsupportedTitle" xml:space="preserve"><value>Unsupported format</value></data>
   <data name="Main_UnsupportedDropMessage" xml:space="preserve"><value>Drop an archive such as ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST.</value></data>
   <data name="Main_MultipleTitle" xml:space="preserve"><value>Multiple archives were dropped</value></data>
@@ -116,7 +118,7 @@
   <data name="About_WindowsAppSdk" xml:space="preserve"><value>MIT License (WinUI 3 runtime)</value></data>
   <data name="About_DotNet" xml:space="preserve"><value>MIT License (runtime)</value></data>
   <data name="About_Privacy" xml:space="preserve"><value>Privacy</value></data>
-  <data name="About_PrivacyText" xml:space="preserve"><value>Hodozip sends no telemetry, and the app itself does not communicate over the network. It opens the support page in your default browser only when you press a donation button.</value></data>
+  <data name="About_PrivacyText" xml:space="preserve"><value>Hodozip sends no telemetry. Network access is limited to the update check (a GitHub Releases API request) when enabled in Settings, and to opening your browser when you press an update or donation button. The MSIX version does not check for updates.</value></data>
   <data name="About_Copyright" xml:space="preserve"><value>Copyright (c) 2026 Ren9618</value></data>
 
   <data name="Overwrite_Title" xml:space="preserve"><value>Confirm overwrite</value></data>
@@ -164,7 +166,7 @@
   <data name="Legacy_ClsidCreateFailed" xml:space="preserve"><value>Could not create the CLSID registry key.</value></data>
   <data name="Legacy_InprocCreateFailed" xml:space="preserve"><value>Could not create the InprocServer32 registry key.</value></data>
   <data name="Legacy_HandlerCreateFailed" xml:space="preserve"><value>Could not create the context menu registration key: {0}</value></data>
-  <data name="Legacy_RegisteredCount" xml:space="preserve"><value>Registered in the classic context menu ({0} extensions).</value></data>
+  <data name="Legacy_RegisteredCount" xml:space="preserve"><value>Registered in the classic context menu (extract: {0} extensions / compress: all files and folders).</value></data>
   <data name="Legacy_RegisterFailed" xml:space="preserve"><value>Failed to register the classic context menu: {0}</value></data>
   <data name="Legacy_PackagedNotRegistered" xml:space="preserve"><value>The MSIX version is not registered in the classic context menu.</value></data>
   <data name="Legacy_Unregistered" xml:space="preserve"><value>Removed from the classic context menu.</value></data>
@@ -217,4 +219,78 @@
   <data name="Issue_MsiExpandFailed" xml:space="preserve"><value>expand.exe failed with exit code {0}.</value></data>
   <data name="Issue_MsiExpandFailedDetail" xml:space="preserve"><value>expand.exe failed with exit code {0}: {1}</value></data>
   <data name="Issue_Generic" xml:space="preserve"><value>A problem occurred.</value></data>
+
+  <data name="Main_Compress" xml:space="preserve"><value>Compress</value></data>
+  <data name="Main_UpdateAvailableTitle" xml:space="preserve"><value>A new version is available</value></data>
+  <data name="Main_UpdateAvailableMessage" xml:space="preserve"><value>Hodozip {0} has been released.</value></data>
+  <data name="Main_UpdateNow" xml:space="preserve"><value>Update</value></data>
+  <data name="Main_UpdateLater" xml:space="preserve"><value>Later</value></data>
+  <data name="Main_UpdateSkip" xml:space="preserve"><value>Skip this version</value></data>
+  <data name="Main_UpdateDownloading" xml:space="preserve"><value>Downloading update… {0}%</value></data>
+  <data name="Main_UpdateFailedTitle" xml:space="preserve"><value>Update failed</value></data>
+  <data name="Main_UpdatePortableMessage" xml:space="preserve"><value>Update the zip version manually from the release page.</value></data>
+  <data name="Main_CompressionCompletedTitle" xml:space="preserve"><value>Compression completed</value></data>
+  <data name="Main_CompressionCancelledTitle" xml:space="preserve"><value>Compression cancelled</value></data>
+  <data name="Main_CompressionFailedTitle" xml:space="preserve"><value>Compression failed</value></data>
+  <data name="Main_CompressionResultOutput" xml:space="preserve"><value>Output: {0}</value></data>
+  <data name="Main_CompressionResultFiles" xml:space="preserve"><value>Files: {0} ({1} → {2})</value></data>
+
+  <data name="Compression_Title" xml:space="preserve"><value>Compress</value></data>
+  <data name="Compression_WindowTitle" xml:space="preserve"><value>{0} - Compress</value></data>
+  <data name="Compression_Subtitle" xml:space="preserve"><value>Combine files and folders into a ZIP or 7z archive.</value></data>
+  <data name="Compression_Sources" xml:space="preserve"><value>Items to compress</value></data>
+  <data name="Compression_AddFiles" xml:space="preserve"><value>Add files</value></data>
+  <data name="Compression_AddFolder" xml:space="preserve"><value>Add folder</value></data>
+  <data name="Compression_RemoveSelected" xml:space="preserve"><value>Remove selected</value></data>
+  <data name="Compression_NoSources" xml:space="preserve"><value>Add at least one file or folder.</value></data>
+  <data name="Compression_Output" xml:space="preserve"><value>Output</value></data>
+  <data name="Compression_OutputFolder" xml:space="preserve"><value>Destination folder</value></data>
+  <data name="Compression_OutputName" xml:space="preserve"><value>File name</value></data>
+  <data name="Compression_Format" xml:space="preserve"><value>Format</value></data>
+  <data name="Compression_FormatZip" xml:space="preserve"><value>ZIP (.zip)</value></data>
+  <data name="Compression_Format7z" xml:space="preserve"><value>7z (.7z)</value></data>
+  <data name="Compression_Level" xml:space="preserve"><value>Compression level</value></data>
+  <data name="Compression_LevelStore" xml:space="preserve"><value>Store (fastest)</value></data>
+  <data name="Compression_LevelNormal" xml:space="preserve"><value>Normal</value></data>
+  <data name="Compression_LevelMaximum" xml:space="preserve"><value>Maximum (slowest)</value></data>
+  <data name="Compression_Password" xml:space="preserve"><value>Password (optional)</value></data>
+  <data name="Compression_PasswordPlaceholder" xml:space="preserve"><value>Password</value></data>
+  <data name="Compression_PasswordNote" xml:space="preserve"><value>ZIP uses AES-256 encryption. The 7z writer does not support password encryption, so the password is ignored for 7z.</value></data>
+  <data name="Compression_ZipEncoding" xml:space="preserve"><value>ZIP file-name encoding</value></data>
+  <data name="Compression_ZipEncodingUtf8" xml:space="preserve"><value>UTF-8 (recommended)</value></data>
+  <data name="Compression_ZipEncodingShiftJis" xml:space="preserve"><value>Shift_JIS (legacy tools)</value></data>
+  <data name="Compression_ZipEncodingNote" xml:space="preserve"><value>Choose Shift_JIS only when you need compatibility with old Japanese ZIP tools.</value></data>
+  <data name="Compression_CollisionNote" xml:space="preserve"><value>If a file with the same name exists, a numbered name such as "name (2).zip" is used.</value></data>
+  <data name="Compression_Start" xml:space="preserve"><value>Start compression</value></data>
+  <data name="Compression_ErrorTitle" xml:space="preserve"><value>Compression failed</value></data>
+  <data name="Compression_ErrorNoSources" xml:space="preserve"><value>Add at least one file or folder to compress.</value></data>
+  <data name="Compression_ErrorNoOutputName" xml:space="preserve"><value>Enter an output file name.</value></data>
+  <data name="Compression_ErrorInvalidName" xml:space="preserve"><value>The output file name contains invalid characters.</value></data>
+  <data name="Compression_ErrorFolderMissing" xml:space="preserve"><value>Enter a destination folder.</value></data>
+  <data name="Compression_ErrorFolderCreate" xml:space="preserve"><value>Could not create the destination folder: {0}</value></data>
+  <data name="Compression_ErrorOutputMissing" xml:space="preserve"><value>No output path was specified.</value></data>
+  <data name="Compression_ErrorOutputParent" xml:space="preserve"><value>Could not determine the output folder.</value></data>
+  <data name="Compression_ErrorSourceMissing" xml:space="preserve"><value>The file or folder to compress was not found: {0}</value></data>
+  <data name="Compression_ErrorUnexpected" xml:space="preserve"><value>An error occurred during compression: {0}</value></data>
+  <data name="Compression_SourceMissing" xml:space="preserve"><value>The file or folder to compress was not found: {0}</value></data>
+  <data name="Compression_ErrorInvalidFormat" xml:space="preserve"><value>Unsupported format: {0} (specify zip or 7z).</value></data>
+  <data name="Compression_ErrorInvalidLevel" xml:space="preserve"><value>Unsupported compression level: {0} (specify store, normal, or maximum).</value></data>
+  <data name="Compression_ErrorInvalidEncoding" xml:space="preserve"><value>Unsupported ZIP encoding: {0} (specify utf8 or shift_jis).</value></data>
+  <data name="Compression_ErrorOptionValue" xml:space="preserve"><value>No value was specified for option {0}.</value></data>
+
+  <data name="Progress_Compressing" xml:space="preserve"><value>Compressing…</value></data>
+  <data name="Progress_Output" xml:space="preserve"><value>Output: {0}</value></data>
+  <data name="Progress_CompressionCompleted" xml:space="preserve"><value>Compression completed ({0} files / {1} → {2})</value></data>
+  <data name="Progress_PasswordIgnored" xml:space="preserve"><value> (password ignored for 7z)</value></data>
+  <data name="Progress_CompressionCancelled" xml:space="preserve"><value>Compression cancelled</value></data>
+  <data name="Progress_CompressionCancelledTitle" xml:space="preserve"><value>Compression cancelled</value></data>
+  <data name="Progress_CompressionCancelledMessage" xml:space="preserve"><value>Compression was cancelled.</value></data>
+  <data name="Progress_CompressionUnexpectedError" xml:space="preserve"><value>An unexpected error occurred during compression: {0}</value></data>
+
+  <data name="Settings_Updates" xml:space="preserve"><value>Updates</value></data>
+  <data name="Settings_CheckUpdatesStartup" xml:space="preserve"><value>Check for updates at startup</value></data>
+  <data name="Settings_CheckUpdatesNote" xml:space="preserve"><value>Checks GitHub Releases at most once per day. If a newer version exists, a subtle notification is shown.</value></data>
+  <data name="Settings_CheckUpdatesPackaged" xml:space="preserve"><value>Automatic updates are not available in the MSIX version. Update through the Store or manually.</value></data>
+
+  <data name="About_SharpZipLib" xml:space="preserve"><value>MIT License (ZIP AES encryption)</value></data>
 </root>

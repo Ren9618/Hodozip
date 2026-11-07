@@ -24,6 +24,7 @@ public sealed partial class AboutWindow : Window
         CopyrightText.Text = Loc.About_Copyright;
         LibrariesHeaderText.Text = Loc.About_Libraries;
         SharpCompressLicenseText.Text = Loc.About_SharpCompress;
+        SharpZipLibLicenseText.Text = Loc.About_SharpZipLib;
         WindowsAppSdkLicenseText.Text = Loc.About_WindowsAppSdk;
         DotNetLicenseText.Text = Loc.About_DotNet;
         PrivacyHeaderText.Text = Loc.About_Privacy;
