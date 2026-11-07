@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>Hodozip | アーカイブを、ほどく。Windows 向け解凍ソフト</title>
-<meta name="description" content="Hodozip は Windows 向けの無料・オープンソース解凍ソフト。ZIP / 7z / RAR / MSI などのアーカイブをダブルクリックで、その場に、文字化けなしで解凍します。通信なし・テレメトリなし・広告なし。">
+<title>Hodozip | アーカイブを、ほどく。Windows 向けアーカイブ解凍・圧縮ソフト</title>
+<meta name="description" content="Hodozip は Windows 向けの無料・オープンソースのアーカイブ解凍・圧縮ソフト。ZIP / 7z / RAR / MSI などを解凍でき、ZIP / 7z の作成にも対応します。テレメトリなし・広告なし。更新確認は設定で OFF にできます。">
 
 <!-- OGP: og:image は実画像が用意できたら、この下に <meta property="og:image" content="画像の相対パス"> を追記する -->
 <meta property="og:title" content="Hodozip | アーカイブを、ほどく。">
-<meta property="og:description" content="Windows 向けの無料・オープンソース解凍ソフト。ZIP / 7z / RAR / MSI などのアーカイブをダブルクリックで、その場に、文字化けなしで解凍します。">
+<meta property="og:description" content="Windows 向けの無料・オープンソースのアーカイブ解凍・圧縮ソフト。ZIP / 7z / RAR / MSI などを解凍でき、ZIP / 7z の作成にも対応します。">
 <meta property="og:type" content="website">
 
 <!-- favicon: リポジトリにアプリアイコン素材が追加されたら <link rel="icon" href="..."> をここに追記する -->
@@ -51,17 +51,17 @@
 ========================================= -->
 <header class="hero">
   <div class="container">
-    <p class="hero-eyebrow">Windows 向け・無料・オープンソースのアーカイブ解凍ソフト</p>
+    <p class="hero-eyebrow">Windows 向け・無料・オープンソースのアーカイブ解凍・圧縮ソフト</p>
     <h1 class="hero-title">Hodozip</h1>
     <p class="hero-tagline">アーカイブを、ほどく。</p>
     <p class="hero-lead">ダブルクリックで、その場に、文字化けなしで解凍。<br>
-    アーカイブをドラッグ＆ドロップしても、そのまま解凍できます。</p>
+    アーカイブをドラッグ＆ドロップしても、そのまま解凍できます。ZIP / 7z の圧縮にも対応しました。</p>
     <div class="hero-actions">
       <a class="btn btn-primary" href="https://github.com/Ren9618/Hodozip/releases/latest">ダウンロード</a>
       <a class="btn btn-ghost" href="https://github.com/Ren9618/Hodozip">GitHub リポジトリを見る</a>
     </div>
     <ul class="hero-chips" aria-label="バージョンと動作環境">
-      <li class="chip-accent">現在のバージョン v0.4.0</li>
+      <li class="chip-accent">現在のバージョン v0.5.0</li>
       <li>Windows 10（19041 以降）/ Windows 11</li>
       <li>MIT ライセンス</li>
     </ul>
@@ -83,6 +83,13 @@
         </span>
         <h3>ダブルクリックですぐ解凍</h3>
         <p><code>.zip</code> や <code>.7z</code>、<code>.rar</code>、<code>.msi</code> などの対応アーカイブをダブルクリックすると、その場ですぐに解凍が始まります。往年の解凍ソフトの使い勝手を、現代の Windows 11 に引き継ぎました。</p>
+      </li>
+      <li class="card feature">
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
+        </span>
+        <h3>ZIP / 7z の圧縮にも対応</h3>
+        <p>ZIP / 7z の作成に対応しました。圧縮レベル（保存 / 標準 / 最高）、ZIP の AES パスワード、ZIP のファイル名エンコーディング（UTF-8 / Shift_JIS）を選べます。右クリックメニューやドラッグ＆ドロップからも圧縮を開始できます。</p>
       </li>
       <li class="card feature">
         <span class="feature-icon" aria-hidden="true">
@@ -123,18 +130,18 @@
         <span class="feature-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="M13 13l6 6"/></svg>
         </span>
-        <h3>Windows 11 右クリックメニュー対応</h3>
-        <p>対応アーカイブを右クリックして「Hodozip で解凍」「Hodozip でフォルダに解凍」が選べます（MSIX 版）。</p>
+        <h3>右クリックメニュー対応</h3>
+        <p>対応アーカイブを右クリックして「Hodozip で解凍」「Hodozip でフォルダに解凍」、ファイルを右クリックして「Hodozip で圧縮」が選べます（MSIX 版は Windows 11 の新しいメニュー、インストーラー版は従来型メニュー）。</p>
       </li>
       <li class="card feature">
         <span class="feature-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </span>
-        <h3>通信なし・テレメトリなし・広告なし</h3>
-        <p>アプリ本体はネットワーク通信を行わず、テレメトリも広告もありません。MIT ライセンスのオープンソースとして公開しています。</p>
+        <h3>通信は更新確認のみ</h3>
+        <p>通常の解凍・圧縮はネットワーク通信を行いません。自動アップデートの確認時のみ GitHub Releases にアクセスし、設定画面で OFF にできます。テレメトリも広告もありません。</p>
       </li>
     </ul>
-    <p class="note features-note">対応形式は ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST 系です。UI は日本語 / English に対応しています。</p>
+    <p class="note features-note">対応形式（解凍）は ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST 系です。作成は ZIP / 7z に対応しています。UI は日本語 / English に対応しています。</p>
   </div>
 </section>
 
@@ -180,7 +187,7 @@
           <h3>インストーラー版</h3>
           <span class="badge">推奨</span>
         </div>
-        <p class="dl-file">Hodozip-0.4.0-setup.exe</p>
+        <p class="dl-file">Hodozip-0.5.0-setup.exe</p>
         <ul class="dl-list">
           <li>管理者権限不要で、ユーザーごとに <code>%LOCALAPPDATA%\Programs\Hodozip</code> へインストールします</li>
           <li>スタートメニューのショートカットを作成し、任意で右クリックメニューと「プログラムから開く」への登録を行います</li>
@@ -193,7 +200,7 @@
           <h3>zip 版</h3>
           <span class="badge">ポータブル</span>
         </div>
-        <p class="dl-file">Hodozip-0.4.0-win-x64.zip</p>
+        <p class="dl-file">Hodozip-0.5.0-win-x64.zip</p>
         <ul class="dl-list">
           <li>解凍して <code>Hodozip.exe</code> を起動するだけで使えます（インストール不要）</li>
           <li>アーカイブのドラッグ＆ドロップやパス指定で解凍</li>
@@ -205,7 +212,7 @@
           <h3>MSIX 版</h3>
           <span class="badge badge-warn">実験的な配布</span>
         </div>
-        <p class="dl-file">Hodozip-0.4.0.msix</p>
+        <p class="dl-file">Hodozip-0.5.0.msix</p>
         <ul class="dl-list">
           <li>対応アーカイブのファイル関連付け候補と Windows 11 の右クリックメニューが登録されます</li>
           <li>インストール前に<strong>自己署名証明書の登録</strong>が必要です（手順は「使い方」のセクション）</li>
@@ -217,6 +224,7 @@
     <aside class="callout">
       <p><strong>SmartScreen の警告について:</strong> Hodozip は未署名のため、インストーラーの実行時や初回起動時に Windows SmartScreen が「Windows によって PC が保護されました」という警告を表示することがあります。その場合は「詳細情報」を選び、「実行」をクリックすると起動できます。</p>
     </aside>
+    <p class="note">インストーラー版と zip 版は、起動時に新しいバージョンを確認します（設定で OFF にできます）。MSIX 版は自動更新の対象外です。</p>
   </div>
 </section>
 
@@ -231,7 +239,7 @@
       <h3>1. インストールして起動する</h3>
       <h4>インストーラー版（推奨）</h4>
       <ol>
-        <li><code>Hodozip-0.4.0-setup.exe</code> をダウンロードして実行します。未署名のため、SmartScreen の警告が表示された場合は「詳細情報」→「実行」を選びます。</li>
+        <li><code>Hodozip-0.5.0-setup.exe</code> をダウンロードして実行します。未署名のため、SmartScreen の警告が表示された場合は「詳細情報」→「実行」を選びます。</li>
         <li>インストール先は <code>%LOCALAPPDATA%\Programs\Hodozip</code> 固定です。「シェル統合」で右クリックメニューと「プログラムから開く」への登録を選べます（いずれも任意、既定で有効）。</li>
         <li>インストール後、スタートメニューの「Hodozip」から起動します。アンインストールは「設定」→「アプリ」→「インストールされているアプリ」から行えます。</li>
       </ol>
@@ -244,14 +252,14 @@
       <h4>MSIX 版（実験的配布）</h4>
       <p>「証明書 → パッケージ」の順でインストールします。詳しい手順とアンインストール方法は、README の「<a class="inline-link" href="https://github.com/Ren9618/Hodozip#msix-版のインストール上級者向け実験的">MSIX 版のインストール</a>」を参照してください。</p>
       <ol>
-        <li>公開証明書 <a class="inline-link" href="https://github.com/Ren9618/Hodozip/raw/v0.4.0/packaging/certs/Hodozip-Test.cer">Hodozip-Test.cer</a> をダウンロードします。</li>
+        <li>公開証明書 <a class="inline-link" href="https://github.com/Ren9618/Hodozip/raw/v0.5.0/packaging/certs/Hodozip-Test.cer">Hodozip-Test.cer</a> をダウンロードします。</li>
         <li>管理者権限の PowerShell で証明書を登録します。</li>
       </ol>
       <pre><code>certutil -addstore -f TrustedPeople .\Hodozip-Test.cer</code></pre>
       <ol start="3">
-        <li>GitHub Releases から <code>Hodozip-0.4.0.msix</code> をダウンロードしてインストールします。</li>
+        <li>GitHub Releases から <code>Hodozip-0.5.0.msix</code> をダウンロードしてインストールします。</li>
       </ol>
-      <pre><code>Add-AppxPackage -Path .\Hodozip-0.4.0.msix</code></pre>
+      <pre><code>Add-AppxPackage -Path .\Hodozip-0.5.0.msix</code></pre>
       <p class="note">ダブルクリックで解凍できるようにするには、次の「既定のアプリ」設定が必要です。</p>
     </article>
 
@@ -274,6 +282,29 @@
         <li><strong>Hodozip でフォルダに解凍</strong> — 必ずアーカイブ名のフォルダを作り、その中に展開します。</li>
       </ul>
       <p class="note">Windows 11 の新しい右クリックメニューに表示されない場合は、「その他のオプションを表示」（または <kbd>Shift</kbd> + <kbd>F10</kbd>）を選んでください。インストール直後はエクスプローラーを再起動すると反映されやすいです。このメニューは Windows 11 向けで、Windows 10 では表示されない場合があります。</p>
+    </article>
+
+    <article class="howto-block">
+      <h3>4. アーカイブを圧縮する</h3>
+      <p>次のいずれかの方法で圧縮を開始できます。</p>
+      <ul>
+        <li><strong>ドラッグ＆ドロップ</strong> — メイン画面にファイルやフォルダをドロップします。</li>
+        <li><strong>「ファイルを選択」</strong> — メイン画面のボタンからファイルを選びます。</li>
+        <li><strong>右クリックメニュー</strong> — ファイルまたはフォルダを右クリックして「Hodozip で圧縮」を選びます（複数選択可）。</li>
+      </ul>
+      <p>圧縮設定画面で、出力先とファイル名、形式（ZIP / 7z）、圧縮レベル（保存 / 標準 / 最高）、パスワード、ZIP のファイル名エンコーディング（UTF-8 / Shift_JIS）を指定します。ZIP のパスワードは AES で暗号化されます。7z のパスワードは SharpCompress の対応範囲外のため無視されます。出力ファイルが既にある場合は、既存の衝突ポリシーに従って連番または上書きになります。</p>
+      <p class="note">作成できる形式は ZIP / 7z です。tar 系や RAR の作成には対応していません。</p>
+    </article>
+
+    <article class="howto-block">
+      <h3>5. 自動アップデート（インストーラー版 / zip 版）</h3>
+      <p>起動時に GitHub Releases の最新版を確認します。確認は最大 1 日 1 回で、失敗しても通常起動します。新版がある場合はメイン画面のバナーから「更新する」「後で」「このバージョンをスキップ」を選べます。</p>
+      <ul>
+        <li><strong>インストーラー版</strong> — setup.exe をダウンロードし、SHA256 digest を照合してからインストーラーを起動します。</li>
+        <li><strong>zip 版</strong> — Release ページを開きます。ダウンロード後は手動で配置を置き換えてください。</li>
+        <li><strong>MSIX 版</strong> — 自動アップデートは無効です。Store または手動で更新してください。</li>
+      </ul>
+      <p>設定画面の「起動時に更新を確認する」で ON / OFF を切り替えられます（既定 ON）。</p>
     </article>
   </div>
 </section>

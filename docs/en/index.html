@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>Hodozip | Unpack your archives. A Windows extraction tool</title>
-<meta name="description" content="Hodozip is a free, open-source archive extractor for Windows. Extract ZIP / 7z / RAR / MSI and more with a double-click, in place and without garbled Japanese filenames. No network, telemetry, or ads.">
+<title>Hodozip | Unpack your archives. Archive extractor and compressor for Windows</title>
+<meta name="description" content="Hodozip is a free, open-source archive extractor and compressor for Windows. Extract ZIP / 7z / RAR / MSI and more, and create ZIP / 7z archives. No telemetry or ads. Update checks can be disabled in Settings.">
 
 <!-- OGP: add <meta property="og:image" content="relative image path"> below once a real image is available -->
 <meta property="og:title" content="Hodozip | Unpack your archives.">
-<meta property="og:description" content="A free, open-source archive extractor for Windows. Extract ZIP / 7z / RAR / MSI and more with a double-click, in place and without garbled Japanese filenames.">
+<meta property="og:description" content="A free, open-source archive extractor and compressor for Windows. Extract ZIP / 7z / RAR / MSI and more, and create ZIP / 7z archives.">
 <meta property="og:type" content="website">
 
 <!-- favicon: add <link rel="icon" href="..."> here once an app icon asset is available -->
@@ -51,17 +51,17 @@
 ========================================= -->
 <header class="hero">
   <div class="container">
-    <p class="hero-eyebrow">Free, open-source archive extractor for Windows</p>
+    <p class="hero-eyebrow">Free, open-source archive extractor and compressor for Windows</p>
     <h1 class="hero-title">Hodozip</h1>
     <p class="hero-tagline">Unpack your archives.</p>
     <p class="hero-lead">Double-click to extract in place, without garbled filenames.<br>
-    You can also drag and drop an archive to extract it.</p>
+    You can also drag and drop an archive to extract it. ZIP and 7z creation is now supported.</p>
     <div class="hero-actions">
       <a class="btn btn-primary" href="https://github.com/Ren9618/Hodozip/releases/latest">Download</a>
       <a class="btn btn-ghost" href="https://github.com/Ren9618/Hodozip">View on GitHub</a>
     </div>
     <ul class="hero-chips" aria-label="Version and requirements">
-      <li class="chip-accent">Current version v0.4.0</li>
+      <li class="chip-accent">Current version v0.5.0</li>
       <li>Windows 10 (19041+) / Windows 11</li>
       <li>MIT License</li>
     </ul>
@@ -83,6 +83,13 @@
         </span>
         <h3>Extract immediately by double-clicking</h3>
         <p>Double-click a supported archive such as <code>.zip</code>, <code>.7z</code>, <code>.rar</code>, or <code>.msi</code> and extraction starts right away. The familiar feel of classic extraction tools, brought to modern Windows 11.</p>
+      </li>
+      <li class="card feature">
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
+        </span>
+        <h3>Create ZIP and 7z archives</h3>
+        <p>Hodozip can now create ZIP and 7z archives. Choose the compression level (store / normal / maximum), an AES password for ZIP, and the ZIP filename encoding (UTF-8 / Shift_JIS). Start compression from the context menu or by dragging and dropping files.</p>
       </li>
       <li class="card feature">
         <span class="feature-icon" aria-hidden="true">
@@ -123,18 +130,18 @@
         <span class="feature-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="M13 13l6 6"/></svg>
         </span>
-        <h3>Windows 11 context menu support</h3>
-        <p>Right-click a supported archive and choose "Extract with Hodozip" or "Extract to folder with Hodozip" (MSIX build).</p>
+        <h3>Context menu support</h3>
+        <p>Right-click a supported archive and choose "Extract with Hodozip" or "Extract to folder with Hodozip", or right-click a file and choose "Compress with Hodozip" (MSIX build uses the new Windows 11 menu; the installer build uses the legacy menu).</p>
       </li>
       <li class="card feature">
         <span class="feature-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </span>
-        <h3>No network, telemetry, or ads</h3>
-        <p>The app does not communicate over the network and contains no telemetry or advertising. It is published as MIT-licensed open source.</p>
+        <h3>Network access only for update checks</h3>
+        <p>Normal extraction and compression do not use the network. Hodozip contacts GitHub Releases only when checking for updates, and you can disable this in Settings. There is no telemetry or advertising.</p>
       </li>
     </ul>
-    <p class="note features-note">Supported formats: ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST. The UI is available in Japanese and English.</p>
+    <p class="note features-note">Supported extraction formats: ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST. Creation supports ZIP and 7z. The UI is available in Japanese and English.</p>
   </div>
 </section>
 
@@ -180,7 +187,7 @@
           <h3>Installer build</h3>
           <span class="badge">Recommended</span>
         </div>
-        <p class="dl-file">Hodozip-0.4.0-setup.exe</p>
+        <p class="dl-file">Hodozip-0.5.0-setup.exe</p>
         <ul class="dl-list">
           <li>Installs per user into <code>%LOCALAPPDATA%\Programs\Hodozip</code> without administrator rights</li>
           <li>Creates a Start menu shortcut and optionally registers the context menu and "Open with" candidates</li>
@@ -193,7 +200,7 @@
           <h3>zip build</h3>
           <span class="badge">Portable</span>
         </div>
-        <p class="dl-file">Hodozip-0.4.0-win-x64.zip</p>
+        <p class="dl-file">Hodozip-0.5.0-win-x64.zip</p>
         <ul class="dl-list">
           <li>Extract the archive and launch <code>Hodozip.exe</code>; no installation required</li>
           <li>Extract by dragging and dropping an archive or by passing a path</li>
@@ -205,7 +212,7 @@
           <h3>MSIX build</h3>
           <span class="badge badge-warn">Experimental</span>
         </div>
-        <p class="dl-file">Hodozip-0.4.0.msix</p>
+        <p class="dl-file">Hodozip-0.5.0.msix</p>
         <ul class="dl-list">
           <li>Registers file-association candidates for supported archives and the Windows 11 context menu</li>
           <li><strong>Requires registering the self-signed certificate</strong> before installation (see the How to use section)</li>
@@ -217,6 +224,7 @@
     <aside class="callout">
       <p><strong>About SmartScreen warnings:</strong> Hodozip is unsigned, so Windows SmartScreen may show a "Windows protected your PC" warning when you run the installer or launch the app for the first time. Choose "More info" and then "Run anyway" to start it.</p>
     </aside>
+    <p class="note">The installer and zip builds check for new versions at startup (you can disable this in Settings). The MSIX build does not self-update.</p>
   </div>
 </section>
 
@@ -231,7 +239,7 @@
       <h3>1. Install and launch</h3>
       <h4>Installer build (recommended)</h4>
       <ol>
-        <li>Download and run <code>Hodozip-0.4.0-setup.exe</code>. It is unsigned; if SmartScreen shows a warning, choose "More info" → "Run".</li>
+        <li>Download and run <code>Hodozip-0.5.0-setup.exe</code>. It is unsigned; if SmartScreen shows a warning, choose "More info" → "Run".</li>
         <li>The install location is fixed to <code>%LOCALAPPDATA%\Programs\Hodozip</code>. Under "Shell integration" you can optionally register the context menu and "Open with" candidates (both enabled by default).</li>
         <li>Launch Hodozip from the Start menu after installation. Uninstall it from Settings → Apps → Installed apps.</li>
       </ol>
@@ -244,14 +252,14 @@
       <h4>MSIX build (experimental)</h4>
       <p>Install the certificate first, then the package. For detailed steps and uninstallation, see "<a class="inline-link" href="https://github.com/Ren9618/Hodozip/blob/main/README.en.md#msix-installation-advanced-experimental">MSIX installation</a>" in the README.</p>
       <ol>
-        <li>Download the public certificate <a class="inline-link" href="https://github.com/Ren9618/Hodozip/raw/v0.4.0/packaging/certs/Hodozip-Test.cer">Hodozip-Test.cer</a>.</li>
+        <li>Download the public certificate <a class="inline-link" href="https://github.com/Ren9618/Hodozip/raw/v0.5.0/packaging/certs/Hodozip-Test.cer">Hodozip-Test.cer</a>.</li>
         <li>Register the certificate in an elevated PowerShell window.</li>
       </ol>
       <pre><code>certutil -addstore -f TrustedPeople .\Hodozip-Test.cer</code></pre>
       <ol start="3">
-        <li>Download <code>Hodozip-0.4.0.msix</code> from GitHub Releases and install it.</li>
+        <li>Download <code>Hodozip-0.5.0.msix</code> from GitHub Releases and install it.</li>
       </ol>
-      <pre><code>Add-AppxPackage -Path .\Hodozip-0.4.0.msix</code></pre>
+      <pre><code>Add-AppxPackage -Path .\Hodozip-0.5.0.msix</code></pre>
       <p class="note">To extract by double-clicking, configure Hodozip as the default app as described in the next section.</p>
     </article>
 
@@ -274,6 +282,29 @@
         <li><strong>Extract to folder with Hodozip</strong> — always creates a folder named after the archive and extracts into it.</li>
       </ul>
       <p class="note">If the entry does not appear in the new Windows 11 context menu, choose "Show more options" (or press <kbd>Shift</kbd> + <kbd>F10</kbd>). Restarting Explorer after installation can also help. This menu targets Windows 11 and may not appear on Windows 10.</p>
+    </article>
+
+    <article class="howto-block">
+      <h3>4. Compress an archive</h3>
+      <p>Start compression in any of the following ways.</p>
+      <ul>
+        <li><strong>Drag and drop</strong> — drop files or folders onto the main window.</li>
+        <li><strong>"Select a file"</strong> — choose a file with the button on the main window.</li>
+        <li><strong>Context menu</strong> — right-click a file or folder and choose "Compress with Hodozip" (multiple selection is supported).</li>
+      </ul>
+      <p>In the compression settings window, choose the output destination and filename, format (ZIP / 7z), compression level (store / normal / maximum), password, and ZIP filename encoding (UTF-8 / Shift_JIS). ZIP passwords use AES encryption. The 7z password is outside SharpCompress Writer support and is ignored. If the output file already exists, the existing collision policy applies (numbered name or overwrite).</p>
+      <p class="note">ZIP and 7z are the only supported creation formats. Creating tar-family or RAR archives is not supported.</p>
+    </article>
+
+    <article class="howto-block">
+      <h3>5. Automatic updates (installer / zip builds)</h3>
+      <p>At startup, Hodozip checks GitHub Releases for the latest version. Checks are limited to once per day and fail silently. When a new version is available, the main-window banner offers "Update", "Later", and "Skip this version".</p>
+      <ul>
+        <li><strong>Installer build</strong> — downloads setup.exe, verifies its SHA256 digest, and then launches the installer.</li>
+        <li><strong>zip build</strong> — opens the Release page. Replace the files manually after downloading.</li>
+        <li><strong>MSIX build</strong> — automatic updates are disabled. Update through the Store or manually.</li>
+      </ul>
+      <p>You can turn update checks on or off with "Check for updates at startup" in Settings (on by default).</p>
     </article>
   </div>
 </section>
