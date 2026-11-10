@@ -383,6 +383,119 @@ pre code {
 }
 
 /* --------------------------------------------------------------------------
+   ヒーロー: 画像ローテーション（右カラム / 狭い画面ではテキストの下）
+   - フレームは 16:10 固定、画像は object-fit: contain で全体を表示する
+   - 切り替えは docs/js/hero-rotator.js（素の JavaScript）
+   -------------------------------------------------------------------------- */
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 36px;
+  align-items: center;
+}
+
+.hero-rot {
+  margin: 0;
+}
+
+.hero-rot-frame {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+  box-shadow: var(--shadow);
+}
+
+.hero-rot-slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+}
+
+.hero-rot-slide.is-active {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-rot-slide {
+    transition: opacity 0.6s ease;
+  }
+}
+
+/* キャプション（アプリの窓らしく、フレーム下部に帯で置く） */
+.hero-rot-caption {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 0.4em 0.9em 0.45em;
+  border-top: 1px solid var(--border);
+  background: var(--code-bg);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.hero-rot-dots {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.hero-rot-dot {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.hero-rot-dot::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-rot-dot::before {
+    transition: background-color 0.2s ease;
+  }
+
+  .hero-rot-dot:hover::before {
+    background: var(--muted);
+  }
+}
+
+.hero-rot-dot:hover::before {
+  background: var(--muted);
+}
+
+.hero-rot-dot.is-active::before {
+  background: var(--accent);
+}
+
+/* 広い画面ではテキストとローテーションを 2 カラムにする */
+@media (min-width: 901px) {
+  .hero-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 440px);
+    gap: 44px;
+  }
+}
+
+/* --------------------------------------------------------------------------
    セクション共通
    -------------------------------------------------------------------------- */
 

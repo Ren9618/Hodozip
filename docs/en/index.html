@@ -19,6 +19,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="../icons/icon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="../icons/apple-touch-icon.png">
 <link rel="stylesheet" href="../style.css">
+<script src="../js/hero-rotator.js" defer></script>
 </head>
 <body>
 
@@ -53,21 +54,38 @@
      Hero
 ========================================= -->
 <header class="hero">
-  <div class="container">
-    <p class="hero-eyebrow">Free, open-source archive extractor and compressor for Windows</p>
-    <h1 class="hero-title">Hodozip</h1>
-    <p class="hero-tagline">Unpack your archives.</p>
-    <p class="hero-lead">Double-click to extract in place, without garbled filenames.<br>
-    You can also drag and drop an archive to extract it. ZIP and 7z creation is now supported.</p>
-    <div class="hero-actions">
-      <a class="btn btn-primary" href="https://github.com/Ren9618/Hodozip/releases/latest">Download</a>
-      <a class="btn btn-ghost" href="https://github.com/Ren9618/Hodozip">View on GitHub</a>
+  <div class="container hero-grid">
+    <div class="hero-text">
+      <p class="hero-eyebrow">Free, open-source archive extractor and compressor for Windows</p>
+      <h1 class="hero-title">Hodozip</h1>
+      <p class="hero-tagline">Unpack your archives.</p>
+      <p class="hero-lead">Double-click to extract in place, without garbled filenames.<br>
+      You can also drag and drop an archive to extract it. ZIP and 7z creation is now supported.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="https://github.com/Ren9618/Hodozip/releases/latest">Download</a>
+        <a class="btn btn-ghost" href="https://github.com/Ren9618/Hodozip">View on GitHub</a>
+      </div>
+      <ul class="hero-chips" aria-label="Version and requirements">
+        <li class="chip-accent">Current version v0.6.2</li>
+        <li>Windows 10 (19041+) / Windows 11</li>
+        <li>MIT License</li>
+      </ul>
     </div>
-    <ul class="hero-chips" aria-label="Version and requirements">
-      <li class="chip-accent">Current version v0.6.2</li>
-      <li>Windows 10 (19041+) / Windows 11</li>
-      <li>MIT License</li>
-    </ul>
+    <figure class="hero-rot" aria-label="Hodozip screenshot gallery">
+      <div class="hero-rot-frame">
+        <img class="hero-rot-slide is-active" src="../screenshots/main-window.png" width="1280" height="720" loading="eager" decoding="async" alt="Hodozip's main window. Drop an archive here to extract it." data-caption="Main window">
+        <img class="hero-rot-slide" src="../screenshots/context-menu.png" width="560" height="750" loading="lazy" decoding="async" alt="The Explorer right-click menu with 'Extract with Hodozip', 'Extract to folder with Hodozip', and 'Compress with Hodozip'." data-caption="Right-click menu">
+        <img class="hero-rot-slide" src="../screenshots/progress.png" width="466" height="233" loading="lazy" decoding="async" alt="The progress window while an archive is being extracted." data-caption="Extracting">
+        <img class="hero-rot-slide" src="../screenshots/compression.png" width="746" height="813" loading="lazy" decoding="async" alt="The compression dialog, showing the password field and more." data-caption="Compression dialog">
+        <figcaption class="hero-rot-caption" aria-live="polite">Main window</figcaption>
+      </div>
+      <div class="hero-rot-dots" role="group" aria-label="Switch screenshots">
+        <button type="button" class="hero-rot-dot is-active" aria-label="Show slide 1: Main window" aria-current="true"></button>
+        <button type="button" class="hero-rot-dot" aria-label="Show slide 2: Right-click menu"></button>
+        <button type="button" class="hero-rot-dot" aria-label="Show slide 3: Extracting"></button>
+        <button type="button" class="hero-rot-dot" aria-label="Show slide 4: Compression dialog"></button>
+      </div>
+    </figure>
   </div>
 </header>
 

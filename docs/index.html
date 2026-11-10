@@ -20,6 +20,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 <link rel="stylesheet" href="style.css">
+<script src="js/hero-rotator.js" defer></script>
 </head>
 <body>
 
@@ -54,21 +55,38 @@
      ヒーロー
 ========================================= -->
 <header class="hero">
-  <div class="container">
-    <p class="hero-eyebrow">Windows 向け・無料・オープンソースのアーカイブ解凍・圧縮ソフト</p>
-    <h1 class="hero-title">Hodozip</h1>
-    <p class="hero-tagline">アーカイブを、ほどく。</p>
-    <p class="hero-lead">ダブルクリックで、その場に、文字化けなしで解凍。<br>
-    アーカイブをドラッグ＆ドロップしても、そのまま解凍できます。ZIP / 7z の圧縮にも対応しました。</p>
-    <div class="hero-actions">
-      <a class="btn btn-primary" href="https://github.com/Ren9618/Hodozip/releases/latest">ダウンロード</a>
-      <a class="btn btn-ghost" href="https://github.com/Ren9618/Hodozip">GitHub リポジトリを見る</a>
+  <div class="container hero-grid">
+    <div class="hero-text">
+      <p class="hero-eyebrow">Windows 向け・無料・オープンソースのアーカイブ解凍・圧縮ソフト</p>
+      <h1 class="hero-title">Hodozip</h1>
+      <p class="hero-tagline">アーカイブを、ほどく。</p>
+      <p class="hero-lead">ダブルクリックで、その場に、文字化けなしで解凍。<br>
+      アーカイブをドラッグ＆ドロップしても、そのまま解凍できます。ZIP / 7z の圧縮にも対応しました。</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="https://github.com/Ren9618/Hodozip/releases/latest">ダウンロード</a>
+        <a class="btn btn-ghost" href="https://github.com/Ren9618/Hodozip">GitHub リポジトリを見る</a>
+      </div>
+      <ul class="hero-chips" aria-label="バージョンと動作環境">
+        <li class="chip-accent">現在のバージョン v0.6.2</li>
+        <li>Windows 10（19041 以降）/ Windows 11</li>
+        <li>MIT ライセンス</li>
+      </ul>
     </div>
-    <ul class="hero-chips" aria-label="バージョンと動作環境">
-      <li class="chip-accent">現在のバージョン v0.6.2</li>
-      <li>Windows 10（19041 以降）/ Windows 11</li>
-      <li>MIT ライセンス</li>
-    </ul>
+    <figure class="hero-rot" aria-label="Hodozip の画面ギャラリー">
+      <div class="hero-rot-frame">
+        <img class="hero-rot-slide is-active" src="screenshots/main-window.png" width="1280" height="720" loading="eager" decoding="async" alt="Hodozip のメインウィンドウ。アーカイブをドロップして解凍できます。" data-caption="メイン画面">
+        <img class="hero-rot-slide" src="screenshots/context-menu.png" width="560" height="750" loading="lazy" decoding="async" alt="エクスプローラーの右クリックメニューに連続表示された「Hodozip で解凍」「Hodozip でフォルダに解凍」「Hodozip で圧縮」。" data-caption="右クリックメニュー">
+        <img class="hero-rot-slide" src="screenshots/progress.png" width="466" height="233" loading="lazy" decoding="async" alt="アーカイブを解凍している進捗ウィンドウ。" data-caption="解凍中">
+        <img class="hero-rot-slide" src="screenshots/compression.png" width="746" height="813" loading="lazy" decoding="async" alt="圧縮ダイアログ。パスワード欄などが表示されています。" data-caption="圧縮ダイアログ">
+        <figcaption class="hero-rot-caption" aria-live="polite">メイン画面</figcaption>
+      </div>
+      <div class="hero-rot-dots" role="group" aria-label="スクリーンショットを切り替える">
+        <button type="button" class="hero-rot-dot is-active" aria-label="1枚目「メイン画面」を表示" aria-current="true"></button>
+        <button type="button" class="hero-rot-dot" aria-label="2枚目「右クリックメニュー」を表示"></button>
+        <button type="button" class="hero-rot-dot" aria-label="3枚目「解凍中」を表示"></button>
+        <button type="button" class="hero-rot-dot" aria-label="4枚目「圧縮ダイアログ」を表示"></button>
+      </div>
+    </figure>
   </div>
 </header>
 
