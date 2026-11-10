@@ -176,15 +176,9 @@ public sealed partial class SettingsWindow : Window
 
         BehaviorSectionText.Text = Loc.Settings_Behavior;
         OpenFolderToggle.Header = Loc.Settings_OpenFolderAfter;
-        OpenFolderToggle.OnContent = Loc.Settings_LegacyOn;
-        OpenFolderToggle.OffContent = Loc.Settings_LegacyOff;
         CloseAfterExtractToggle.Header = Loc.Settings_CloseAfter;
-        CloseAfterExtractToggle.OnContent = Loc.Settings_LegacyOn;
-        CloseAfterExtractToggle.OffContent = Loc.Settings_LegacyOff;
         CloseAfterNoteText.Text = Loc.Settings_CloseAfterNote;
         SkipNewerToggle.Header = Loc.Settings_SkipNewer;
-        SkipNewerToggle.OnContent = Loc.Settings_LegacyOn;
-        SkipNewerToggle.OffContent = Loc.Settings_LegacyOff;
         SkipNewerNoteText.Text = Loc.Settings_SkipNewerNote;
 
         AssociationsSectionText.Text = Loc.Settings_Associations;
@@ -195,12 +189,8 @@ public sealed partial class SettingsWindow : Window
 
         NotificationsSectionText.Text = Loc.Settings_Notifications;
         NotifyToggle.Header = Loc.Settings_NotifyOnCompletion;
-        NotifyToggle.OnContent = Loc.Settings_LegacyOn;
-        NotifyToggle.OffContent = Loc.Settings_LegacyOff;
         NotifyNoteText.Text = Loc.Settings_NotifyNote;
         BackgroundToggle.Header = Loc.Settings_Background;
-        BackgroundToggle.OnContent = Loc.Settings_LegacyOn;
-        BackgroundToggle.OffContent = Loc.Settings_LegacyOff;
         BackgroundNoteText.Text = Loc.Settings_BackgroundNote;
         SoundSectionText.Text = Loc.Settings_Sound;
         SetItemContent(SoundComboBox, Loc.Settings_SoundNone, Loc.Settings_SoundSystem, Loc.Settings_SoundFile);
@@ -210,18 +200,12 @@ public sealed partial class SettingsWindow : Window
 
         MacOsSectionText.Text = Loc.Settings_MacOs;
         ExcludeMacOsToggle.Header = Loc.Settings_ExcludeMacOs;
-        ExcludeMacOsToggle.OnContent = Loc.Settings_LegacyOn;
-        ExcludeMacOsToggle.OffContent = Loc.Settings_LegacyOff;
         ExcludeMacOsNoteText.Text = Loc.Settings_ExcludeMacOsNote;
         NormalizeNfcToggle.Header = Loc.Settings_NormalizeNfc;
-        NormalizeNfcToggle.OnContent = Loc.Settings_LegacyOn;
-        NormalizeNfcToggle.OffContent = Loc.Settings_LegacyOff;
         NormalizeNfcNoteText.Text = Loc.Settings_NormalizeNfcNote;
 
         UpdatesSectionText.Text = Loc.Settings_Updates;
         CheckUpdatesToggle.Header = Loc.Settings_CheckUpdatesStartup;
-        CheckUpdatesToggle.OnContent = Loc.Settings_LegacyOn;
-        CheckUpdatesToggle.OffContent = Loc.Settings_LegacyOff;
         CheckUpdatesNoteText.Text = AppInfo.SupportsAutoUpdate
             ? Loc.Settings_CheckUpdatesNote
             : Loc.Settings_CheckUpdatesPackaged;
@@ -237,8 +221,6 @@ public sealed partial class SettingsWindow : Window
         LegacySectionText.Text = Loc.Settings_LegacyMenu;
         LegacyNoteText.Text = Loc.Settings_LegacyNote;
         LegacyContextMenuToggle.Header = Loc.Settings_LegacyToggle;
-        LegacyContextMenuToggle.OnContent = Loc.Settings_LegacyOn;
-        LegacyContextMenuToggle.OffContent = Loc.Settings_LegacyOff;
 
         SupportSectionText.Text = Loc.Settings_Support;
         SupportNoteText.Text = Loc.Settings_SupportNote;

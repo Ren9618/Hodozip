@@ -355,8 +355,6 @@ internal static class Loc
     public static string Settings_LegacyMenu => T("Settings_LegacyMenu");
     public static string Settings_LegacyNote => T("Settings_LegacyNote");
     public static string Settings_LegacyToggle => T("Settings_LegacyToggle");
-    public static string Settings_LegacyOn => T("Settings_LegacyOn");
-    public static string Settings_LegacyOff => T("Settings_LegacyOff");
     public static string Settings_Feedback => T("Settings_Feedback");
     public static string Settings_Support => T("Settings_Support");
     public static string Settings_SupportNote => T("Settings_SupportNote");

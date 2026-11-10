@@ -97,8 +97,6 @@
   <data name="Settings_LegacyMenu" xml:space="preserve"><value>従来型コンテキストメニュー</value></data>
   <data name="Settings_LegacyNote" xml:space="preserve"><value>Windows 10 形式の右クリックメニュー（Windows 11 では「その他のオプションを表示」側）に「Hodozip で解凍」を追加します。unpackaged 版のみ利用できます。</value></data>
   <data name="Settings_LegacyToggle" xml:space="preserve"><value>従来型コンテキストメニューに登録する</value></data>
-  <data name="Settings_LegacyOn" xml:space="preserve"><value>登録</value></data>
-  <data name="Settings_LegacyOff" xml:space="preserve"><value>解除</value></data>
   <data name="Settings_Feedback" xml:space="preserve"><value>フィードバックを送る</value></data>
   <data name="Settings_Support" xml:space="preserve"><value>開発を支援する</value></data>
   <data name="Settings_SupportNote" xml:space="preserve"><value>Hodozip は無料・オープンソースです。支援は今後の開発とメンテナンスに使われます。</value></data>
@@ -121,7 +119,7 @@
   <data name="About_WindowsAppSdk" xml:space="preserve"><value>MIT License（WinUI 3 実行基盤）</value></data>
   <data name="About_DotNet" xml:space="preserve"><value>MIT License（実行環境）</value></data>
   <data name="About_Privacy" xml:space="preserve"><value>プライバシー</value></data>
-  <data name="About_PrivacyText" xml:space="preserve"><value>Hodozip はテレメトリを送信しません。ネットワーク通信は、設定で有効な場合の更新確認（GitHub Releases API への問い合わせ）と、更新または寄付ボタンを押したときのブラウザ起動だけです。MSIX 版は更新確認を行いません。</value></data>
+  <data name="About_PrivacyText" xml:space="preserve"><value>Hodozip はテレメトリを送信しません。ネットワーク通信は、設定で有効な場合の更新確認と、更新または寄付ボタンを押したときのブラウザ起動だけです。更新確認は 1 日 1 回、GitHub のリリース情報に対してのみ行い、送信されるのは通常の HTTP リクエストに必要な情報だけです。利用状況や個人データは送信しません。更新確認は設定画面でいつでも無効にできます。MSIX 版は更新確認を行いません。</value></data>
   <data name="About_Copyright" xml:space="preserve"><value>Copyright (c) 2026 Rayno Works (Ren9618)</value></data>
 
   <data name="Overwrite_Title" xml:space="preserve"><value>上書きの確認</value></data>

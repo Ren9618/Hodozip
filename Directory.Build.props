@@ -5,7 +5,7 @@
     この値から生成する（例: 0.2.0 -> 0.2.0.0）。
   -->
   <PropertyGroup>
-    <HodozipVersion>0.6.2</HodozipVersion>
+    <HodozipVersion>0.6.3</HodozipVersion>
     <HodozipPackageVersion>$(HodozipVersion).0</HodozipPackageVersion>
   </PropertyGroup>
 </Project>

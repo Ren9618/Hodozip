@@ -176,10 +176,14 @@
                             x:Name="BehaviorSectionText"
                             Style="{StaticResource BodyStrongTextBlockStyle}" />
                         <ToggleSwitch
-                            x:Name="OpenFolderToggle" />
+                            x:Name="OpenFolderToggle"
+                            OffContent=""
+                            OnContent="" />
                         <StackPanel Spacing="4">
                             <ToggleSwitch
-                                x:Name="CloseAfterExtractToggle" />
+                                x:Name="CloseAfterExtractToggle"
+                                OffContent=""
+                                OnContent="" />
                             <TextBlock
                                 x:Name="CloseAfterNoteText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -189,7 +193,9 @@
                         <StackPanel Spacing="4">
                             <ToggleSwitch
                                 x:Name="SkipNewerToggle"
-                                AutomationProperties.AutomationId="SkipNewerToggle" />
+                                AutomationProperties.AutomationId="SkipNewerToggle"
+                                OffContent=""
+                                OnContent="" />
                             <TextBlock
                                 x:Name="SkipNewerNoteText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -247,7 +253,9 @@
                         <StackPanel Spacing="4">
                             <ToggleSwitch
                                 x:Name="NotifyToggle"
-                                AutomationProperties.AutomationId="NotifyToggle" />
+                                AutomationProperties.AutomationId="NotifyToggle"
+                                OffContent=""
+                                OnContent="" />
                             <TextBlock
                                 x:Name="NotifyNoteText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -257,7 +265,9 @@
                         <StackPanel Spacing="4">
                             <ToggleSwitch
                                 x:Name="BackgroundToggle"
-                                AutomationProperties.AutomationId="BackgroundToggle" />
+                                AutomationProperties.AutomationId="BackgroundToggle"
+                                OffContent=""
+                                OnContent="" />
                             <TextBlock
                                 x:Name="BackgroundNoteText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -320,7 +330,9 @@
                         <StackPanel Spacing="4">
                             <ToggleSwitch
                                 x:Name="ExcludeMacOsToggle"
-                                AutomationProperties.AutomationId="ExcludeMacOsToggle" />
+                                AutomationProperties.AutomationId="ExcludeMacOsToggle"
+                                OffContent=""
+                                OnContent="" />
                             <TextBlock
                                 x:Name="ExcludeMacOsNoteText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -330,7 +342,9 @@
                         <StackPanel Spacing="4">
                             <ToggleSwitch
                                 x:Name="NormalizeNfcToggle"
-                                AutomationProperties.AutomationId="NormalizeNfcToggle" />
+                                AutomationProperties.AutomationId="NormalizeNfcToggle"
+                                OffContent=""
+                                OnContent="" />
                             <TextBlock
                                 x:Name="NormalizeNfcNoteText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -352,7 +366,9 @@
                             Style="{StaticResource BodyStrongTextBlockStyle}" />
                         <ToggleSwitch
                             x:Name="CheckUpdatesToggle"
-                            AutomationProperties.AutomationId="CheckUpdatesToggle" />
+                            AutomationProperties.AutomationId="CheckUpdatesToggle"
+                            OffContent=""
+                            OnContent="" />
                         <TextBlock
                             x:Name="CheckUpdatesNoteText"
                             AutomationProperties.AutomationId="CheckUpdatesNoteText"
@@ -421,6 +437,8 @@
                             TextWrapping="Wrap" />
                         <ToggleSwitch
                             x:Name="LegacyContextMenuToggle"
+                            OffContent=""
+                            OnContent=""
                             Toggled="LegacyContextMenuToggle_Toggled" />
                         <TextBlock
                             x:Name="LegacyContextMenuStatusText"

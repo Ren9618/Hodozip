@@ -97,8 +97,6 @@
   <data name="Settings_LegacyMenu" xml:space="preserve"><value>Classic context menu</value></data>
   <data name="Settings_LegacyNote" xml:space="preserve"><value>Adds "Extract with Hodozip" to the Windows 10-style right-click menu (under "Show more options" on Windows 11). Available only in the unpackaged version.</value></data>
   <data name="Settings_LegacyToggle" xml:space="preserve"><value>Register in the classic context menu</value></data>
-  <data name="Settings_LegacyOn" xml:space="preserve"><value>Register</value></data>
-  <data name="Settings_LegacyOff" xml:space="preserve"><value>Unregister</value></data>
   <data name="Settings_Feedback" xml:space="preserve"><value>Send feedback</value></data>
   <data name="Settings_Support" xml:space="preserve"><value>Support development</value></data>
   <data name="Settings_SupportNote" xml:space="preserve"><value>Hodozip is free and open source. Your support goes toward future development and maintenance.</value></data>
@@ -121,7 +119,7 @@
   <data name="About_WindowsAppSdk" xml:space="preserve"><value>MIT License (WinUI 3 runtime)</value></data>
   <data name="About_DotNet" xml:space="preserve"><value>MIT License (runtime)</value></data>
   <data name="About_Privacy" xml:space="preserve"><value>Privacy</value></data>
-  <data name="About_PrivacyText" xml:space="preserve"><value>Hodozip sends no telemetry. Network access is limited to the update check (a GitHub Releases API request) when enabled in Settings, and to opening your browser when you press an update or donation button. The MSIX version does not check for updates.</value></data>
+  <data name="About_PrivacyText" xml:space="preserve"><value>Hodozip sends no telemetry. Network access is limited to the update check when enabled in Settings, and to opening your browser when you press an update or donation button. The update check runs at most once a day and queries GitHub release information only. It sends only the information required for a normal HTTP request; no usage or personal data is sent. You can disable update checks at any time in Settings. The MSIX version does not check for updates.</value></data>
   <data name="About_Copyright" xml:space="preserve"><value>Copyright (c) 2026 Rayno Works (Ren9618)</value></data>
 
   <data name="Overwrite_Title" xml:space="preserve"><value>Confirm overwrite</value></data>
