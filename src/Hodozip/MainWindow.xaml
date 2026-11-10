@@ -258,6 +258,7 @@
                     Click="SupportLinkButton_Click" />
                 <Button
                     x:Name="AboutButton"
+                    AutomationProperties.AutomationId="AboutButton"
                     Click="AboutButton_Click" />
                 <Button
                     x:Name="SettingsButton"
