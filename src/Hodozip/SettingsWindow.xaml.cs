@@ -242,6 +242,7 @@ public sealed partial class SettingsWindow : Window
 
         SupportSectionText.Text = Loc.Settings_Support;
         SupportNoteText.Text = Loc.Settings_SupportNote;
+        FeedbackButton.Content = Loc.Settings_Feedback;
         DonateButton.Content = Loc.Common_Support;
         CancelButton.Content = Loc.Common_Cancel;
         SaveButton.Content = Loc.Settings_Save;
@@ -516,6 +517,11 @@ public sealed partial class SettingsWindow : Window
     private static OverwritePolicy ParsePolicy(string tag, OverwritePolicy fallback)
     {
         return Enum.TryParse<OverwritePolicy>(tag, ignoreCase: true, out var value) ? value : fallback;
+    }
+
+    private void FeedbackButton_Click(object sender, RoutedEventArgs e)
+    {
+        UiHelpers.OpenUrl(AppInfo.FeedbackUrl);
     }
 
     private async void DonateButton_Click(object sender, RoutedEventArgs e)

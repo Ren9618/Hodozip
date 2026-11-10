@@ -18,6 +18,7 @@
   <data name="Common_Close" xml:space="preserve"><value>Close</value></data>
   <data name="Common_Settings" xml:space="preserve"><value>Settings</value></data>
   <data name="Common_About" xml:space="preserve"><value>About</value></data>
+  <data name="Common_Feedback" xml:space="preserve"><value>Feedback</value></data>
   <data name="Common_Support" xml:space="preserve"><value>Support development</value></data>
   <data name="Common_Browse" xml:space="preserve"><value>Browse…</value></data>
   <data name="Common_Remove" xml:space="preserve"><value>Remove</value></data>
@@ -98,6 +99,7 @@
   <data name="Settings_LegacyToggle" xml:space="preserve"><value>Register in the classic context menu</value></data>
   <data name="Settings_LegacyOn" xml:space="preserve"><value>Register</value></data>
   <data name="Settings_LegacyOff" xml:space="preserve"><value>Unregister</value></data>
+  <data name="Settings_Feedback" xml:space="preserve"><value>Send feedback</value></data>
   <data name="Settings_Support" xml:space="preserve"><value>Support development</value></data>
   <data name="Settings_SupportNote" xml:space="preserve"><value>Hodozip is free and open source. Your support goes toward future development and maintenance.</value></data>
   <data name="Settings_ContextMenuTitle" xml:space="preserve"><value>Context menu</value></data>

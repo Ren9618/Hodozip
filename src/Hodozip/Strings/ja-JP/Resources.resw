@@ -18,6 +18,7 @@
   <data name="Common_Close" xml:space="preserve"><value>閉じる</value></data>
   <data name="Common_Settings" xml:space="preserve"><value>設定</value></data>
   <data name="Common_About" xml:space="preserve"><value>バージョン情報</value></data>
+  <data name="Common_Feedback" xml:space="preserve"><value>フィードバック</value></data>
   <data name="Common_Support" xml:space="preserve"><value>開発を支援する</value></data>
   <data name="Common_Browse" xml:space="preserve"><value>参照…</value></data>
   <data name="Common_Remove" xml:space="preserve"><value>削除</value></data>
@@ -98,6 +99,7 @@
   <data name="Settings_LegacyToggle" xml:space="preserve"><value>従来型コンテキストメニューに登録する</value></data>
   <data name="Settings_LegacyOn" xml:space="preserve"><value>登録</value></data>
   <data name="Settings_LegacyOff" xml:space="preserve"><value>解除</value></data>
+  <data name="Settings_Feedback" xml:space="preserve"><value>フィードバックを送る</value></data>
   <data name="Settings_Support" xml:space="preserve"><value>開発を支援する</value></data>
   <data name="Settings_SupportNote" xml:space="preserve"><value>Hodozip は無料・オープンソースです。支援は今後の開発とメンテナンスに使われます。</value></data>
   <data name="Settings_ContextMenuTitle" xml:space="preserve"><value>コンテキストメニュー</value></data>

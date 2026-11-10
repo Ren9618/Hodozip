@@ -190,6 +190,10 @@
             Orientation="Horizontal"
             Spacing="8">
             <Button
+                x:Name="FeedbackButton"
+                AutomationProperties.AutomationId="AboutFeedbackButton"
+                Click="FeedbackButton_Click" />
+            <Button
                 x:Name="DonateButton"
                 Click="DonateButton_Click" />
             <Button

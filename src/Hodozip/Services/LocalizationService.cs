@@ -178,6 +178,7 @@ internal static class Loc
     public static string Common_Close => T("Common_Close");
     public static string Common_Settings => T("Common_Settings");
     public static string Common_About => T("Common_About");
+    public static string Common_Feedback => T("Common_Feedback");
     public static string Common_Support => T("Common_Support");
     public static string Common_Browse => T("Common_Browse");
     public static string Common_Remove => T("Common_Remove");
@@ -356,6 +357,7 @@ internal static class Loc
     public static string Settings_LegacyToggle => T("Settings_LegacyToggle");
     public static string Settings_LegacyOn => T("Settings_LegacyOn");
     public static string Settings_LegacyOff => T("Settings_LegacyOff");
+    public static string Settings_Feedback => T("Settings_Feedback");
     public static string Settings_Support => T("Settings_Support");
     public static string Settings_SupportNote => T("Settings_SupportNote");
     public static string Settings_ContextMenuTitle => T("Settings_ContextMenuTitle");

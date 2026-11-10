@@ -52,6 +52,22 @@ internal static class UiHelpers
 
     public static void OpenUrl(string url)
     {
+        // E2E 用: ブラウザを起動せず、起動要求の URL だけを記録する。
+        var logPath = Environment.GetEnvironmentVariable("HODOZIP_OPEN_URL_LOG");
+        if (!string.IsNullOrWhiteSpace(logPath))
+        {
+            try
+            {
+                File.AppendAllText(logPath, url + Environment.NewLine);
+            }
+            catch
+            {
+                // 記録できない場合もブラウザは起動しない（テスト用フックを優先する）。
+            }
+
+            return;
+        }
+
         Process.Start(new ProcessStartInfo
         {
             FileName = url,

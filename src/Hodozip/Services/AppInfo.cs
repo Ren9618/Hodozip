@@ -15,6 +15,10 @@ internal static class AppInfo
 
     public const string StripeDonationUrl = "https://buy.stripe.com/5kQ9AU8Xva8T7tAbnj67S00";
 
+    /// <summary>フィードバック フォーム。UI から参照する URL はここ 1 か所にまとめる。</summary>
+    public const string FeedbackUrl =
+        "https://docs.google.com/forms/d/e/1FAIpQLScFpnTH8fFGBcCQfoNoN7O-mGnPb1u8aLhShMMQZ8uFLxQ9GQ/viewform";
+
     public const string ReleasesUrl = "https://github.com/Ren9618/Hodozip/releases";
 
     public const string LatestReleaseApiUrl = "https://api.github.com/repos/Ren9618/Hodozip/releases/latest";

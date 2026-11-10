@@ -29,12 +29,18 @@ public sealed partial class AboutWindow : Window
         DotNetLicenseText.Text = Loc.About_DotNet;
         PrivacyHeaderText.Text = Loc.About_Privacy;
         PrivacyText.Text = Loc.About_PrivacyText;
+        FeedbackButton.Content = Loc.Common_Feedback;
         DonateButton.Content = Loc.Common_Support;
         CloseButton.Content = Loc.Common_Close;
 
         VersionText.Text = Loc.About_Version(AppInfo.Version);
         SupportedFormatsText.Text = AppInfo.SupportedFormatsText;
         LicenseText.Text = AppInfo.MitLicenseText;
+    }
+
+    private void FeedbackButton_Click(object sender, RoutedEventArgs e)
+    {
+        UiHelpers.OpenUrl(AppInfo.FeedbackUrl);
     }
 
     private async void DonateButton_Click(object sender, RoutedEventArgs e)

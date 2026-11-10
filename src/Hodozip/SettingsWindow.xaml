@@ -444,11 +444,19 @@
                             x:Name="SupportNoteText"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             TextWrapping="Wrap" />
-                        <Button
-                            x:Name="DonateButton"
+                        <StackPanel
                             Margin="0,4,0,0"
-                            Click="DonateButton_Click"
-                            Style="{StaticResource AccentButtonStyle}" />
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <Button
+                                x:Name="FeedbackButton"
+                                AutomationProperties.AutomationId="SettingsFeedbackButton"
+                                Click="FeedbackButton_Click" />
+                            <Button
+                                x:Name="DonateButton"
+                                Click="DonateButton_Click"
+                                Style="{StaticResource AccentButtonStyle}" />
+                        </StackPanel>
                     </StackPanel>
                 </Border>
             </StackPanel>
