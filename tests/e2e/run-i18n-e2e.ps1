@@ -323,6 +323,7 @@ try {
         Write-Host "  OK: English settings note = $settingsExpected"
         Assert-NamePresent -ProcessId $english.Id -Expected 'Parallel extraction' -Label 'English parallel settings'
         Assert-NamePresent -ProcessId $english.Id -Expected 'Save' -Label 'English save button'
+        Assert-NamePresent -ProcessId $english.Id -Expected 'Send feedback' -Label 'English feedback button'
         Invoke-Button -ProcessId $english.Id -Name 'Cancel' -Label 'English settings'
     }
     finally {
@@ -346,6 +347,7 @@ try {
         Write-Host "  OK: 日本語の設定注記 = $settingsExpected"
         Assert-NamePresent -ProcessId $japanese.Id -Expected '並列解凍' -Label '日本語並列設定'
         Assert-NamePresent -ProcessId $japanese.Id -Expected '保存' -Label '日本語保存ボタン'
+        Assert-NamePresent -ProcessId $japanese.Id -Expected 'フィードバックを送る' -Label '日本語フィードバック ボタン'
         Invoke-Button -ProcessId $japanese.Id -Name 'キャンセル' -Label '日本語設定'
     }
     finally {
