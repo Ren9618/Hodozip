@@ -67,7 +67,7 @@
         <a class="btn btn-ghost" href="https://github.com/Ren9618/Hodozip">GitHub リポジトリを見る</a>
       </div>
       <ul class="hero-chips" aria-label="バージョンと動作環境">
-        <li class="chip-accent">現在のバージョン v0.6.2</li>
+        <li class="chip-accent">現在のバージョン v0.6.3</li>
         <li>Windows 10（19041 以降）/ Windows 11</li>
         <li>MIT ライセンス</li>
       </ul>
@@ -160,7 +160,7 @@
           <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </span>
         <h3>通信は更新確認のみ</h3>
-        <p>通常の解凍・圧縮はネットワーク通信を行いません。自動アップデートの確認時のみ GitHub Releases にアクセスし、設定画面で OFF にできます。テレメトリも広告もありません。</p>
+        <p>通常の解凍・圧縮はネットワーク通信を行いません。バージョンの自動確認は 1 日 1 回、GitHub のリリース情報に対してのみ行い、送信されるのは通常の HTTP リクエストに必要な情報だけです。利用状況や個人データは送信しません。更新確認は設定画面でいつでも無効にできます。テレメトリも広告もありません。</p>
       </li>
       <li class="card feature">
         <span class="feature-icon" aria-hidden="true">
@@ -189,7 +189,7 @@
 </section>
 
 <!-- =========================================
-     スクリーンショット（実機撮影: v0.6.2）
+     スクリーンショット（実機撮影: v0.6.3）
 ========================================= -->
 <section class="section" id="screenshots">
   <div class="container">
@@ -212,7 +212,7 @@
     </figure>
     <figure class="shot-frame has-image" style="margin-top: 16px;">
       <img class="shot" src="screenshots/about.png" width="697" height="1093"
-           alt="バージョン情報画面。バージョン 0.6.2・対応形式・ライセンスに加えて、画面下部に「フィードバック」と「開発を支援する」ボタンが表示されています。" loading="lazy">
+           alt="バージョン情報画面。バージョン 0.6.3・対応形式・ライセンスに加えて、画面下部に「フィードバック」と「開発を支援する」ボタンが表示されています。" loading="lazy">
     </figure>
     <figure class="shot-frame has-image" style="margin-top: 16px;">
       <img class="shot" src="screenshots/compression.png" width="746" height="813"
@@ -234,7 +234,7 @@
           <h3>インストーラー版</h3>
           <span class="badge">推奨</span>
         </div>
-        <p class="dl-file">Hodozip-0.6.2-setup.exe</p>
+        <p class="dl-file">Hodozip-0.6.3-setup.exe</p>
         <ul class="dl-list">
           <li>管理者権限不要で、ユーザーごとに <code>%LOCALAPPDATA%\Programs\Hodozip</code> へインストールします</li>
           <li>スタートメニューのショートカットを作成し、任意で右クリックメニューと「プログラムから開く」への登録を行います</li>
@@ -247,7 +247,7 @@
           <h3>zip 版</h3>
           <span class="badge">ポータブル</span>
         </div>
-        <p class="dl-file">Hodozip-0.6.2-win-x64.zip</p>
+        <p class="dl-file">Hodozip-0.6.3-win-x64.zip</p>
         <ul class="dl-list">
           <li>解凍して <code>Hodozip.exe</code> を起動するだけで使えます（インストール不要）</li>
           <li>アーカイブのドラッグ＆ドロップやパス指定で解凍</li>
@@ -259,7 +259,7 @@
           <h3>MSIX 版</h3>
           <span class="badge badge-warn">実験的な配布</span>
         </div>
-        <p class="dl-file">Hodozip-0.6.2.msix</p>
+        <p class="dl-file">Hodozip-0.6.3.msix</p>
         <ul class="dl-list">
           <li>対応アーカイブのファイル関連付け候補と Windows 11 の右クリックメニューが登録されます</li>
           <li>インストール前に<strong>自己署名証明書の登録</strong>が必要です（手順は「使い方」のセクション）</li>
@@ -296,7 +296,7 @@
       <h3>1. インストールして起動する</h3>
       <h4>インストーラー版（推奨）</h4>
       <ol>
-        <li><code>Hodozip-0.6.2-setup.exe</code> をダウンロードして実行します。未署名のため、SmartScreen の警告が表示された場合は「詳細情報」→「実行」を選びます。</li>
+        <li><code>Hodozip-0.6.3-setup.exe</code> をダウンロードして実行します。未署名のため、SmartScreen の警告が表示された場合は「詳細情報」→「実行」を選びます。</li>
         <li>インストール先は <code>%LOCALAPPDATA%\Programs\Hodozip</code> 固定です。「シェル統合」で右クリックメニューと「プログラムから開く」への登録を選べます（いずれも任意、既定で有効）。</li>
         <li>インストール後、スタートメニューの「Hodozip」から起動します。アンインストールは「設定」→「アプリ」→「インストールされているアプリ」から行えます。</li>
       </ol>
@@ -309,14 +309,14 @@
       <h4>MSIX 版（実験的配布）</h4>
       <p>「証明書 → パッケージ」の順でインストールします。詳しい手順とアンインストール方法は、README の「<a class="inline-link" href="https://github.com/Ren9618/Hodozip#msix-版のインストール上級者向け実験的">MSIX 版のインストール</a>」を参照してください。</p>
       <ol>
-        <li>公開証明書 <a class="inline-link" href="https://github.com/Ren9618/Hodozip/raw/v0.6.2/packaging/certs/Hodozip-Test.cer">Hodozip-Test.cer</a> をダウンロードします。</li>
+        <li>公開証明書 <a class="inline-link" href="https://github.com/Ren9618/Hodozip/raw/v0.6.3/packaging/certs/Hodozip-Test.cer">Hodozip-Test.cer</a> をダウンロードします。</li>
         <li>管理者権限の PowerShell で証明書を登録します。</li>
       </ol>
       <pre><code>certutil -addstore -f TrustedPeople .\Hodozip-Test.cer</code></pre>
       <ol start="3">
-        <li>GitHub Releases から <code>Hodozip-0.6.2.msix</code> をダウンロードしてインストールします。</li>
+        <li>GitHub Releases から <code>Hodozip-0.6.3.msix</code> をダウンロードしてインストールします。</li>
       </ol>
-      <pre><code>Add-AppxPackage -Path .\Hodozip-0.6.2.msix</code></pre>
+      <pre><code>Add-AppxPackage -Path .\Hodozip-0.6.3.msix</code></pre>
       <p class="note">ダブルクリックで解凍できるようにするには、次の「既定のアプリ」設定が必要です。</p>
     </article>
 
@@ -361,7 +361,7 @@
         <li><strong>zip 版</strong> — Release ページを開きます。ダウンロード後は手動で配置を置き換えてください。</li>
         <li><strong>MSIX 版</strong> — 自動アップデートは無効です。Store または手動で更新してください。</li>
       </ul>
-      <p>設定画面の「起動時に更新を確認する」で ON / OFF を切り替えられます（既定 ON）。</p>
+      <p>設定画面の「起動時に更新を確認する」で ON / OFF を切り替えられます（既定 ON）。確認時に送信されるのは通常の HTTP リクエストに必要な情報だけで、利用状況や個人データは送信しません。</p>
     </article>
   </div>
 </section>
