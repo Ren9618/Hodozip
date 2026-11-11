@@ -80,6 +80,12 @@
   <data name="Settings_AlwaysSkip" xml:space="preserve"><value>常にスキップする</value></data>
   <data name="Settings_RenameSave" xml:space="preserve"><value>名前を変えて保存する</value></data>
   <data name="Settings_OverwriteNote" xml:space="preserve"><value>「毎回確認する」では、新旧のサイズと更新日時を比較する上書き確認ダイアログを表示します。</value></data>
+  <data name="Settings_ZipFileNameEncoding" xml:space="preserve"><value>アーカイブのファイル名の文字コード</value></data>
+  <data name="Settings_ZipEncodingAuto" xml:space="preserve"><value>自動（既定）</value></data>
+  <data name="Settings_ZipEncodingUtf8" xml:space="preserve"><value>UTF-8</value></data>
+  <data name="Settings_ZipEncodingShiftJis" xml:space="preserve"><value>Shift_JIS</value></data>
+  <data name="Settings_ZipEncodingGbk" xml:space="preserve"><value>GBK</value></data>
+  <data name="Settings_ZipEncodingNote" xml:space="preserve"><value>UTF-8 フラグのない ZIP のファイル名を自動判定します。判定に迷う場合は Shift_JIS または GBK を選んでください。UTF-8 フラグ付きの名前は常に UTF-8 として読みます。7z / RAR / TAR には影響しません。</value></data>
   <data name="Settings_Behavior" xml:space="preserve"><value>動作</value></data>
   <data name="Settings_OpenFolderAfter" xml:space="preserve"><value>解凍完了後にフォルダを開く</value></data>
   <data name="Settings_CloseAfter" xml:space="preserve"><value>ダブルクリック起動時の完了後、自動で閉じる</value></data>
@@ -331,7 +337,6 @@
   <data name="Settings_ExcludeMacOsNote" xml:space="preserve"><value>__MACOSX/ 配下、.DS_Store、._ で始まるエントリを解凍せず、スキップ件数に数えます。</value></data>
   <data name="Settings_NormalizeNfc" xml:space="preserve"><value>ファイル名を NFC に正規化する</value></data>
   <data name="Settings_NormalizeNfcNote" xml:space="preserve"><value>NFD で格納された日本語ファイル名（濁点が分離した形）を NFC に直して書き出します。</value></data>
-
   <data name="Compression_GeneratePassword" xml:space="preserve"><value>ランダム生成</value></data>
   <data name="Compression_PasswordLength" xml:space="preserve"><value>桁数</value></data>
   <data name="Compression_PasswordLower" xml:space="preserve"><value>英小文字</value></data>

@@ -338,6 +338,12 @@ internal static class Loc
     public static string Settings_AlwaysSkip => T("Settings_AlwaysSkip");
     public static string Settings_RenameSave => T("Settings_RenameSave");
     public static string Settings_OverwriteNote => T("Settings_OverwriteNote");
+    public static string Settings_ZipFileNameEncoding => T("Settings_ZipFileNameEncoding");
+    public static string Settings_ZipEncodingAuto => T("Settings_ZipEncodingAuto");
+    public static string Settings_ZipEncodingUtf8 => T("Settings_ZipEncodingUtf8");
+    public static string Settings_ZipEncodingShiftJis => T("Settings_ZipEncodingShiftJis");
+    public static string Settings_ZipEncodingGbk => T("Settings_ZipEncodingGbk");
+    public static string Settings_ZipEncodingNote => T("Settings_ZipEncodingNote");
     public static string Settings_Behavior => T("Settings_Behavior");
     public static string Settings_OpenFolderAfter => T("Settings_OpenFolderAfter");
     public static string Settings_CloseAfter => T("Settings_CloseAfter");

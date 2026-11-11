@@ -35,6 +35,7 @@ public sealed partial class SettingsWindow : Window
         CompressionFolderBox.Text = settings.CompressionDestinationFolder ?? string.Empty;
         SelectByTag(FolderCollisionComboBox, settings.FolderCollisionPolicy.ToString());
         SelectByTag(OverwritePolicyComboBox, settings.OverwritePolicy.ToString());
+        SelectByTag(ZipEncodingComboBox, settings.ZipFileNameEncoding.ToString());
         SelectByTag(LanguageComboBox, settings.Language.ToString());
         SelectParallelism(settings.MaxDegreeOfParallelism);
         NotifyToggle.IsOn = settings.NotifyOnCompletion;
@@ -68,6 +69,12 @@ public sealed partial class SettingsWindow : Window
             : SoundFileBox.Text.Trim();
         settings.ExcludeMacOsMetadata = ExcludeMacOsToggle.IsOn;
         settings.NormalizeFileNamesNfc = NormalizeNfcToggle.IsOn;
+        settings.ZipFileNameEncoding = Enum.TryParse<ZipFileNameEncoding>(
+            SelectedTag(ZipEncodingComboBox),
+            ignoreCase: true,
+            out var zipEncoding)
+            ? zipEncoding
+            : ZipFileNameEncoding.Auto;
         settings.OpenFolderAfterExtraction = OpenFolderToggle.IsOn;
         settings.CloseAfterAutoExtract = CloseAfterExtractToggle.IsOn;
         if (AppInfo.SupportsAutoUpdate)
@@ -166,6 +173,14 @@ public sealed partial class SettingsWindow : Window
         OverwriteSkipItem.Content = Loc.Settings_AlwaysSkip;
         OverwriteAutoRenameItem.Content = Loc.Settings_RenameSave;
         OverwriteNoteText.Text = Loc.Settings_OverwriteNote;
+        ZipEncodingSectionText.Text = Loc.Settings_ZipFileNameEncoding;
+        SetItemContent(
+            ZipEncodingComboBox,
+            Loc.Settings_ZipEncodingAuto,
+            Loc.Settings_ZipEncodingUtf8,
+            Loc.Settings_ZipEncodingShiftJis,
+            Loc.Settings_ZipEncodingGbk);
+        ZipEncodingNoteText.Text = Loc.Settings_ZipEncodingNote;
 
         CompressionDestinationSectionText.Text = Loc.Settings_CompressionDestination;
         SetItemContent(CompressionDestinationComboBox, Loc.Settings_SameAsArchive, Loc.Settings_FixedFolder, Loc.Settings_AskEveryTime);

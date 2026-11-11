@@ -137,6 +137,7 @@ public sealed partial class ProgressWindow : Window
             SkipExistingIfNewer = _settings.SkipExistingIfNewer,
             ExcludeMacOsMetadata = _settings.ExcludeMacOsMetadata,
             NormalizeFileNamesNfc = _settings.NormalizeFileNamesNfc,
+            ZipFileNameEncoding = _settings.ZipFileNameEncoding,
         };
 
         var destination = await ResolveConfiguredDestinationAsync().ConfigureAwait(false);

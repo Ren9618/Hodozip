@@ -265,6 +265,8 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                     }
                 }
 
+                var isZip = string.Equals(Path.GetExtension(openPath), ".zip", StringComparison.OrdinalIgnoreCase);
+
                 return await ExtractEntriesAsync(
                     entries,
                     request,
@@ -272,10 +274,10 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                     baseDirectory,
                     archiveLength,
                     issues,
-                    parallelSourcePath: string.Equals(Path.GetExtension(openPath), ".zip", StringComparison.OrdinalIgnoreCase)
-                        && entries.All(x => !x.IsEncrypted)
+                    parallelSourcePath: isZip && entries.All(x => !x.IsEncrypted)
                             ? openPath
                             : null,
+                    zipSourcePath: isZip ? openPath : null,
                     cancellationToken).ConfigureAwait(false);
             }
             finally
@@ -293,24 +295,43 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
         long archiveLength,
         List<ExtractionIssue> issues,
         string? parallelSourcePath,
+        string? zipSourcePath,
         CancellationToken cancellationToken)
     {
         var workItems = new List<EntryWork>();
         var skippedMacMetadata = 0;
+
+        // ZIP の名前は中央ディレクトリの生バイト列からデコードし直す。
+        // 解析できない ZIP（分割 ZIP など）では SharpCompress の名前へフォールバックする。
+        var decodedEntryNames = zipSourcePath is null
+            ? null
+            : ZipFileNameDecoder.TryDecodeEntryNames(zipSourcePath, request.Options.ZipFileNameEncoding);
+        if (decodedEntryNames is not null && decodedEntryNames.Count != rawEntries.Count)
+        {
+            decodedEntryNames = null;
+        }
 
         for (var index = 0; index < rawEntries.Count; index++)
         {
             var entry = rawEntries[index];
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!PathSanitizer.TryNormalize(entry.Key, out var relativePath, out var pathError, out var pathErrorKey))
+            var entryName = decodedEntryNames is not null && index < decodedEntryNames.Count
+                ? decodedEntryNames[index]
+                : entry.Key;
+            if (string.IsNullOrEmpty(entryName))
+            {
+                entryName = entry.Key ?? string.Empty;
+            }
+
+            if (!PathSanitizer.TryNormalize(entryName, out var relativePath, out var pathError, out var pathErrorKey))
             {
                 if (pathError is not null)
                 {
                     issues.Add(new ExtractionIssue(
                         ExtractionIssueSeverity.Error,
                         ExtractionIssueKind.PathTraversal,
-                        entry.Key ?? string.Empty,
+                        entryName,
                         pathError)
                     {
                         MessageKey = pathErrorKey,
@@ -339,7 +360,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                 issues.Add(CreateIssue(
                     ExtractionIssueSeverity.Warning,
                     ExtractionIssueKind.UnsafeName,
-                    entry.Key ?? string.Empty,
+                    entryName,
                     $"安全でないファイル名を修正しました: {sanitized.Note}",
                     "Issue_UnsafeNameFixed",
                     sanitized.Note));
@@ -353,7 +374,7 @@ public sealed partial class SharpCompressExtractor : IArchiveExtractor
                 Math.Max(0, entry.Size),
                 entry.LastModifiedTime,
                 index,
-                entry.Key ?? sanitized.RelativePath));
+                entryName));
         }
 
         return await ExtractWorkItemsAsync(

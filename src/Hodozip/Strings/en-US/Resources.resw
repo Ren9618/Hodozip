@@ -80,6 +80,12 @@
   <data name="Settings_AlwaysSkip" xml:space="preserve"><value>Always skip</value></data>
   <data name="Settings_RenameSave" xml:space="preserve"><value>Save with a different name</value></data>
   <data name="Settings_OverwriteNote" xml:space="preserve"><value>With "Ask every time", a confirmation dialog compares the old and new size and modification time.</value></data>
+  <data name="Settings_ZipFileNameEncoding" xml:space="preserve"><value>Archive file name encoding</value></data>
+  <data name="Settings_ZipEncodingAuto" xml:space="preserve"><value>Automatic (default)</value></data>
+  <data name="Settings_ZipEncodingUtf8" xml:space="preserve"><value>UTF-8</value></data>
+  <data name="Settings_ZipEncodingShiftJis" xml:space="preserve"><value>Shift_JIS</value></data>
+  <data name="Settings_ZipEncodingGbk" xml:space="preserve"><value>GBK</value></data>
+  <data name="Settings_ZipEncodingNote" xml:space="preserve"><value>Automatically detects the encoding of ZIP file names that lack the UTF-8 flag. If detection is wrong, select Shift_JIS or GBK. Names with the UTF-8 flag are always read as UTF-8. This does not affect 7z, RAR, or TAR archives.</value></data>
   <data name="Settings_Behavior" xml:space="preserve"><value>Behavior</value></data>
   <data name="Settings_OpenFolderAfter" xml:space="preserve"><value>Open the folder after extraction</value></data>
   <data name="Settings_CloseAfter" xml:space="preserve"><value>Close automatically after extraction when launched by double-click</value></data>
@@ -331,7 +337,6 @@
   <data name="Settings_ExcludeMacOsNote" xml:space="preserve"><value>Entries under __MACOSX/, .DS_Store, and names starting with ._ are skipped and counted in the skipped total.</value></data>
   <data name="Settings_NormalizeNfc" xml:space="preserve"><value>Normalize file names to NFC</value></data>
   <data name="Settings_NormalizeNfcNote" xml:space="preserve"><value>Japanese file names stored in NFD (with separated dakuten) are written in NFC.</value></data>
-
   <data name="Compression_GeneratePassword" xml:space="preserve"><value>Generate randomly</value></data>
   <data name="Compression_PasswordLength" xml:space="preserve"><value>Length</value></data>
   <data name="Compression_PasswordLower" xml:space="preserve"><value>Lowercase</value></data>

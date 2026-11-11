@@ -123,6 +123,12 @@ public sealed class ExtractionOptions
     /// NFD で格納されたファイル名を NFC へ正規化して書き出す。既定 ON。
     /// </summary>
     public bool NormalizeFileNamesNfc { get; init; } = true;
+
+    /// <summary>
+    /// UTF-8 フラグのない ZIP エントリ名を解釈する文字コード。
+    /// Auto は UTF-8 妥当性、Unicode 拡張フィールド、CP932/GBK のスコアで判定する。
+    /// </summary>
+    public ZipFileNameEncoding ZipFileNameEncoding { get; init; } = ZipFileNameEncoding.Auto;
 }
 
 /// <summary>1 回の解凍要求。</summary>

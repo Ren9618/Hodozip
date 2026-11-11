@@ -44,6 +44,10 @@ public sealed class AppSettings
     /// <summary>ファイル名を NFC に正規化する（既定 ON）。</summary>
     public bool NormalizeFileNamesNfc { get; set; } = true;
 
+    /// <summary>ZIP の UTF-8 フラグなしファイル名の文字コード（既定は自動判定）。</summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public ZipFileNameEncoding ZipFileNameEncoding { get; set; } = ZipFileNameEncoding.Auto;
+
     /// <summary>完了時にトースト通知を出す（既定 OFF）。</summary>
     public bool NotifyOnCompletion { get; set; }
 

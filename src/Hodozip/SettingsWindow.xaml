@@ -162,6 +162,26 @@
                                 Style="{StaticResource CaptionTextBlockStyle}"
                                 TextWrapping="Wrap" />
                         </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock
+                                x:Name="ZipEncodingSectionText"
+                                Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ComboBox
+                                x:Name="ZipEncodingComboBox"
+                                HorizontalAlignment="Stretch"
+                                AutomationProperties.AutomationId="ZipEncodingComboBox">
+                                <ComboBoxItem Tag="Auto" />
+                                <ComboBoxItem Tag="Utf8" />
+                                <ComboBoxItem Tag="ShiftJis" />
+                                <ComboBoxItem Tag="Gbk" />
+                            </ComboBox>
+                            <TextBlock
+                                x:Name="ZipEncodingNoteText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 
