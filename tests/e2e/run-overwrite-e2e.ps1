@@ -165,15 +165,36 @@ try {
     }
 
     Write-Host "  OK: 上書き確認ダイアログを検出しました（Name='$($dialog.Current.Name)'）"
-    $cancelCondition = New-Object System.Windows.Automation.PropertyCondition(
-        [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
-        'CancelButton')
-    $cancelButton = $dialog.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $cancelCondition)
-    if ($null -eq $cancelButton) {
-        try { $process.Kill($true) } catch { }
-        throw 'E2E 失敗: 上書き確認ダイアログのキャンセル ボタンが見つかりませんでした。'
+
+    # 進捗ウィンドウ (480x240) に ContentDialog を重ねると、標準ボタン領域が
+    # 画面外へはみ出して押せなくなることがあった。6 つの操作がすべて
+    # 画面内に表示されていることを確認する。
+    foreach ($buttonId in @(
+        'RenameButton',
+        'OverwriteAllButton',
+        'SkipAllButton',
+        'PrimaryButton',
+        'SecondaryButton',
+        'CloseButton')) {
+        $buttonCondition = New-Object System.Windows.Automation.PropertyCondition(
+            [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
+            $buttonId)
+        $button = $dialog.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $buttonCondition)
+        if ($null -eq $button) {
+            try { $process.Kill($true) } catch { }
+            throw "E2E 失敗: 上書き確認ダイアログのボタン '$buttonId' が見つかりませんでした。"
+        }
+
+        if ($button.Current.IsOffscreen) {
+            try { $process.Kill($true) } catch { }
+            throw "E2E 失敗: 上書き確認ダイアログのボタン '$buttonId' が画面外にあります。"
+        }
     }
 
+    $cancelCondition = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
+        'CloseButton')
+    $cancelButton = $dialog.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $cancelCondition)
     $invokePattern = $cancelButton.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
     $invokePattern.Invoke()
     Write-Host '  OK: キャンセル ボタンを UIA で押しました。'

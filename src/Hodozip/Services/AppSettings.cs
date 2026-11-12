@@ -48,8 +48,8 @@ public sealed class AppSettings
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public ZipFileNameEncoding ZipFileNameEncoding { get; set; } = ZipFileNameEncoding.Auto;
 
-    /// <summary>完了時にトースト通知を出す（既定 OFF）。</summary>
-    public bool NotifyOnCompletion { get; set; }
+    /// <summary>完了時にトースト通知を出す（既定 ON）。</summary>
+    public bool NotifyOnCompletion { get; set; } = true;
 
     /// <summary>進捗ウィンドウを閉じても処理を続ける（既定 OFF）。</summary>
     public bool RunInBackground { get; set; }
@@ -70,9 +70,11 @@ public sealed class AppSettings
 
     public bool GeneratedPasswordSymbols { get; set; } = true;
 
-    public bool OpenFolderAfterExtraction { get; set; }
+    /// <summary>解凍完了後にフォルダを開く（既定 ON）。</summary>
+    public bool OpenFolderAfterExtraction { get; set; } = true;
 
-    public bool CloseAfterAutoExtract { get; set; }
+    /// <summary>関連付けやコマンドラインから起動した場合、完了後に自動で閉じる（既定 ON）。</summary>
+    public bool CloseAfterAutoExtract { get; set; } = true;
 
     /// <summary>解凍先フォルダが既に存在するときの扱い。</summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]

@@ -13,7 +13,7 @@ internal static class OverwriteDialog
         XamlRoot xamlRoot,
         OverwriteConflict conflict)
     {
-        var panel = new StackPanel { Spacing = 14, MinWidth = 520 };
+        var panel = new StackPanel { Spacing = 10 };
 
         panel.Children.Add(new TextBlock
         {
@@ -21,6 +21,17 @@ internal static class OverwriteDialog
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             TextWrapping = TextWrapping.Wrap,
         });
+
+        // 進捗ウィンドウは 480x240 と小さいため、ContentDialog の標準ボタン領域に
+        // 主要な操作を置く。コンテンツ内にボタンを置くとスクロール領域の外へ
+        // はみ出して押せなくなる。ここに残すのは補助的な操作だけにする。
+        var moreActions = new Grid
+        {
+            ColumnSpacing = 6,
+        };
+        moreActions.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        moreActions.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        moreActions.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
         var details = new Grid
         {
@@ -55,21 +66,8 @@ internal static class OverwriteDialog
             secondaryBrush,
             columnSpan: 2);
 
+        panel.Children.Add(moreActions);
         panel.Children.Add(details);
-
-        var buttons = new Grid
-        {
-            ColumnSpacing = 8,
-            RowSpacing = 8,
-            Margin = new Thickness(0, 4, 0, 0),
-        };
-        buttons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        buttons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        buttons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        for (var row = 0; row < 2; row++)
-        {
-            buttons.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        }
 
         var chosen = OverwriteDecision.Cancel;
         var applyToAll = false;
@@ -80,6 +78,10 @@ internal static class OverwriteDialog
             XamlRoot = xamlRoot,
             Title = Loc.Overwrite_Title,
             Content = panel,
+            PrimaryButtonText = Loc.Overwrite_Action,
+            SecondaryButtonText = Loc.Overwrite_Skip,
+            CloseButtonText = Loc.Common_Cancel,
+            DefaultButton = ContentDialogButton.Primary,
         };
         AutomationProperties.SetAutomationId(dialog, "OverwriteDialog");
 
@@ -91,14 +93,9 @@ internal static class OverwriteDialog
             dialog.Hide();
         }
 
-        AddButton(buttons, 0, 0, Loc.Overwrite_Action, "OverwriteButton", () => Choose(OverwriteDecision.Overwrite, false), isPrimary: true);
-        AddButton(buttons, 0, 1, Loc.Overwrite_Skip, "SkipButton", () => Choose(OverwriteDecision.Skip, false));
-        AddButton(buttons, 0, 2, Loc.Overwrite_Rename, "RenameButton", () => Choose(OverwriteDecision.AutoRename, false));
-        AddButton(buttons, 1, 0, Loc.Overwrite_All, "OverwriteAllButton", () => Choose(OverwriteDecision.Overwrite, true));
-        AddButton(buttons, 1, 1, Loc.Overwrite_SkipAll, "SkipAllButton", () => Choose(OverwriteDecision.Skip, true));
-        AddButton(buttons, 1, 2, Loc.Common_Cancel, "CancelButton", () => Choose(OverwriteDecision.Cancel, false));
-
-        panel.Children.Add(buttons);
+        AddButton(moreActions, 0, Loc.Overwrite_Rename, "RenameButton", () => Choose(OverwriteDecision.AutoRename, false));
+        AddButton(moreActions, 1, Loc.Overwrite_All, "OverwriteAllButton", () => Choose(OverwriteDecision.Overwrite, true));
+        AddButton(moreActions, 2, Loc.Overwrite_SkipAll, "SkipAllButton", () => Choose(OverwriteDecision.Skip, true));
 
         dialog.Closing += (_, _) =>
         {
@@ -110,33 +107,45 @@ internal static class OverwriteDialog
             }
         };
 
-        await dialog.ShowAsync();
+        var result = await dialog.ShowAsync();
+        if (!closed)
+        {
+            chosen = result switch
+            {
+                ContentDialogResult.Primary => OverwriteDecision.Overwrite,
+                ContentDialogResult.Secondary => OverwriteDecision.Skip,
+                _ => OverwriteDecision.Cancel,
+            };
+            applyToAll = false;
+        }
+
         return (chosen, applyToAll);
     }
 
     private static void AddButton(
         Grid grid,
-        int row,
         int column,
         string text,
         string automationId,
-        Action onClick,
-        bool isPrimary = false)
+        Action onClick)
     {
-        var button = new Button
+        var label = new TextBlock
         {
-            Content = text,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Text = text,
+            TextWrapping = TextWrapping.Wrap,
+            TextAlignment = TextAlignment.Center,
         };
 
-        if (isPrimary)
+        var button = new Button
         {
-            button.Style = (Style)Application.Current.Resources["AccentButtonStyle"];
-        }
+            Content = label,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+            Padding = new Thickness(8, 4, 8, 4),
+        };
 
         AutomationProperties.SetAutomationId(button, automationId);
         button.Click += (_, _) => onClick();
-        Grid.SetRow(button, row);
         Grid.SetColumn(button, column);
         grid.Children.Add(button);
     }

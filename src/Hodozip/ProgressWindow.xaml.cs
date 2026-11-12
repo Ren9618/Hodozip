@@ -1,6 +1,7 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Windows.Graphics;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Hodozip.Core;
@@ -37,6 +38,7 @@ public sealed partial class ProgressWindow : Window
     private bool _closeRequested;
     private bool _hiddenInBackground;
     private bool _closeConfirmOpen;
+    private bool _dialogSpaceEnsured;
     private int _autoCloseSeconds;
     private JobInfo? _job;
 
@@ -591,6 +593,8 @@ public sealed partial class ProgressWindow : Window
                 return preset;
             }
 
+            await EnsureDialogSpaceAsync();
+
             var xamlRoot = RootGrid.XamlRoot;
             if (xamlRoot is null)
             {
@@ -622,6 +626,8 @@ public sealed partial class ProgressWindow : Window
             {
                 return FolderCollisionDecision.Cancel;
             }
+
+            await EnsureDialogSpaceAsync();
 
             var xamlRoot = RootGrid.XamlRoot;
             if (xamlRoot is null)
@@ -662,11 +668,66 @@ public sealed partial class ProgressWindow : Window
                 return null;
             }
 
+            await EnsureDialogSpaceAsync();
+
             var xamlRoot = RootGrid.XamlRoot;
             return xamlRoot is null
                 ? null
                 : await PasswordDialog.ShowAsync(xamlRoot, request);
         });
+    }
+
+    /// <summary>
+    /// 進捗ウィンドウ (480x240) は確認ダイアログを表示するには小さすぎる。
+    /// 最初にダイアログが必要になったときだけ、ダイアログが収まるサイズへ
+    /// 広げる。縮小は行わないので、複数の確認でウィンドウが揺れない。
+    /// AppWindow のサイズは物理ピクセルなので、DPI スケールを掛けて
+    /// 論理ピクセル (DIP) 換算で十分な広さを確保する。
+    /// </summary>
+    private async Task EnsureDialogSpaceAsync()
+    {
+        if (_dialogSpaceEnsured)
+        {
+            return;
+        }
+
+        _dialogSpaceEnsured = true;
+
+        try
+        {
+            var scale = RootGrid.XamlRoot?.RasterizationScale ?? 1.0;
+            var minimumWidth = (int)Math.Ceiling(560 * scale);
+            var minimumHeight = (int)Math.Ceiling(400 * scale);
+            var size = AppWindow.Size;
+            if (size.Width >= minimumWidth && size.Height >= minimumHeight)
+            {
+                return;
+            }
+
+            var width = Math.Max(size.Width, minimumWidth);
+            var height = Math.Max(size.Height, minimumHeight);
+
+            // 小さい画面でもウィンドウが画面外へはみ出さないようにする。
+            var workArea = DisplayArea
+                .GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary)
+                .WorkArea;
+            width = Math.Min(width, workArea.Width);
+            height = Math.Min(height, workArea.Height);
+
+            AppWindow.Resize(new SizeInt32(width, height));
+            AppWindow.Move(new PointInt32(
+                Math.Clamp(AppWindow.Position.X, workArea.X, workArea.X + workArea.Width - width),
+                Math.Clamp(AppWindow.Position.Y, workArea.Y, workArea.Y + workArea.Height - height)));
+
+            // XamlRoot のサイズはリサイズ後に非同期で反映されるため、
+            // レイアウトが終わるのを待ってからダイアログを表示する。
+            await Task.Delay(120);
+            RootGrid.UpdateLayout();
+        }
+        catch
+        {
+            // サイズ変更に失敗してもダイアログ表示は続ける。
+        }
     }
 
     private Task<T> RunOnUiThreadAsync<T>(Func<Task<T>> action)
@@ -770,6 +831,8 @@ public sealed partial class ProgressWindow : Window
         _closeConfirmOpen = true;
         try
         {
+            await EnsureDialogSpaceAsync();
+
             var xamlRoot = RootGrid.XamlRoot;
             if (xamlRoot is null)
             {
