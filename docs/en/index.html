@@ -66,7 +66,7 @@
         <a class="btn btn-ghost" href="https://github.com/Ren9618/Hodozip">View on GitHub</a>
       </div>
       <ul class="hero-chips" aria-label="Version and requirements">
-        <li class="chip-accent">Current version v0.7.0</li>
+        <li class="chip-accent">Current version v0.7.1</li>
         <li>Windows 10 (19041+) / Windows 11</li>
         <li>MIT License</li>
       </ul>
@@ -233,7 +233,7 @@
           <h3>Installer build</h3>
           <span class="badge">Recommended</span>
         </div>
-        <p class="dl-file">Hodozip-0.7.0-setup.exe</p>
+        <p class="dl-file">Hodozip-0.7.1-setup.exe</p>
         <ul class="dl-list">
           <li>Installs per user into <code>%LOCALAPPDATA%\Programs\Hodozip</code> without administrator rights</li>
           <li>Creates a Start menu shortcut and optionally registers the context menu and "Open with" candidates</li>
@@ -246,7 +246,7 @@
           <h3>zip build</h3>
           <span class="badge">Portable</span>
         </div>
-        <p class="dl-file">Hodozip-0.7.0-win-x64.zip</p>
+        <p class="dl-file">Hodozip-0.7.1-win-x64.zip</p>
         <ul class="dl-list">
           <li>Extract the archive and launch <code>Hodozip.exe</code>; no installation required</li>
           <li>Extract by dragging and dropping an archive or by passing a path</li>
@@ -258,7 +258,7 @@
           <h3>MSIX build</h3>
           <span class="badge badge-warn">Experimental</span>
         </div>
-        <p class="dl-file">Hodozip-0.7.0.msix</p>
+        <p class="dl-file">Hodozip-0.7.1.msix</p>
         <ul class="dl-list">
           <li>Registers file-association candidates for supported archives and the Windows 11 context menu</li>
           <li><strong>Requires registering the self-signed certificate</strong> before installation (see the How to use section)</li>
@@ -295,7 +295,7 @@
       <h3>1. Install and launch</h3>
       <h4>Installer build (recommended)</h4>
       <ol>
-        <li>Download and run <code>Hodozip-0.7.0-setup.exe</code>. It is unsigned; if SmartScreen shows a warning, choose "More info" → "Run".</li>
+        <li>Download and run <code>Hodozip-0.7.1-setup.exe</code>. It is unsigned; if SmartScreen shows a warning, choose "More info" → "Run".</li>
         <li>The install location is fixed to <code>%LOCALAPPDATA%\Programs\Hodozip</code>. Under "Shell integration" you can optionally register the context menu and "Open with" candidates (both enabled by default).</li>
         <li>Launch Hodozip from the Start menu after installation. Uninstall it from Settings → Apps → Installed apps.</li>
       </ol>
@@ -308,14 +308,14 @@
       <h4>MSIX build (experimental)</h4>
       <p>Install the certificate first, then the package. For detailed steps and uninstallation, see "<a class="inline-link" href="https://github.com/Ren9618/Hodozip/blob/main/README.en.md#msix-installation-advanced-experimental">MSIX installation</a>" in the README.</p>
       <ol>
-        <li>Download the public certificate <a class="inline-link" href="https://github.com/Ren9618/Hodozip/raw/v0.7.0/packaging/certs/Hodozip-Test.cer">Hodozip-Test.cer</a>.</li>
+        <li>Download the public certificate <a class="inline-link" href="https://github.com/Ren9618/Hodozip/raw/v0.7.1/packaging/certs/Hodozip-Test.cer">Hodozip-Test.cer</a>.</li>
         <li>Register the certificate in an elevated PowerShell window.</li>
       </ol>
       <pre><code>certutil -addstore -f TrustedPeople .\Hodozip-Test.cer</code></pre>
       <ol start="3">
-        <li>Download <code>Hodozip-0.7.0.msix</code> from GitHub Releases and install it.</li>
+        <li>Download <code>Hodozip-0.7.1.msix</code> from GitHub Releases and install it.</li>
       </ol>
-      <pre><code>Add-AppxPackage -Path .\Hodozip-0.7.0.msix</code></pre>
+      <pre><code>Add-AppxPackage -Path .\Hodozip-0.7.1.msix</code></pre>
       <p class="note">To extract by double-clicking, configure Hodozip as the default app as described in the next section.</p>
     </article>
 
