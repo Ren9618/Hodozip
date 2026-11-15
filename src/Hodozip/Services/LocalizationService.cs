@@ -195,8 +195,15 @@ internal static class Loc
     public static string Main_DropFileMessage => T("Main_DropFileMessage");
     public static string Main_UnsupportedTitle => T("Main_UnsupportedTitle");
     public static string Main_UnsupportedDropMessage => T("Main_UnsupportedDropMessage");
-    public static string Main_MultipleTitle => T("Main_MultipleTitle");
-    public static string Main_MultipleMessage => T("Main_MultipleMessage");
+    public static string Batch_Title => T("Batch_Title");
+    public static string Batch_Message(int count) => F("Batch_Message", count);
+    public static string Batch_Note => T("Batch_Note");
+    public static string Batch_Destination => T("Batch_Destination");
+    public static string Batch_DestinationRequired => T("Batch_DestinationRequired");
+    public static string Batch_DestinationIsFile => T("Batch_DestinationIsFile");
+    public static string Batch_DestinationInvalid => T("Batch_DestinationInvalid");
+    public static string Batch_DefaultFolderName => T("Batch_DefaultFolderName");
+    public static string Batch_Extract => T("Batch_Extract");
     public static string Main_ReadErrorTitle => T("Main_ReadErrorTitle");
     public static string Main_FileNotFoundTitle => T("Main_FileNotFoundTitle");
     public static string Main_UnsupportedFileMessage => T("Main_UnsupportedFileMessage");
@@ -208,6 +215,9 @@ internal static class Loc
     public static string Main_ResultDestination(string path) => F("Main_ResultDestination", path);
     public static string Main_ResultFiles(int files, int skipped) => F("Main_ResultFiles", files, skipped);
     public static string Main_ResultIssues(int warnings, int errors) => F("Main_ResultIssues", warnings, errors);
+    public static string Main_BatchCompletedTitle => T("Main_BatchCompletedTitle");
+    public static string Main_BatchPartialTitle => T("Main_BatchPartialTitle");
+    public static string Main_ResultArchives(int succeeded, int total) => F("Main_ResultArchives", succeeded, total);
     public static string Main_Compress => T("Main_Compress");
     public static string Main_UpdateAvailableTitle => T("Main_UpdateAvailableTitle");
     public static string Main_UpdateAvailableMessage(string version) => F("Main_UpdateAvailableMessage", version);
@@ -309,6 +319,17 @@ internal static class Loc
     public static string Progress_AutoClose(int seconds) => F("Progress_AutoClose", seconds);
     public static string Progress_UnexpectedError(string message) => F("Progress_UnexpectedError", message);
     public static string Progress_CancelledMessage => T("Progress_CancelledMessage");
+    public static string Progress_BatchDisplayName(int count) => F("Progress_BatchDisplayName", count);
+    public static string Progress_ExtractingBatch(int index, int count, string archiveName) =>
+        F("Progress_ExtractingBatch", index, count, archiveName);
+    public static string Progress_BatchCompleted(int archives, int files, int skipped) =>
+        F("Progress_BatchCompleted", archives, files, skipped);
+    public static string Progress_BatchCompletedWarnings(int archives, int files, int skipped, int warnings) =>
+        F("Progress_BatchCompletedWarnings", archives, files, skipped, warnings);
+    public static string Progress_BatchErrorStatus(int failed, int total, string message) =>
+        F("Progress_BatchErrorStatus", failed, total, message);
+    public static string Progress_BatchCancelled(int processed, int total) =>
+        F("Progress_BatchCancelled", processed, total);
     public static string Progress_Compressing => T("Progress_Compressing");
     public static string Progress_Output(string path) => F("Progress_Output", path);
     public static string Progress_CompressionCompleted(int files, string source, string output) => F("Progress_CompressionCompleted", files, source, output);

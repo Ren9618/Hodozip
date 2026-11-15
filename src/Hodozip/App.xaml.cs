@@ -30,14 +30,26 @@ public partial class App : Application
 
         if (launchRequest is not null)
         {
-            // 関連付けやダブルクリックから起動された場合: すぐに解凍を開始する。
-            var progressWindow = new ProgressWindow(
-                launchRequest.ArchivePath,
-                isCommandLine: true,
-                launchRequest.DestinationMode);
-            _window = progressWindow;
-            progressWindow.Closed += (_, _) => Exit();
-            progressWindow.Activate();
+            if (launchRequest.ArchivePaths.Count == 1)
+            {
+                // 関連付けやダブルクリックから起動された場合: すぐに解凍を開始する。
+                var progressWindow = new ProgressWindow(
+                    launchRequest.ArchivePaths[0],
+                    isCommandLine: true,
+                    launchRequest.DestinationMode);
+                _window = progressWindow;
+                progressWindow.Closed += (_, _) => Exit();
+                progressWindow.Activate();
+                return;
+            }
+
+            // エクスプローラーで複数選択された場合: メイン ウィンドウを開き、
+            // 解凍先ダイアログを表示してからまとめて解凍する。
+            var batchWindow = new MainWindow();
+            _window = batchWindow;
+            batchWindow.Closed += (_, _) => Exit();
+            batchWindow.Activate();
+            _ = batchWindow.BeginBatchExtractionFromCommandLineAsync(launchRequest.ArchivePaths);
             return;
         }
 
@@ -390,7 +402,7 @@ public partial class App : Application
     {
         var arguments = Environment.GetCommandLineArgs();
         var destinationMode = ExtractionDestinationMode.Auto;
-        string? archivePath = null;
+        var archivePaths = new List<string>();
 
         for (var index = 1; index < arguments.Length; index++)
         {
@@ -417,17 +429,13 @@ public partial class App : Application
                 continue;
             }
 
-            if (archivePath is not null)
-            {
-                continue;
-            }
-
             try
             {
                 var fullPath = Path.GetFullPath(argument.Trim('"'));
-                if (File.Exists(fullPath))
+                if (File.Exists(fullPath) &&
+                    !archivePaths.Any(x => string.Equals(x, fullPath, StringComparison.OrdinalIgnoreCase)))
                 {
-                    archivePath = fullPath;
+                    archivePaths.Add(fullPath);
                 }
             }
             catch
@@ -436,13 +444,13 @@ public partial class App : Application
             }
         }
 
-        return archivePath is null
+        return archivePaths.Count == 0
             ? null
-            : new LaunchRequest(archivePath, destinationMode);
+            : new LaunchRequest(archivePaths, destinationMode);
     }
 
     private sealed record LaunchRequest(
-        string ArchivePath,
+        IReadOnlyList<string> ArchivePaths,
         ExtractionDestinationMode DestinationMode);
 
     private sealed record CompressionCommand(

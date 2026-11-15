@@ -26,6 +26,12 @@ public enum ExtractionDestinationMode
 
     /// <summary>常にアーカイブ名のフォルダを作成し、その中へ解凍する。</summary>
     ForceArchiveFolder,
+
+    /// <summary>
+    /// 基準フォルダへ直接解凍する。アーカイブ名フォルダやトップフォルダの
+    /// 重複排除は行わない。複数アーカイブを 1 つのフォルダへまとめるときに使う。
+    /// </summary>
+    DirectToFolder,
 }
 
 /// <summary>解凍中に検出した警告・エラー。</summary>
@@ -43,6 +49,9 @@ public sealed record ExtractionIssue(
 
     /// <summary>MessageKey の書式引数。</summary>
     public IReadOnlyList<object?> MessageArguments { get; init; } = Array.Empty<object?>();
+
+    /// <summary>複数アーカイブの一括解凍で、この問題が発生したアーカイブ。</summary>
+    public string? ArchivePath { get; init; }
 }
 
 /// <summary>上書き確認に必要な新旧ファイル情報。</summary>
@@ -68,7 +77,10 @@ public sealed record ExtractionProgress(
     string CurrentFile,
     long CurrentFileProcessedBytes = 0,
     long CurrentFileTotalBytes = 0,
-    string? DestinationPath = null);
+    string? DestinationPath = null,
+    int ArchiveIndex = 0,
+    int ArchiveCount = 1,
+    string? ArchiveName = null);
 
 /// <summary>解凍処理のオプション。</summary>
 public sealed class ExtractionOptions
@@ -157,6 +169,30 @@ public sealed class ExtractionRequest
     public ExtractionDestinationMode DestinationMode { get; }
 }
 
+/// <summary>複数のアーカイブを 1 つのフォルダへまとめて解凍する要求。</summary>
+public sealed class MultiArchiveExtractionRequest
+{
+    public MultiArchiveExtractionRequest(
+        IReadOnlyList<string> archivePaths,
+        string destinationDirectory,
+        ExtractionOptions? options = null)
+    {
+        ArgumentNullException.ThrowIfNull(archivePaths);
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationDirectory);
+
+        ArchivePaths = archivePaths;
+        DestinationDirectory = destinationDirectory;
+        Options = options ?? new ExtractionOptions();
+    }
+
+    public IReadOnlyList<string> ArchivePaths { get; }
+
+    /// <summary>すべてのアーカイブの内容を書き出す共通フォルダ。</summary>
+    public string DestinationDirectory { get; }
+
+    public ExtractionOptions Options { get; }
+}
+
 /// <summary>解凍結果。</summary>
 public sealed class ExtractionResult
 {
@@ -170,6 +206,12 @@ public sealed class ExtractionResult
     public int ExtractedFileCount { get; init; }
 
     public int SkippedFileCount { get; init; }
+
+    /// <summary>一括解凍の対象アーカイブ数。単一解凍では 1。</summary>
+    public int ArchiveCount { get; init; } = 1;
+
+    /// <summary>一括解凍で成功したアーカイブ数。単一解凍では使用しない。</summary>
+    public int SucceededArchiveCount { get; init; }
 
     public IReadOnlyList<ExtractionIssue> Issues { get; init; } = Array.Empty<ExtractionIssue>();
 

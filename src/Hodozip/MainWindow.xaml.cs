@@ -70,10 +70,24 @@ public sealed partial class MainWindow : Window
 
             InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(this));
 
-            var file = await picker.PickSingleFileAsync();
-            if (file is not null)
+            var files = await picker.PickMultipleFilesAsync();
+            if (files is null || files.Count == 0)
             {
-                BeginExtraction(file.Path);
+                return;
+            }
+
+            var paths = files
+                .Select(x => x.Path)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+
+            if (paths.Count == 1)
+            {
+                BeginExtraction(paths[0]);
+            }
+            else if (paths.Count > 1)
+            {
+                await BeginBatchExtractionAsync(paths);
             }
         }
         catch (Exception ex)
@@ -152,10 +166,8 @@ public sealed partial class MainWindow : Window
 
             if (archiveFiles.Count > 1)
             {
-                ShowMessage(
-                    InfoBarSeverity.Informational,
-                    Loc.Main_MultipleTitle,
-                    Loc.Main_MultipleMessage);
+                await BeginBatchExtractionAsync(archiveFiles);
+                return;
             }
 
             BeginExtraction(archiveFiles[0]);
@@ -202,6 +214,128 @@ public sealed partial class MainWindow : Window
         };
 
         progressWindow.Activate();
+    }
+
+    /// <summary>複数のアーカイブを 1 つのフォルダへまとめて解凍する。</summary>
+    private async Task BeginBatchExtractionAsync(IReadOnlyList<string> archivePaths)
+    {
+        var archives = archivePaths
+            .Where(x => !string.IsNullOrWhiteSpace(x) && File.Exists(x) && ArchiveFormats.IsSupportedArchive(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (archives.Count == 0)
+        {
+            ShowMessage(
+                InfoBarSeverity.Warning,
+                Loc.Main_UnsupportedTitle,
+                Loc.Main_UnsupportedFileMessage);
+            return;
+        }
+
+        if (archives.Count == 1)
+        {
+            BeginExtraction(archives[0]);
+            return;
+        }
+
+        if (!TryPrepareProgressWindow())
+        {
+            return;
+        }
+
+        var xamlRoot = RootGrid.XamlRoot;
+        if (xamlRoot is null)
+        {
+            return;
+        }
+
+        var destination = await BatchExtractionDialog.ShowAsync(
+            xamlRoot,
+            WindowNative.GetWindowHandle(this),
+            archives.Count,
+            SuggestBatchDestination(archives));
+
+        if (destination is null)
+        {
+            return;
+        }
+
+        // ダイアログ表示中に別の解凍が始まった場合に備えて再確認する。
+        if (!TryPrepareProgressWindow())
+        {
+            return;
+        }
+
+        StatusInfoBar.IsOpen = false;
+
+        var progressWindow = new ProgressWindow(archives, destination, isCommandLine: false);
+        _progressWindow = progressWindow;
+        progressWindow.ExtractionCompleted += ProgressWindow_ExtractionCompleted;
+        progressWindow.Closed += (_, _) =>
+        {
+            if (ReferenceEquals(_progressWindow, progressWindow))
+            {
+                _progressWindow = null;
+            }
+        };
+
+        progressWindow.Activate();
+    }
+
+    /// <summary>
+    /// コマンド ライン（エクスプローラーでの複数選択など）からまとめて解凍を開始する。
+    /// ウィンドウの読み込み完了を待ってから解凍先ダイアログを表示する。
+    /// </summary>
+    public async Task BeginBatchExtractionFromCommandLineAsync(IReadOnlyList<string> archivePaths)
+    {
+        try
+        {
+            await WaitForContentLoadedAsync();
+            Activate();
+            await BeginBatchExtractionAsync(archivePaths);
+        }
+        catch (Exception ex)
+        {
+            ShowMessage(InfoBarSeverity.Error, Loc.Main_ReadErrorTitle, ex.Message);
+        }
+    }
+
+    private Task WaitForContentLoadedAsync()
+    {
+        if (RootGrid.IsLoaded)
+        {
+            return Task.CompletedTask;
+        }
+
+        var completion = new TaskCompletionSource<object?>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            RootGrid.Loaded -= OnLoaded;
+            completion.TrySetResult(null);
+        }
+
+        RootGrid.Loaded += OnLoaded;
+        return completion.Task;
+    }
+
+    private static string SuggestBatchDestination(IReadOnlyList<string> archivePaths)
+    {
+        var settings = SettingsService.Load();
+        if (settings.ExtractionDestination == DestinationSelectionMode.FixedFolder &&
+            !string.IsNullOrWhiteSpace(settings.ExtractionDestinationFolder))
+        {
+            return settings.ExtractionDestinationFolder;
+        }
+
+        var baseDirectory = Path.GetDirectoryName(archivePaths[0]);
+        if (string.IsNullOrEmpty(baseDirectory))
+        {
+            baseDirectory = Environment.CurrentDirectory;
+        }
+
+        return UiHelpers.GetUniqueFolderPath(baseDirectory, Loc.Batch_DefaultFolderName);
     }
 
     private void StartCompression(CompressionRequest request)
@@ -257,9 +391,11 @@ public sealed partial class MainWindow : Window
             ? Visibility.Visible
             : Visibility.Collapsed;
 
+        var isBatch = result.ArchiveCount > 1;
+
         if (result.Success)
         {
-            RecentResultTitle.Text = Loc.Main_CompletedTitle;
+            RecentResultTitle.Text = isBatch ? Loc.Main_BatchCompletedTitle : Loc.Main_CompletedTitle;
         }
         else if (result.Cancelled)
         {
@@ -267,23 +403,42 @@ public sealed partial class MainWindow : Window
         }
         else
         {
-            RecentResultTitle.Text = Loc.Main_FailedTitle;
+            var partial = isBatch && result.SucceededArchiveCount > 0;
+            RecentResultTitle.Text = partial ? Loc.Main_BatchPartialTitle : Loc.Main_FailedTitle;
             var error = result.Issues.FirstOrDefault(x => x.Severity == ExtractionIssueSeverity.Error);
             if (error is not null)
             {
-                ShowMessage(InfoBarSeverity.Error, Loc.Main_FailedTitle, LocalizationService.GetIssueMessage(error));
+                ShowMessage(
+                    partial ? InfoBarSeverity.Warning : InfoBarSeverity.Error,
+                    RecentResultTitle.Text,
+                    FormatIssueMessage(error));
             }
         }
 
         var warnings = result.Issues.Count(x => x.Severity == ExtractionIssueSeverity.Warning);
         var errors = result.Issues.Count(x => x.Severity == ExtractionIssueSeverity.Error);
 
-        RecentResultDetails.Text =
-            Loc.Main_ResultDestination(result.DestinationPath) + Environment.NewLine +
-            Loc.Main_ResultFiles(result.ExtractedFileCount, result.SkippedFileCount) +
-            (warnings + errors > 0
-                ? Environment.NewLine + Loc.Main_ResultIssues(warnings, errors)
-                : string.Empty);
+        var details = new List<string> { Loc.Main_ResultDestination(result.DestinationPath) };
+        if (isBatch)
+        {
+            details.Add(Loc.Main_ResultArchives(result.SucceededArchiveCount, result.ArchiveCount));
+        }
+
+        details.Add(Loc.Main_ResultFiles(result.ExtractedFileCount, result.SkippedFileCount));
+        if (warnings + errors > 0)
+        {
+            details.Add(Loc.Main_ResultIssues(warnings, errors));
+        }
+
+        RecentResultDetails.Text = string.Join(Environment.NewLine, details);
+    }
+
+    private static string FormatIssueMessage(ExtractionIssue issue)
+    {
+        var message = LocalizationService.GetIssueMessage(issue);
+        return string.IsNullOrEmpty(issue.ArchivePath)
+            ? message
+            : $"{Path.GetFileName(issue.ArchivePath)}: {message}";
     }
 
     private void ProgressWindow_CompressionCompleted(object? sender, CompressionResult result)

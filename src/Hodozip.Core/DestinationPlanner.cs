@@ -50,6 +50,16 @@ internal static class DestinationPlanner
         ExtractionDestinationMode mode = ExtractionDestinationMode.Auto,
         FolderCollisionPolicy collisionPolicy = FolderCollisionPolicy.Ask)
     {
+        if (mode == ExtractionDestinationMode.DirectToFolder)
+        {
+            return new DestinationPlan(
+                DestinationLayout.Scattered,
+                baseDirectory,
+                baseDirectory,
+                TopFolderName: null,
+                CreateOutputRoot: false);
+        }
+
         if (mode == ExtractionDestinationMode.ForceArchiveFolder)
         {
             return CreateWithRoot(

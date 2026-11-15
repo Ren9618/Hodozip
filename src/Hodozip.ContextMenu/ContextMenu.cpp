@@ -3,8 +3,8 @@
 // This DLL implements the shell's IExplorerCommand interface (Windows 11 new
 // menu) and the legacy IContextMenu interface (unpackaged HKCU registration).
 // It does not contain extraction or compression logic. Invoke() launches
-// Hodozip.exe with either --extract-here/--extract-folder and one archive path,
-// or --compress and every selected path.
+// Hodozip.exe once with --extract-here/--extract-folder and every selected
+// archive path, or with --compress and every selected path.
 
 #include <windows.h>
 #include <shobjidl.h>
@@ -203,13 +203,25 @@ namespace
         return S_OK;
     }
 
-    HRESULT LaunchHodozip(const std::wstring& archivePath, bool forceArchiveFolder)
+    HRESULT LaunchHodozip(
+        const std::vector<std::wstring>& archivePaths,
+        bool forceArchiveFolder)
     {
+        if (archivePaths.empty())
+        {
+            return S_OK;
+        }
+
         std::wstring arguments = forceArchiveFolder
-            ? L"--extract-folder \""
-            : L"--extract-here \"";
-        arguments += archivePath;
-        arguments += L'"';
+            ? L"--extract-folder"
+            : L"--extract-here";
+        for (const auto& path : archivePaths)
+        {
+            arguments += L" \"";
+            arguments += path;
+            arguments += L'"';
+        }
+
         return LaunchHodozipProcess(arguments);
     }
 
@@ -472,6 +484,7 @@ namespace
                 return result;
             }
 
+            std::vector<std::wstring> paths;
             HRESULT firstFailure = S_OK;
 
             for (DWORD index = 0; index < count; ++index)
@@ -502,17 +515,20 @@ namespace
 
                 if (IsSupportedArchivePath(fileSystemPath))
                 {
-                    const HRESULT launchResult = LaunchHodozip(fileSystemPath, _forceArchiveFolder);
-                    if (FAILED(launchResult) && firstFailure == S_OK)
-                    {
-                        firstFailure = launchResult;
-                    }
+                    paths.emplace_back(fileSystemPath);
                 }
 
                 CoTaskMemFree(fileSystemPath);
             }
 
-            return firstFailure;
+            if (paths.empty())
+            {
+                return firstFailure;
+            }
+
+            // 複数選択でもプロセスは 1 つだけ起動し、アプリ側でまとめて解凍する。
+            const HRESULT launchResult = LaunchHodozip(paths, _forceArchiveFolder);
+            return FAILED(launchResult) ? launchResult : firstFailure;
         }
 
         IFACEMETHODIMP GetFlags(EXPCMDFLAGS* pFlags) override
@@ -827,23 +843,17 @@ namespace
                 }
 
                 const bool forceArchiveFolder = command == 1;
-                HRESULT firstFailure = S_OK;
-
+                std::vector<std::wstring> archivePaths;
                 for (const auto& path : _paths)
                 {
-                    if (!IsSupportedArchivePath(path))
+                    if (IsSupportedArchivePath(path))
                     {
-                        continue;
-                    }
-
-                    const HRESULT result = LaunchHodozip(path, forceArchiveFolder);
-                    if (FAILED(result) && firstFailure == S_OK)
-                    {
-                        firstFailure = result;
+                        archivePaths.push_back(path);
                     }
                 }
 
-                return firstFailure;
+                // 複数選択でもプロセスは 1 つだけ起動し、アプリ側でまとめて解凍する。
+                return LaunchHodozip(archivePaths, forceArchiveFolder);
             }
 
             if (command != 0)

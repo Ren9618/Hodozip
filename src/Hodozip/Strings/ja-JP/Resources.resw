@@ -35,8 +35,15 @@
   <data name="Main_DropFileMessage" xml:space="preserve"><value>ファイルまたはフォルダーをドロップしてください。</value></data>
   <data name="Main_UnsupportedTitle" xml:space="preserve"><value>対応していない形式です</value></data>
   <data name="Main_UnsupportedDropMessage" xml:space="preserve"><value>ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST などのアーカイブをドロップしてください。</value></data>
-  <data name="Main_MultipleTitle" xml:space="preserve"><value>複数のアーカイブがドロップされました</value></data>
-  <data name="Main_MultipleMessage" xml:space="preserve"><value>最初の 1 つを解凍します。残りは 1 つずつドロップしてください。</value></data>
+  <data name="Batch_Title" xml:space="preserve"><value>まとめて解凍</value></data>
+  <data name="Batch_Message" xml:space="preserve"><value>{0} 個のアーカイブを 1 つのフォルダにまとめて解凍します。</value></data>
+  <data name="Batch_Note" xml:space="preserve"><value>各アーカイブ内のフォルダ構成はそのまま保持されます。同名のファイルがある場合は、上書き設定に従って処理します。</value></data>
+  <data name="Batch_Destination" xml:space="preserve"><value>解凍先フォルダ</value></data>
+  <data name="Batch_DestinationRequired" xml:space="preserve"><value>解凍先フォルダを指定してください。</value></data>
+  <data name="Batch_DestinationIsFile" xml:space="preserve"><value>同名のファイルが存在します。フォルダを指定してください。</value></data>
+  <data name="Batch_DestinationInvalid" xml:space="preserve"><value>フォルダのパスが正しくありません。</value></data>
+  <data name="Batch_DefaultFolderName" xml:space="preserve"><value>まとめて解凍</value></data>
+  <data name="Batch_Extract" xml:space="preserve"><value>解凍</value></data>
   <data name="Main_ReadErrorTitle" xml:space="preserve"><value>ファイルを読み取れません</value></data>
   <data name="Main_FileNotFoundTitle" xml:space="preserve"><value>ファイルが見つかりません</value></data>
   <data name="Main_UnsupportedFileMessage" xml:space="preserve"><value>ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST などのアーカイブを指定してください。</value></data>
@@ -48,6 +55,9 @@
   <data name="Main_ResultDestination" xml:space="preserve"><value>解凍先: {0}</value></data>
   <data name="Main_ResultFiles" xml:space="preserve"><value>ファイル: {0} 件（スキップ {1} 件）</value></data>
   <data name="Main_ResultIssues" xml:space="preserve"><value>警告 {0} 件 / エラー {1} 件</value></data>
+  <data name="Main_BatchCompletedTitle" xml:space="preserve"><value>まとめて解凍が完了しました</value></data>
+  <data name="Main_BatchPartialTitle" xml:space="preserve"><value>一部のアーカイブを解凍できませんでした</value></data>
+  <data name="Main_ResultArchives" xml:space="preserve"><value>アーカイブ: {0} / {1} 個成功</value></data>
 
   <data name="Progress_Extracting" xml:space="preserve"><value>解凍しています…</value></data>
   <data name="Progress_Destination" xml:space="preserve"><value>解凍先: {0}</value></data>
@@ -63,6 +73,12 @@
   <data name="Progress_AutoClose" xml:space="preserve"><value>{0} 秒後に自動で閉じます。</value></data>
   <data name="Progress_UnexpectedError" xml:space="preserve"><value>解凍中に予期しないエラーが発生しました: {0}</value></data>
   <data name="Progress_CancelledMessage" xml:space="preserve"><value>解凍をキャンセルしました。</value></data>
+  <data name="Progress_BatchDisplayName" xml:space="preserve"><value>まとめて解凍（{0} 個）</value></data>
+  <data name="Progress_ExtractingBatch" xml:space="preserve"><value>解凍しています…（{0} / {1}）{2}</value></data>
+  <data name="Progress_BatchCompleted" xml:space="preserve"><value>完了しました（{0} 個のアーカイブ / {1} ファイル / スキップ {2} 件）</value></data>
+  <data name="Progress_BatchCompletedWarnings" xml:space="preserve"><value>完了しました（{0} 個のアーカイブ / {1} ファイル / スキップ {2} 件 / 警告 {3} 件）</value></data>
+  <data name="Progress_BatchErrorStatus" xml:space="preserve"><value>エラー: {1} 個中 {0} 個のアーカイブで失敗（{2}）</value></data>
+  <data name="Progress_BatchCancelled" xml:space="preserve"><value>キャンセルしました（{0} / {1} 個のアーカイブを処理）</value></data>
 
   <data name="Settings_Title" xml:space="preserve"><value>設定</value></data>
   <data name="Settings_WindowTitle" xml:space="preserve"><value>{0} - 設定</value></data>

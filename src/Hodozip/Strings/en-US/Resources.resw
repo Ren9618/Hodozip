@@ -35,8 +35,15 @@
   <data name="Main_DropFileMessage" xml:space="preserve"><value>Please drop files or folders.</value></data>
   <data name="Main_UnsupportedTitle" xml:space="preserve"><value>Unsupported format</value></data>
   <data name="Main_UnsupportedDropMessage" xml:space="preserve"><value>Drop an archive such as ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST.</value></data>
-  <data name="Main_MultipleTitle" xml:space="preserve"><value>Multiple archives were dropped</value></data>
-  <data name="Main_MultipleMessage" xml:space="preserve"><value>The first one will be extracted. Drop the rest one at a time.</value></data>
+  <data name="Batch_Title" xml:space="preserve"><value>Extract multiple archives</value></data>
+  <data name="Batch_Message" xml:space="preserve"><value>Extract {0} archives into a single folder.</value></data>
+  <data name="Batch_Note" xml:space="preserve"><value>The folder structure inside each archive is preserved. Files with the same name are handled according to your overwrite setting.</value></data>
+  <data name="Batch_Destination" xml:space="preserve"><value>Destination folder</value></data>
+  <data name="Batch_DestinationRequired" xml:space="preserve"><value>Choose a destination folder.</value></data>
+  <data name="Batch_DestinationIsFile" xml:space="preserve"><value>A file with this name already exists. Choose a folder.</value></data>
+  <data name="Batch_DestinationInvalid" xml:space="preserve"><value>The folder path is invalid.</value></data>
+  <data name="Batch_DefaultFolderName" xml:space="preserve"><value>Extracted</value></data>
+  <data name="Batch_Extract" xml:space="preserve"><value>Extract</value></data>
   <data name="Main_ReadErrorTitle" xml:space="preserve"><value>Could not read the file</value></data>
   <data name="Main_FileNotFoundTitle" xml:space="preserve"><value>File not found</value></data>
   <data name="Main_UnsupportedFileMessage" xml:space="preserve"><value>Specify an archive such as ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST.</value></data>
@@ -48,6 +55,9 @@
   <data name="Main_ResultDestination" xml:space="preserve"><value>Destination: {0}</value></data>
   <data name="Main_ResultFiles" xml:space="preserve"><value>Files: {0} (skipped: {1})</value></data>
   <data name="Main_ResultIssues" xml:space="preserve"><value>Warnings: {0} / Errors: {1}</value></data>
+  <data name="Main_BatchCompletedTitle" xml:space="preserve"><value>Batch extraction completed</value></data>
+  <data name="Main_BatchPartialTitle" xml:space="preserve"><value>Some archives could not be extracted</value></data>
+  <data name="Main_ResultArchives" xml:space="preserve"><value>Archives: {0} of {1} succeeded</value></data>
 
   <data name="Progress_Extracting" xml:space="preserve"><value>Extracting…</value></data>
   <data name="Progress_Destination" xml:space="preserve"><value>Destination: {0}</value></data>
@@ -63,6 +73,12 @@
   <data name="Progress_AutoClose" xml:space="preserve"><value>Closing automatically in {0} seconds.</value></data>
   <data name="Progress_UnexpectedError" xml:space="preserve"><value>An unexpected error occurred during extraction: {0}</value></data>
   <data name="Progress_CancelledMessage" xml:space="preserve"><value>Extraction was cancelled.</value></data>
+  <data name="Progress_BatchDisplayName" xml:space="preserve"><value>Batch extraction ({0} archives)</value></data>
+  <data name="Progress_ExtractingBatch" xml:space="preserve"><value>Extracting… ({0} of {1}) {2}</value></data>
+  <data name="Progress_BatchCompleted" xml:space="preserve"><value>Completed ({0} archives / {1} files / skipped: {2})</value></data>
+  <data name="Progress_BatchCompletedWarnings" xml:space="preserve"><value>Completed ({0} archives / {1} files / skipped: {2} / warnings: {3})</value></data>
+  <data name="Progress_BatchErrorStatus" xml:space="preserve"><value>Error: {0} of {1} archives failed ({2})</value></data>
+  <data name="Progress_BatchCancelled" xml:space="preserve"><value>Cancelled ({0} of {1} archives processed)</value></data>
 
   <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
   <data name="Settings_WindowTitle" xml:space="preserve"><value>{0} - Settings</value></data>

@@ -13,6 +13,9 @@ param(
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
+Add-Type -AssemblyName UIAutomationClient
+Add-Type -AssemblyName UIAutomationTypes
+
 Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
@@ -234,35 +237,64 @@ public static class LegacyMenuCom
 
     public static void InvokeCommand(Guid clsid, string path, int command)
     {
+        InvokeCommandMultiple(clsid, new[] { path }, command);
+    }
+
+    public static void InvokeCommandMultiple(Guid clsid, string[] paths, int command)
+    {
+        if (paths == null || paths.Length == 0)
+        {
+            throw new ArgumentException("パスが指定されていません。", nameof(paths));
+        }
+
         object comObject = Create(clsid);
         IntPtr parentPidl = IntPtr.Zero;
-        IntPtr fullPidl = IntPtr.Zero;
-        IntPtr shellFolder = IntPtr.Zero;
         IntPtr dataObject = IntPtr.Zero;
+        var fullPidls = new IntPtr[paths.Length];
+        var childPidls = new IntPtr[paths.Length];
         try
         {
             IShellExtInit shellExtInit = (IShellExtInit)comObject;
             IContextMenu menu = (IContextMenu)comObject;
 
-            string parentDirectory = System.IO.Path.GetDirectoryName(path);
+            string parentDirectory = System.IO.Path.GetDirectoryName(paths[0]);
             if (string.IsNullOrEmpty(parentDirectory))
             {
-                throw new InvalidOperationException("親フォルダを特定できません: " + path);
+                throw new InvalidOperationException("親フォルダを特定できません: " + paths[0]);
             }
 
+            parentDirectory = System.IO.Path.GetFullPath(parentDirectory);
             uint attributes;
             ThrowIfFailed(SHParseDisplayName(parentDirectory, IntPtr.Zero, out parentPidl, 0, out attributes));
-            ThrowIfFailed(SHParseDisplayName(path, IntPtr.Zero, out fullPidl, 0, out attributes));
 
             Guid iidShellFolder = new Guid("000214E6-0000-0000-C000-000000000046");
-            IntPtr childPidl;
-            ThrowIfFailed(SHBindToParent(fullPidl, ref iidShellFolder, out shellFolder, out childPidl));
+            for (int index = 0; index < paths.Length; index++)
+            {
+                string pathDirectory = System.IO.Path.GetFullPath(
+                    System.IO.Path.GetDirectoryName(paths[index]));
+                if (!string.Equals(pathDirectory, parentDirectory, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException(
+                        "複数選択のテスト対象は同じフォルダにある必要があります: " + paths[index]);
+                }
+
+                ThrowIfFailed(SHParseDisplayName(
+                    paths[index], IntPtr.Zero, out fullPidls[index], 0, out attributes));
+
+                IntPtr shellFolder;
+                ThrowIfFailed(SHBindToParent(
+                    fullPidls[index], ref iidShellFolder, out shellFolder, out childPidls[index]));
+                if (shellFolder != IntPtr.Zero)
+                {
+                    Marshal.Release(shellFolder);
+                }
+            }
 
             Guid iidDataObject = new Guid("0000010e-0000-0000-C000-000000000046");
             ThrowIfFailed(SHCreateDataObject(
                 parentPidl,
-                1,
-                new[] { childPidl },
+                (uint)childPidls.Length,
+                childPidls,
                 IntPtr.Zero,
                 ref iidDataObject,
                 out dataObject));
@@ -292,13 +324,12 @@ public static class LegacyMenuCom
             {
                 Marshal.Release(dataObject);
             }
-            if (shellFolder != IntPtr.Zero)
+            foreach (IntPtr fullPidl in fullPidls)
             {
-                Marshal.Release(shellFolder);
-            }
-            if (fullPidl != IntPtr.Zero)
-            {
-                Marshal.FreeCoTaskMem(fullPidl);
+                if (fullPidl != IntPtr.Zero)
+                {
+                    Marshal.FreeCoTaskMem(fullPidl);
+                }
             }
             if (parentPidl != IntPtr.Zero)
             {
@@ -607,22 +638,83 @@ function Assert-RegistrationLayout {
     Write-Host '  OK: 旧圧縮ハンドラー（CLSID / 登録キー）は掃除済み'
 }
 
-function Wait-CompressProcess {
-    param([string]$SourcePath, [int]$TimeoutSeconds = 30)
+function Wait-HodozipProcess {
+    param([string[]]$Paths, [string]$SwitchName, [int]$TimeoutSeconds = 30)
 
     $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
     while ([DateTime]::UtcNow -lt $deadline) {
+        $matches = @()
         $processes = Get-CimInstance Win32_Process -Filter "Name='Hodozip.exe'" -ErrorAction SilentlyContinue
         foreach ($process in $processes) {
-            if ($null -ne $process.CommandLine -and $process.CommandLine.Contains($SourcePath)) {
-                return $process
+            if ($null -eq $process.CommandLine -or -not $process.CommandLine.Contains($SwitchName)) {
+                continue
+            }
+
+            $matchesAll = $true
+            foreach ($path in $Paths) {
+                if (-not $process.CommandLine.Contains($path)) {
+                    $matchesAll = $false
+                    break
+                }
+            }
+
+            if ($matchesAll) {
+                $matches += $process
             }
         }
+
+        if ($matches.Count -eq 1) {
+            return $matches[0]
+        }
+
+        if ($matches.Count -gt 1) {
+            throw "E2E 失敗: 複数選択で Hodozip が $($matches.Count) 個起動しました（1 個である必要があります）。"
+        }
+
         Start-Sleep -Milliseconds 250
     }
 
     Get-Process Hodozip -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-    throw "圧縮用の Hodozip プロセスが $TimeoutSeconds 秒以内に起動しませんでした: $SourcePath"
+    throw "$SwitchName 用の Hodozip プロセスが $TimeoutSeconds 秒以内に起動しませんでした。"
+}
+
+function Wait-CompressProcess {
+    param([string]$SourcePath, [int]$TimeoutSeconds = 30)
+    return Wait-HodozipProcess -Paths @($SourcePath) -SwitchName '--compress' -TimeoutSeconds $TimeoutSeconds
+}
+
+function Wait-BatchDialog {
+    param([int]$HodozipProcessId, [int]$TimeoutSeconds = 30)
+
+    $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+    while ([DateTime]::UtcNow -lt $deadline) {
+        $condition = New-Object System.Windows.Automation.AndCondition(
+            (New-Object System.Windows.Automation.PropertyCondition(
+                [System.Windows.Automation.AutomationElement]::ProcessIdProperty,
+                $HodozipProcessId)),
+            (New-Object System.Windows.Automation.PropertyCondition(
+                [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
+                'BatchExtractionDialog')))
+        $dialog = [System.Windows.Automation.AutomationElement]::RootElement.FindFirst(
+            [System.Windows.Automation.TreeScope]::Descendants,
+            $condition)
+        if ($null -ne $dialog) {
+            return $dialog
+        }
+        Start-Sleep -Milliseconds 300
+    }
+
+    throw "E2E 失敗: まとめて解凍ダイアログ（AutomationId=BatchExtractionDialog）が $TimeoutSeconds 秒以内に表示されませんでした。"
+}
+
+function New-BatchTestZip {
+    param([string]$ZipPath, [string]$FolderName, [string]$FileName, [string]$Content)
+
+    Remove-Item -LiteralPath $ZipPath -Force -ErrorAction SilentlyContinue
+    $source = Join-Path $payload $FolderName
+    New-Item -ItemType Directory -Path $source -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $source $FileName) -Value $Content -Encoding utf8
+    Compress-Archive -LiteralPath $source -DestinationPath $ZipPath -CompressionLevel Optimal
 }
 
 function New-TestZip {
@@ -726,6 +818,61 @@ try {
     Wait-HodozipExit
     Assert-Content -Path (Join-Path $archives 'Top\a.txt') -Expected 'legacy here A' -Label 'Top\a.txt'
     Assert-Content -Path (Join-Path $archives 'Top\sub\b.txt') -Expected 'legacy here B' -Label 'Top\sub\b.txt'
+
+    Write-Host '=== L3b: COM から「Hodozip で解凍」を複数選択で実行 ==='
+    $batchZipA = Join-Path $archives 'legacy-batch-a.zip'
+    $batchZipB = Join-Path $archives 'legacy-batch-b.zip'
+    New-BatchTestZip -ZipPath $batchZipA -FolderName 'LegacyBatchA' -FileName 'a.txt' -Content 'legacy batch A'
+    New-BatchTestZip -ZipPath $batchZipB -FolderName 'LegacyBatchB' -FileName 'b.txt' -Content 'legacy batch B'
+
+    [LegacyMenuCom]::InvokeCommandMultiple($legacyClsid, @($batchZipA, $batchZipB), 0)
+    $batchProcess = Wait-HodozipProcess -Paths @($batchZipA, $batchZipB) -SwitchName '--extract-here'
+    Write-Host "  OK: Hodozip は 1 プロセスだけ起動 (PID=$($batchProcess.ProcessId))"
+
+    $batchDialog = Wait-BatchDialog -HodozipProcessId $batchProcess.ProcessId
+    Write-Host "  OK: まとめて解凍ダイアログを検出 ($($batchDialog.Current.Name))"
+
+    $batchDestination = Join-Path $workRoot 'batch-output'
+    $destinationCondition = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
+        'BatchDestinationBox')
+    $destinationBox = $batchDialog.FindFirst(
+        [System.Windows.Automation.TreeScope]::Descendants,
+        $destinationCondition)
+    if ($null -eq $destinationBox) {
+        throw 'E2E 失敗: まとめて解凍ダイアログの解凍先入力欄が見つかりませんでした。'
+    }
+
+    $destinationBox.GetCurrentPattern(
+        [System.Windows.Automation.ValuePattern]::Pattern).SetValue($batchDestination)
+    Start-Sleep -Milliseconds 300
+
+    $primaryCondition = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
+        'PrimaryButton')
+    $primaryButton = $batchDialog.FindFirst(
+        [System.Windows.Automation.TreeScope]::Descendants,
+        $primaryCondition)
+    if ($null -eq $primaryButton) {
+        throw 'E2E 失敗: まとめて解凍ダイアログの実行ボタンが見つかりませんでした。'
+    }
+
+    $primaryButton.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+
+    $batchDeadline = [DateTime]::UtcNow.AddSeconds(45)
+    while ([DateTime]::UtcNow -lt $batchDeadline) {
+        if ((Test-Path -LiteralPath (Join-Path $batchDestination 'LegacyBatchA\a.txt')) -and
+            (Test-Path -LiteralPath (Join-Path $batchDestination 'LegacyBatchB\b.txt'))) {
+            break
+        }
+        Start-Sleep -Milliseconds 250
+    }
+
+    Assert-Content -Path (Join-Path $batchDestination 'LegacyBatchA\a.txt') -Expected 'legacy batch A' -Label 'LegacyBatchA\a.txt'
+    Assert-Content -Path (Join-Path $batchDestination 'LegacyBatchB\b.txt') -Expected 'legacy batch B' -Label 'LegacyBatchB\b.txt'
+
+    Stop-Process -Id $batchProcess.ProcessId -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Milliseconds 500
 
     Write-Host '=== L4: 実シェル メニュー「Hodozip でフォルダに解凍」を実行 ==='
     Invoke-ShellVerb -Path $folderZip -VerbName 'Hodozip でフォルダに解凍'

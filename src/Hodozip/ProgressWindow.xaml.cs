@@ -17,6 +17,8 @@ public sealed partial class ProgressWindow : Window
     private const int FileNameMaxLength = 44;
 
     private readonly string? _archivePath;
+    private readonly IReadOnlyList<string>? _batchArchivePaths;
+    private readonly string? _batchDestination;
     private readonly CompressionRequest? _compressionRequest;
     private readonly string _displayName;
     private readonly bool _isCommandLine;
@@ -50,6 +52,8 @@ public sealed partial class ProgressWindow : Window
         InitializeComponent();
 
         _archivePath = archivePath;
+        _batchArchivePaths = null;
+        _batchDestination = null;
         _compressionRequest = null;
         _displayName = Path.GetFileName(archivePath);
         _isCommandLine = isCommandLine;
@@ -60,11 +64,34 @@ public sealed partial class ProgressWindow : Window
         SetDestination(Path.GetDirectoryName(archivePath) ?? Environment.CurrentDirectory);
     }
 
+    /// <summary>複数のアーカイブを 1 つのフォルダへまとめて解凍する。</summary>
+    public ProgressWindow(
+        IReadOnlyList<string> archivePaths,
+        string destinationDirectory,
+        bool isCommandLine)
+    {
+        InitializeComponent();
+
+        _archivePath = null;
+        _batchArchivePaths = archivePaths.ToArray();
+        _batchDestination = destinationDirectory;
+        _compressionRequest = null;
+        _displayName = Loc.Progress_BatchDisplayName(archivePaths.Count);
+        _isCommandLine = isCommandLine;
+        _destinationMode = ExtractionDestinationMode.DirectToFolder;
+        _settings = SettingsService.Load();
+
+        ConfigureCommon();
+        SetDestination(destinationDirectory);
+    }
+
     public ProgressWindow(CompressionRequest request, bool isCommandLine)
     {
         InitializeComponent();
 
         _archivePath = null;
+        _batchArchivePaths = null;
+        _batchDestination = null;
         _compressionRequest = request;
         _displayName = Path.GetFileName(request.OutputPath);
         _isCommandLine = isCommandLine;
@@ -80,6 +107,8 @@ public sealed partial class ProgressWindow : Window
     public event EventHandler<CompressionResult>? CompressionCompleted;
 
     public bool IsCompleted => _completed;
+
+    private bool IsBatch => _batchArchivePaths is { Count: > 1 };
 
     private void ConfigureCommon()
     {
@@ -142,8 +171,20 @@ public sealed partial class ProgressWindow : Window
             ZipFileNameEncoding = _settings.ZipFileNameEncoding,
         };
 
-        var destination = await ResolveConfiguredDestinationAsync().ConfigureAwait(false);
-        if (destination.Cancelled)
+        var cancelled = false;
+        string? destinationDirectory;
+        if (IsBatch)
+        {
+            destinationDirectory = _batchDestination;
+        }
+        else
+        {
+            var destination = await ResolveConfiguredDestinationAsync().ConfigureAwait(false);
+            cancelled = destination.Cancelled;
+            destinationDirectory = destination.Directory;
+        }
+
+        if (cancelled)
         {
             var cancelledResult = CreateFailureResult(
                 Loc.Progress_CancelledMessage,
@@ -156,11 +197,17 @@ public sealed partial class ProgressWindow : Window
         ExtractionResult result;
         try
         {
-            result = await _extractor
-                .ExtractAsync(
-                    new ExtractionRequest(_archivePath!, destination.Directory, options, _destinationMode),
-                    _cancellation.Token)
-                .ConfigureAwait(false);
+            result = IsBatch
+                ? await _extractor
+                    .ExtractManyAsync(
+                        new MultiArchiveExtractionRequest(_batchArchivePaths!, destinationDirectory!, options),
+                        _cancellation.Token)
+                    .ConfigureAwait(false)
+                : await _extractor
+                    .ExtractAsync(
+                        new ExtractionRequest(_archivePath!, destinationDirectory, options, _destinationMode),
+                        _cancellation.Token)
+                    .ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -227,13 +274,15 @@ public sealed partial class ProgressWindow : Window
         {
             Success = false,
             Cancelled = cancelled,
-            DestinationPath = Path.GetDirectoryName(_archivePath!) ?? Environment.CurrentDirectory,
+            DestinationPath = _batchDestination
+                ?? Path.GetDirectoryName(_archivePath!) ?? Environment.CurrentDirectory,
+            ArchiveCount = _batchArchivePaths?.Count ?? 1,
             Issues = new[]
             {
                 new ExtractionIssue(
                     cancelled ? ExtractionIssueSeverity.Warning : ExtractionIssueSeverity.Error,
                     cancelled ? ExtractionIssueKind.Cancelled : ExtractionIssueKind.ArchiveError,
-                    _archivePath!,
+                    IsBatch ? string.Empty : _archivePath ?? string.Empty,
                     message)
                 {
                     MessageKey = messageKey,
@@ -379,7 +428,12 @@ public sealed partial class ProgressWindow : Window
         }
 
         SetCurrentFile(progress.CurrentFile, progress.CurrentFileProcessedBytes, progress.CurrentFileTotalBytes);
-        StatusText.Text = Loc.Progress_Extracting;
+        StatusText.Text = progress.ArchiveCount > 1 && !string.IsNullOrEmpty(progress.ArchiveName)
+            ? Loc.Progress_ExtractingBatch(
+                progress.ArchiveIndex,
+                progress.ArchiveCount,
+                MiddleEllipsis.CompactMiddle(progress.ArchiveName, FileNameMaxLength))
+            : Loc.Progress_Extracting;
     }
 
     private void UpdateCompressionProgress(CompressionProgress progress)
@@ -469,23 +523,47 @@ public sealed partial class ProgressWindow : Window
         if (result.Success)
         {
             Title = $"100% / {_displayName}";
-            StatusText.Text = warnings > 0
-                ? Loc.Progress_CompletedWarnings(warnings, result.SkippedFileCount)
-                : Loc.Progress_Completed(result.ExtractedFileCount, result.SkippedFileCount);
+            if (IsBatch)
+            {
+                StatusText.Text = warnings > 0
+                    ? Loc.Progress_BatchCompletedWarnings(
+                        result.ArchiveCount,
+                        result.ExtractedFileCount,
+                        result.SkippedFileCount,
+                        warnings)
+                    : Loc.Progress_BatchCompleted(
+                        result.ArchiveCount,
+                        result.ExtractedFileCount,
+                        result.SkippedFileCount);
+            }
+            else
+            {
+                StatusText.Text = warnings > 0
+                    ? Loc.Progress_CompletedWarnings(warnings, result.SkippedFileCount)
+                    : Loc.Progress_Completed(result.ExtractedFileCount, result.SkippedFileCount);
+            }
+
             StatusText.Foreground = (Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
         }
         else if (result.Cancelled)
         {
             Title = $"{Loc.Progress_CancelledTitle} / {_displayName}";
-            StatusText.Text = Loc.Progress_Cancelled;
+            StatusText.Text = IsBatch
+                ? Loc.Progress_BatchCancelled(result.SucceededArchiveCount, result.ArchiveCount)
+                : Loc.Progress_Cancelled;
             StatusText.Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
         }
         else
         {
             Title = $"{Loc.Progress_ErrorTitle} / {_displayName}";
             var error = result.Issues.FirstOrDefault(x => x.Severity == ExtractionIssueSeverity.Error);
-            var message = error is null ? Loc.Progress_FailedMessage : LocalizationService.GetIssueMessage(error);
-            StatusText.Text = Loc.Progress_ErrorStatus(MiddleEllipsis.CompactMiddle(message, 56));
+            var message = error is null ? Loc.Progress_FailedMessage : FormatIssueMessage(error);
+            StatusText.Text = IsBatch
+                ? Loc.Progress_BatchErrorStatus(
+                    Math.Max(0, result.ArchiveCount - result.SucceededArchiveCount),
+                    result.ArchiveCount,
+                    MiddleEllipsis.CompactMiddle(message, 40))
+                : Loc.Progress_ErrorStatus(MiddleEllipsis.CompactMiddle(message, 56));
             ToolTipService.SetToolTip(StatusText, message);
             StatusText.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
         }
@@ -938,10 +1016,18 @@ public sealed partial class ProgressWindow : Window
             : Loc.Notification_ExtractFailedMessage(
                 _displayName,
                 result.Issues.FirstOrDefault(x => x.Severity == ExtractionIssueSeverity.Error) is { } issue
-                    ? LocalizationService.GetIssueMessage(issue)
+                    ? FormatIssueMessage(issue)
                     : Loc.Progress_FailedMessage);
 
         NotificationService.NotifyCompletion(title, message, _settings);
+    }
+
+    private static string FormatIssueMessage(ExtractionIssue issue)
+    {
+        var message = LocalizationService.GetIssueMessage(issue);
+        return string.IsNullOrEmpty(issue.ArchivePath)
+            ? message
+            : $"{Path.GetFileName(issue.ArchivePath)}: {message}";
     }
 
     private void NotifyCompressionCompleted(CompressionResult result)

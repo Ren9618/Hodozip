@@ -1,6 +1,9 @@
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
+Add-Type -AssemblyName UIAutomationClient
+Add-Type -AssemblyName UIAutomationTypes
+
 Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
@@ -257,34 +260,73 @@ function Wait-HodozipExit {
     throw "Hodozip が $TimeoutSeconds 秒以内に終了しませんでした。"
 }
 
-function Wait-CompressProcess {
-    param([string[]]$SourcePaths, [int]$TimeoutSeconds = 30)
+function Wait-HodozipProcess {
+    param([string[]]$Paths, [string]$SwitchName, [int]$TimeoutSeconds = 30)
 
     $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
     while ([DateTime]::UtcNow -lt $deadline) {
+        $matches = @()
         $processes = Get-CimInstance Win32_Process -Filter "Name='Hodozip.exe'" -ErrorAction SilentlyContinue
         foreach ($process in $processes) {
-            if ($null -eq $process.CommandLine) {
+            if ($null -eq $process.CommandLine -or -not $process.CommandLine.Contains($SwitchName)) {
                 continue
             }
 
             $matchesAll = $true
-            foreach ($sourcePath in $SourcePaths) {
-                if (-not $process.CommandLine.Contains($sourcePath)) {
+            foreach ($path in $Paths) {
+                if (-not $process.CommandLine.Contains($path)) {
                     $matchesAll = $false
                     break
                 }
             }
 
             if ($matchesAll) {
-                return $process
+                $matches += $process
             }
         }
+
+        if ($matches.Count -eq 1) {
+            return $matches[0]
+        }
+
+        if ($matches.Count -gt 1) {
+            throw "E2E 失敗: 複数選択で Hodozip が $($matches.Count) 個起動しました（1 個である必要があります）。"
+        }
+
         Start-Sleep -Milliseconds 250
     }
 
     Get-Process Hodozip -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-    throw "圧縮用の Hodozip プロセスが $TimeoutSeconds 秒以内に起動しませんでした。"
+    throw "$SwitchName 用の Hodozip プロセスが $TimeoutSeconds 秒以内に起動しませんでした。"
+}
+
+function Wait-CompressProcess {
+    param([string[]]$SourcePaths, [int]$TimeoutSeconds = 30)
+    return Wait-HodozipProcess -Paths $SourcePaths -SwitchName '--compress' -TimeoutSeconds $TimeoutSeconds
+}
+
+function Wait-BatchDialog {
+    param([int]$HodozipProcessId, [int]$TimeoutSeconds = 30)
+
+    $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+    while ([DateTime]::UtcNow -lt $deadline) {
+        $condition = New-Object System.Windows.Automation.AndCondition(
+            (New-Object System.Windows.Automation.PropertyCondition(
+                [System.Windows.Automation.AutomationElement]::ProcessIdProperty,
+                $HodozipProcessId)),
+            (New-Object System.Windows.Automation.PropertyCondition(
+                [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
+                'BatchExtractionDialog')))
+        $dialog = [System.Windows.Automation.AutomationElement]::RootElement.FindFirst(
+            [System.Windows.Automation.TreeScope]::Descendants,
+            $condition)
+        if ($null -ne $dialog) {
+            return $dialog
+        }
+        Start-Sleep -Milliseconds 300
+    }
+
+    throw "E2E 失敗: まとめて解凍ダイアログ（AutomationId=BatchExtractionDialog）が $TimeoutSeconds 秒以内に表示されませんでした。"
 }
 
 $settingsBackup = $null
@@ -363,6 +405,66 @@ try {
     Wait-HodozipExit
     Assert-Exists -Path (Join-Path $archives 'context-seven\hello.txt') -Label 'context-seven\hello.txt'
     Assert-Exists -Path (Join-Path $archives 'context-seven\Top\a.txt') -Label 'context-seven\Top\a.txt'
+
+    Write-Host '=== コンテキストメニュー verb: Hodozip で解凍（複数選択） ==='
+    $batchPayloadA = Join-Path $payload 'BatchA'
+    $batchPayloadB = Join-Path $payload 'BatchB'
+    New-Item -ItemType Directory -Path $batchPayloadA, $batchPayloadB -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $batchPayloadA 'a.txt') -Value 'context batch A' -Encoding utf8
+    Set-Content -LiteralPath (Join-Path $batchPayloadB 'b.txt') -Value 'context batch B' -Encoding utf8
+    $batchZipA = Join-Path $archives 'context-batch-a.zip'
+    $batchZipB = Join-Path $archives 'context-batch-b.zip'
+    Compress-Archive -LiteralPath $batchPayloadA -DestinationPath $batchZipA -CompressionLevel Optimal
+    Compress-Archive -LiteralPath $batchPayloadB -DestinationPath $batchZipB -CompressionLevel Optimal
+
+    [ExplorerCommandTest]::InvokeMultiple($extractHereClsid, @($batchZipA, $batchZipB))
+    $batchProcess = Wait-HodozipProcess -Paths @($batchZipA, $batchZipB) -SwitchName '--extract-here'
+    Write-Host "  OK: Hodozip は 1 プロセスだけ起動 (PID=$($batchProcess.ProcessId))"
+
+    $batchDialog = Wait-BatchDialog -HodozipProcessId $batchProcess.ProcessId
+    Write-Host "  OK: まとめて解凍ダイアログを検出 ($($batchDialog.Current.Name))"
+
+    $batchDestination = Join-Path $workRoot 'batch-output'
+    $destinationCondition = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
+        'BatchDestinationBox')
+    $destinationBox = $batchDialog.FindFirst(
+        [System.Windows.Automation.TreeScope]::Descendants,
+        $destinationCondition)
+    if ($null -eq $destinationBox) {
+        throw 'E2E 失敗: まとめて解凍ダイアログの解凍先入力欄が見つかりませんでした。'
+    }
+
+    $destinationBox.GetCurrentPattern(
+        [System.Windows.Automation.ValuePattern]::Pattern).SetValue($batchDestination)
+    Start-Sleep -Milliseconds 300
+
+    $primaryCondition = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
+        'PrimaryButton')
+    $primaryButton = $batchDialog.FindFirst(
+        [System.Windows.Automation.TreeScope]::Descendants,
+        $primaryCondition)
+    if ($null -eq $primaryButton) {
+        throw 'E2E 失敗: まとめて解凍ダイアログの実行ボタンが見つかりませんでした。'
+    }
+
+    $primaryButton.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+
+    $batchDeadline = [DateTime]::UtcNow.AddSeconds(45)
+    while ([DateTime]::UtcNow -lt $batchDeadline) {
+        if ((Test-Path -LiteralPath (Join-Path $batchDestination 'BatchA\a.txt')) -and
+            (Test-Path -LiteralPath (Join-Path $batchDestination 'BatchB\b.txt'))) {
+            break
+        }
+        Start-Sleep -Milliseconds 250
+    }
+
+    Assert-Exists -Path (Join-Path $batchDestination 'BatchA\a.txt') -Label 'BatchA\a.txt'
+    Assert-Exists -Path (Join-Path $batchDestination 'BatchB\b.txt') -Label 'BatchB\b.txt'
+
+    Stop-Process -Id $batchProcess.ProcessId -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Milliseconds 500
 
     Write-Host '=== コンテキストメニュー verb: Hodozip で圧縮（複数選択） ==='
     [ExplorerCommandTest]::InvokeMultiple($compressClsid, @($compressSourceA, $compressSourceB))
