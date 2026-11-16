@@ -378,6 +378,23 @@ public sealed class Phase3ExtractionTests : IDisposable
     }
 
     [Theory]
+    [InlineData("setup.msi", true)]
+    [InlineData("app.msix", true)]
+    [InlineData("app.appx", true)]
+    [InlineData("bundle.msixbundle", true)]
+    [InlineData("bundle.appxbundle", true)]
+    [InlineData("update.msu", true)]
+    [InlineData("patch.msp", true)]
+    [InlineData("merge.msm", true)]
+    [InlineData("archive.zip", false)]
+    [InlineData("archive.msi.zip", false)]
+    [InlineData("archive", false)]
+    public void IsInstallerPackageExtension_DetectsInstallerPackages(string path, bool expected)
+    {
+        Assert.Equal(expected, ArchiveFormats.IsInstallerPackageExtension(path));
+    }
+
+    [Theory]
     [InlineData("archive.tar.gz", "archive")]
     [InlineData("archive.tgz", "archive")]
     [InlineData("archive.tar.bz2", "archive")]

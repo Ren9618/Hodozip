@@ -451,17 +451,19 @@ try {
 
     $primaryButton.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
 
+    $batchRootA = Join-Path $batchDestination 'context-batch-a'
+    $batchRootB = Join-Path $batchDestination 'context-batch-b'
     $batchDeadline = [DateTime]::UtcNow.AddSeconds(45)
     while ([DateTime]::UtcNow -lt $batchDeadline) {
-        if ((Test-Path -LiteralPath (Join-Path $batchDestination 'BatchA\a.txt')) -and
-            (Test-Path -LiteralPath (Join-Path $batchDestination 'BatchB\b.txt'))) {
+        if ((Test-Path -LiteralPath (Join-Path $batchRootA 'BatchA\a.txt')) -and
+            (Test-Path -LiteralPath (Join-Path $batchRootB 'BatchB\b.txt'))) {
             break
         }
         Start-Sleep -Milliseconds 250
     }
 
-    Assert-Exists -Path (Join-Path $batchDestination 'BatchA\a.txt') -Label 'BatchA\a.txt'
-    Assert-Exists -Path (Join-Path $batchDestination 'BatchB\b.txt') -Label 'BatchB\b.txt'
+    Assert-Exists -Path (Join-Path $batchRootA 'BatchA\a.txt') -Label 'context-batch-a\BatchA\a.txt'
+    Assert-Exists -Path (Join-Path $batchRootB 'BatchB\b.txt') -Label 'context-batch-b\BatchB\b.txt'
 
     Stop-Process -Id $batchProcess.ProcessId -Force -ErrorAction SilentlyContinue
     Start-Sleep -Milliseconds 500

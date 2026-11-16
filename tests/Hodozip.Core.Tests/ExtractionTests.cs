@@ -530,10 +530,10 @@ public sealed class ExtractionTests : IDisposable
     }
 
     [Fact]
-    public async Task ExtractMany_MergesArchivesIntoOneDestination()
+    public async Task ExtractMany_CreatesRootFolderPerArchive()
     {
         var archiveDirectory = Path.Combine(_root, "archives");
-        var destination = Path.Combine(_root, "merged");
+        var destination = Path.Combine(_root, "batch");
         var first = ZipFactory.Create(
             archiveDirectory,
             "first.zip",
@@ -554,17 +554,23 @@ public sealed class ExtractionTests : IDisposable
         Assert.Equal(2, result.ArchiveCount);
         Assert.Equal(2, result.SucceededArchiveCount);
         Assert.Equal(4, result.ExtractedFileCount);
-        Assert.Equal("1", await File.ReadAllTextAsync(Path.Combine(destination, "Shared", "one.txt")));
-        Assert.Equal("2", await File.ReadAllTextAsync(Path.Combine(destination, "Shared", "two.txt")));
-        Assert.Equal("r1", await File.ReadAllTextAsync(Path.Combine(destination, "root1.txt")));
-        Assert.Equal("r2", await File.ReadAllTextAsync(Path.Combine(destination, "root2.txt")));
+        Assert.Equal("1", await File.ReadAllTextAsync(
+            Path.Combine(destination, "first", "Shared", "one.txt")));
+        Assert.Equal("r1", await File.ReadAllTextAsync(
+            Path.Combine(destination, "first", "root1.txt")));
+        Assert.Equal("2", await File.ReadAllTextAsync(
+            Path.Combine(destination, "second", "Shared", "two.txt")));
+        Assert.Equal("r2", await File.ReadAllTextAsync(
+            Path.Combine(destination, "second", "root2.txt")));
+        Assert.False(File.Exists(Path.Combine(destination, "root1.txt")));
+        Assert.False(Directory.Exists(Path.Combine(destination, "Shared")));
     }
 
     [Fact]
     public async Task ExtractMany_ContinuesAfterOneArchiveFails()
     {
         var archiveDirectory = Path.Combine(_root, "archives");
-        var destination = Path.Combine(_root, "merged");
+        var destination = Path.Combine(_root, "batch");
         var good = ZipFactory.Create(archiveDirectory, "good.zip", ("good.txt", "ok"));
         var missing = Path.Combine(archiveDirectory, "missing.zip");
 
@@ -574,11 +580,59 @@ public sealed class ExtractionTests : IDisposable
         Assert.False(result.Success);
         Assert.Equal(2, result.ArchiveCount);
         Assert.Equal(1, result.SucceededArchiveCount);
-        Assert.Equal("ok", await File.ReadAllTextAsync(Path.Combine(destination, "good.txt")));
+        Assert.Equal("ok", await File.ReadAllTextAsync(
+            Path.Combine(destination, "good", "good.txt")));
+        Assert.False(Directory.Exists(Path.Combine(destination, "missing")));
         var error = Assert.Single(
             result.Issues,
             x => x.Severity == ExtractionIssueSeverity.Error);
         Assert.Equal(missing, error.ArchivePath);
+    }
+
+    [Fact]
+    public async Task ExtractMany_AddsNumberSuffixForDuplicateArchiveNames()
+    {
+        var destination = Path.Combine(_root, "batch");
+        var first = ZipFactory.Create(
+            Path.Combine(_root, "archives", "a"),
+            "report.zip",
+            ("a.txt", "A"));
+        var second = ZipFactory.Create(
+            Path.Combine(_root, "archives", "b"),
+            "report.zip",
+            ("b.txt", "B"));
+
+        var result = await new SharpCompressExtractor().ExtractManyAsync(
+            new MultiArchiveExtractionRequest(new[] { first, second }, destination));
+
+        Assert.True(result.Success);
+        Assert.Equal("A", await File.ReadAllTextAsync(
+            Path.Combine(destination, "report", "a.txt")));
+        Assert.Equal("B", await File.ReadAllTextAsync(
+            Path.Combine(destination, "report (2)", "b.txt")));
+    }
+
+    [Fact]
+    public async Task ExtractMany_NumbersRootWhenFolderAlreadyExists()
+    {
+        var destination = Path.Combine(_root, "batch");
+        var existingRoot = Path.Combine(destination, "first");
+        Directory.CreateDirectory(existingRoot);
+        await File.WriteAllTextAsync(Path.Combine(existingRoot, "keep.txt"), "keep");
+        var archive = ZipFactory.Create(
+            Path.Combine(_root, "archives"),
+            "first.zip",
+            ("new.txt", "new"));
+
+        var result = await new SharpCompressExtractor().ExtractManyAsync(
+            new MultiArchiveExtractionRequest(new[] { archive }, destination));
+
+        Assert.True(result.Success);
+        Assert.Equal("keep", await File.ReadAllTextAsync(
+            Path.Combine(existingRoot, "keep.txt")));
+        Assert.False(File.Exists(Path.Combine(existingRoot, "new.txt")));
+        Assert.Equal("new", await File.ReadAllTextAsync(
+            Path.Combine(destination, "first (2)", "new.txt")));
     }
 
     [Fact]
@@ -602,10 +656,16 @@ public sealed class ExtractionTests : IDisposable
         Assert.True(result.Success);
         Assert.Contains(
             reports,
-            x => x.ArchiveIndex == 1 && x.ArchiveCount == 2 && x.ArchiveName == "first.zip");
+            x => x.ArchiveIndex == 1
+                && x.ArchiveCount == 2
+                && x.ArchiveName == "first.zip"
+                && x.DestinationPath == Path.Combine(destination, "first"));
         Assert.Contains(
             reports,
-            x => x.ArchiveIndex == 2 && x.ArchiveCount == 2 && x.ArchiveName == "second.zip");
+            x => x.ArchiveIndex == 2
+                && x.ArchiveCount == 2
+                && x.ArchiveName == "second.zip"
+                && x.DestinationPath == Path.Combine(destination, "second"));
     }
 
     private static async Task<ExtractionResult> ExtractAsync(

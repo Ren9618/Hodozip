@@ -36,8 +36,8 @@
   <data name="Main_UnsupportedTitle" xml:space="preserve"><value>対応していない形式です</value></data>
   <data name="Main_UnsupportedDropMessage" xml:space="preserve"><value>ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST などのアーカイブをドロップしてください。</value></data>
   <data name="Batch_Title" xml:space="preserve"><value>まとめて解凍</value></data>
-  <data name="Batch_Message" xml:space="preserve"><value>{0} 個のアーカイブを 1 つのフォルダにまとめて解凍します。</value></data>
-  <data name="Batch_Note" xml:space="preserve"><value>各アーカイブ内のフォルダ構成はそのまま保持されます。同名のファイルがある場合は、上書き設定に従って処理します。</value></data>
+  <data name="Batch_Message" xml:space="preserve"><value>{0} 個のアーカイブを、それぞれの名前のフォルダにまとめて解凍します。</value></data>
+  <data name="Batch_Note" xml:space="preserve"><value>指定したフォルダの下にアーカイブごとのフォルダを作成します。同名のフォルダがある場合は連番を付け、各アーカイブ内のフォルダ構成はそのまま保持されます。</value></data>
   <data name="Batch_Destination" xml:space="preserve"><value>解凍先フォルダ</value></data>
   <data name="Batch_DestinationRequired" xml:space="preserve"><value>解凍先フォルダを指定してください。</value></data>
   <data name="Batch_DestinationIsFile" xml:space="preserve"><value>同名のファイルが存在します。フォルダを指定してください。</value></data>
@@ -327,10 +327,11 @@
   <data name="Settings_SkipNewer" xml:space="preserve"><value>既存ファイルの方が新しい場合は確認しない</value></data>
   <data name="Settings_SkipNewerNote" xml:space="preserve"><value>上書き確認が「毎回確認」のとき、既存ファイルの更新日時がアーカイブ内より新しいエントリは自動でスキップし、完了レポートのスキップ件数に数えます。</value></data>
   <data name="Settings_Associations" xml:space="preserve"><value>関連付け（プログラムから開く）</value></data>
-  <data name="Settings_AssociationsNote" xml:space="preserve"><value>チェックした形式を「プログラムから開く」の候補に登録します。Windows が既定アプリを保護しているため、Hodozip を既定にするかどうかは Windows の設定で選んでください。</value></data>
+  <data name="Settings_AssociationsNote" xml:space="preserve"><value>チェックした形式を「プログラムから開く」の候補に登録します。Windows 11 では、下のボタンから Hodozip の専用ページを開き、「既定に設定」でまとめて変更できます。Windows 10 では形式ごとに選んでください。</value></data>
   <data name="Settings_AssociationsPackaged" xml:space="preserve"><value>MSIX 版の関連付けはパッケージ マニフェストで管理されます。ここでは変更できません。</value></data>
-  <data name="Settings_OpenDefaultApps" xml:space="preserve"><value>Windows の既定アプリ設定を開く</value></data>
-  <data name="Settings_DefaultAppsNote" xml:space="preserve"><value>既定アプリ（UserChoice）は Hodozip から変更できません。Windows の設定画面で形式ごとに選んでください。</value></data>
+  <data name="Settings_OpenDefaultApps" xml:space="preserve"><value>Hodozip を既定のアプリに設定</value></data>
+  <data name="Settings_DefaultAppsNote" xml:space="preserve"><value>既定アプリは Windows が保護しているため、Hodozip から直接変更することはできません。下のボタンから Windows の設定を開き、Hodozip を選んでください。</value></data>
+  <data name="Association_ApplicationDescription" xml:space="preserve"><value>ZIP / 7z / RAR などのアーカイブを解凍するアプリです。</value></data>
   <data name="Settings_AssociationEnabled" xml:space="preserve"><value>{0} を「プログラムから開く」に登録しました。</value></data>
   <data name="Settings_AssociationDisabled" xml:space="preserve"><value>{0} を「プログラムから開く」から解除しました。</value></data>
   <data name="Settings_AssociationFailed" xml:space="preserve"><value>{0} の関連付けキーを作成できませんでした。</value></data>

@@ -165,10 +165,13 @@ internal static class DestinationPlanner
             CreateOutputRoot: true);
     }
 
-    internal static string GetUniqueDirectoryPath(string baseDirectory, string name)
+    internal static string GetUniqueDirectoryPath(
+        string baseDirectory,
+        string name,
+        ISet<string>? reservedPaths = null)
     {
         var candidate = Path.Combine(baseDirectory, name);
-        if (!LongPath.FileExists(candidate) && !LongPath.DirectoryExists(candidate))
+        if (IsDirectoryPathAvailable(candidate, reservedPaths))
         {
             return candidate;
         }
@@ -176,13 +179,20 @@ internal static class DestinationPlanner
         for (var number = 2; number < 10000; number++)
         {
             var numbered = Path.Combine(baseDirectory, $"{name} ({number})");
-            if (!LongPath.FileExists(numbered) && !LongPath.DirectoryExists(numbered))
+            if (IsDirectoryPathAvailable(numbered, reservedPaths))
             {
                 return numbered;
             }
         }
 
         throw new IOException($"空きフォルダ名が見つかりません: {name}");
+    }
+
+    private static bool IsDirectoryPathAvailable(string path, ISet<string>? reservedPaths)
+    {
+        return (reservedPaths is null || !reservedPaths.Contains(path))
+            && !LongPath.FileExists(path)
+            && !LongPath.DirectoryExists(path);
     }
 
     private static string GetArchiveFolderName(string archivePath)

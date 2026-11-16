@@ -7,7 +7,7 @@
 Hodozip（ホドジップ）は、往年の解凍ソフトの使い勝手を現代の実装で引き継ぐ、Windows 向けの無料・オープンソース解凍ソフトです。ZIP だけでなく 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST 系のアーカイブをドラッグ＆ドロップするだけで、解凍先フォルダを自動判定して展開します。
 
 - 製品名: Hodozip（由来: ほどく + ZIP）
-- バージョン: 0.7.2
+- バージョン: 0.7.3
 - ライセンス: MIT
 - 対応 OS: Windows 11（主対象）/ Windows 10 バージョン 19041 以降
 - 実装: C# / .NET 8 / WinUI 3（Windows App SDK）
@@ -17,10 +17,10 @@ Hodozip（ホドジップ）は、往年の解凍ソフトの使い勝手を現�
 
 [GitHub Releases](https://github.com/Ren9618/Hodozip/releases) から最新版をダウンロードできます。
 
-- 最新版: [Hodozip v0.7.2](https://github.com/Ren9618/Hodozip/releases/tag/v0.7.2)
-- `Hodozip-0.7.2-setup.exe`（インストーラー版・推奨）: 管理者権限不要で、ユーザーごとの `%LOCALAPPDATA%\Programs\Hodozip` にインストールします。スタートメニューのショートカットを作成し、任意で従来型右クリックメニューと「プログラムから開く」への登録を行います。手順は [インストーラー版のインストール](#インストーラー版のインストール推奨) を参照してください。
-- `Hodozip-0.7.2-win-x64.zip`（unpackaged 版）: 解凍して `Hodozip.exe` を起動するだけで使えます。インストールは不要です。
-- `Hodozip-0.7.2.msix`（MSIX 版・実験的）: 対応アーカイブの関連付け候補と Windows 11 の右クリックメニューが登録されます。自己署名証明書を使うため、インストール前に証明書の登録が必要です。手順は [MSIX 版のインストール](#msix-版のインストール上級者向け実験的) を参照してください。
+- 最新版: [Hodozip v0.7.3](https://github.com/Ren9618/Hodozip/releases/tag/v0.7.3)
+- `Hodozip-0.7.3-setup.exe`（インストーラー版・推奨）: 管理者権限不要で、ユーザーごとの `%LOCALAPPDATA%\Programs\Hodozip` にインストールします。スタートメニューのショートカットを作成し、任意で従来型右クリックメニューと「プログラムから開く」への登録を行います。手順は [インストーラー版のインストール](#インストーラー版のインストール推奨) を参照してください。
+- `Hodozip-0.7.3-win-x64.zip`（unpackaged 版）: 解凍して `Hodozip.exe` を起動するだけで使えます。インストールは不要です。
+- `Hodozip-0.7.3.msix`（MSIX 版・実験的）: 対応アーカイブの関連付け候補と Windows 11 の右クリックメニューが登録されます。自己署名証明書を使うため、インストール前に証明書の登録が必要です。手順は [MSIX 版のインストール](#msix-版のインストール上級者向け実験的) を参照してください。
 
 インストーラーと unpackaged 版の注意: 本バージョンは未署名のため、Windows SmartScreen の警告が表示される場合があります。「詳細情報」→「実行」で起動できます。
 
@@ -134,13 +134,13 @@ ZIP はエントリ単位で並列に解凍します。並列度は CPU コア�
 
 ### まとめて解凍
 
-「ファイルを選択」で複数のアーカイブを選ぶか、複数のアーカイブをまとめてドロップすると、1 つのフォルダへまとめて解凍できます。エクスプローラーで複数のアーカイブを選択し、右クリックメニューから実行した場合も同じまとめて解凍になります。解凍先は実行前のダイアログで確認・変更でき、各アーカイブ内のフォルダ構成はそのまま保持されます。アーカイブ名のサブフォルダは作りません。
+「ファイルを選択」で複数のアーカイブを選ぶか、複数のアーカイブをまとめてドロップすると、指定した親フォルダの下にアーカイブごとのフォルダを作ってまとめて解凍できます。エクスプローラーで複数のアーカイブを選択し、右クリックメニューから実行した場合も同じまとめて解凍になります。解凍先は実行前のダイアログで確認・変更でき、各アーカイブの内容はアーカイブ名のフォルダの中へ、元のフォルダ構成を保ったまま解凍されます。
 
 - 既定の解凍先は、設定で固定フォルダを指定している場合はそのフォルダ、それ以外は最初のアーカイブと同じ場所の `まとめて解凍` フォルダです。既に存在する場合は `まとめて解凍 (2)` のように連番を付けます。
 - 途中のアーカイブでエラーが発生しても、残りのアーカイブは続けて解凍します。完了後は成功・失敗したアーカイブ数と、失敗したアーカイブ名を表示します。
 - キャンセルすると、それ以降のアーカイブは解凍しません。
 
-展開後の名前が衝突した場合は、通常の解凍と同じ上書き設定に従います。
+アーカイブ名のフォルダが既に存在する場合は、`名前 (2)` のように連番を付けて別のフォルダを作ります。アーカイブ内で展開後の名前が衝突した場合は、通常の解凍と同じ上書き設定に従います。
 
 ### ダブルクリックですぐ解凍
 
@@ -211,7 +211,7 @@ MSIX 版をインストールすると、対応拡張子の右クリックメニ
 
 OS の表示言語が英語の場合、項目名は "Extract with Hodozip" / "Extract to folder with Hodozip" になります。複数のアーカイブを選択して実行すると、どちらの項目でも 1 回のまとめて解凍として処理し、解凍先はダイアログで指定します。
 
-対象拡張子は `.zip` `.7z` `.rar` `.msi` `.tar` `.gz` `.tgz` `.bz2` `.tbz2` `.xz` `.txz` `.zst` `.tzst` です。Windows 11 の新しい右クリックメニューに項目が表示されない場合は、「その他のオプションを表示」を選ぶか、`Shift` + `F10` で従来のメニューを開いてください。
+対象拡張子は `.zip` `.7z` `.rar` `.tar` `.gz` `.tgz` `.bz2` `.tbz2` `.xz` `.txz` `.zst` `.tzst` です。インストーラー / アプリ パッケージ（`.msi` `.msix` `.appx` `.msixbundle` `.appxbundle` `.msu` `.msp` `.msm`）は、Hodozip が既定のアプリとして開いてしまわないよう、関連付け候補と右クリックメニューの対象外にしています。MSI の中身はアプリの「ファイルを選択」やドラッグ＆ドロップから解凍できます。Windows 11 の新しい右クリックメニューに項目が表示されない場合は、「その他のオプションを表示」を選ぶか、`Shift` + `F10` で従来のメニューを開いてください。
 
 ### 従来型コンテキストメニュー（unpackaged 版）
 
@@ -281,7 +281,7 @@ ZipCrypto / AES のパスワード付き ZIP と、パスワード付き 7z に�
 ### アプリで解凍する
 
 1. `Hodozip.exe` を起動します。
-2. 対応形式のアーカイブをウィンドウへドラッグ＆ドロップするか、「ファイルを選択」からアーカイブを選びます。複数選択すると、1 つのフォルダへまとめて解凍できます。
+2. 対応形式のアーカイブをウィンドウへドラッグ＆ドロップするか、「ファイルを選択」からアーカイブを選びます。複数選択すると、アーカイブごとのフォルダにまとめて解凍できます。
 3. 解凍の進捗が表示されます。完了後、「フォルダを開く」で解凍先を確認できます。
 
 ### コマンドラインから起動する
@@ -308,21 +308,21 @@ ZipCrypto / AES のパスワード付き ZIP と、パスワード付き 7z に�
 
 アーカイブと同じフォルダへ、指定したモードに従って解凍します。「設定」で「ダブルクリック起動時の完了後、自動で閉じる」を有効にすると、コマンドライン起動時は完了後に自動で終了します（エラー時は閉じません）。
 
-複数のアーカイブ パスを指定した場合は、メイン ウィンドウでまとめて解凍ダイアログが開きます。解凍先はダイアログで選ぶため、`--extract-here` / `--extract-folder` の指定は使いません。
+複数のアーカイブ パスを指定した場合は、メイン ウィンドウでまとめて解凍ダイアログが開きます。ダイアログで選んだ親フォルダの下にアーカイブごとのフォルダを作るため、`--extract-here` / `--extract-folder` の指定は使いません。
 
 ## インストーラー版のインストール（推奨）
 
-`Hodozip-0.7.2-setup.exe` は Inno Setup で作成したインストーラーです。管理者権限は不要で、現在のユーザー向けにインストールします。
+`Hodozip-0.7.3-setup.exe` は Inno Setup で作成したインストーラーです。管理者権限は不要で、現在のユーザー向けにインストールします。
 
-1. `Hodozip-0.7.2-setup.exe` をダウンロードして実行します。未署名のため、Windows SmartScreen の警告が表示された場合は「詳細情報」→「実行」を選びます。
+1. `Hodozip-0.7.3-setup.exe` をダウンロードして実行します。未署名のため、Windows SmartScreen の警告が表示された場合は「詳細情報」→「実行」を選びます。
 2. インストール先は `%LOCALAPPDATA%\Programs\Hodozip` 固定です。インストール先の選択画面は表示されません。
 3. 「シェル統合」で以下の項目を選択できます（いずれも任意、既定でチェック済み）。
    - 従来型の右クリックメニューを登録する（このユーザーのみ）
-   - 対応アーカイブを「プログラムから開く」に追加する
+   - 対応アーカイブを「プログラムから開く」と Windows の「既定のアプリ」一覧に追加する
 4. 「デスクトップにアイコンを作成する」は既定でオフです。
 5. インストール後、スタートメニューに「Hodozip」が表示されます。
 
-インストーラーは対応拡張子を「プログラムから開く」の候補に追加するだけで、既定のアプリは変更しません。既定にするには、Windows の「設定」→「アプリ」→「既定のアプリ」で Hodozip を選ぶか、ファイルを右クリック →「プログラムから開く」→「別のプログラムを選択」→「Hodozip」→「常にこのアプリを使ってファイルを開く」を選びます。
+インストーラーは対応拡張子を「プログラムから開く」の候補と Windows の「既定のアプリ」一覧に追加しますが、既定のアプリそのものは変更しません。Windows 11 では「設定」→「アプリ」→「既定のアプリ」で Hodozip を選び、「既定に設定」を押すと対応形式をまとめて変更できます（Hodozip の設定画面にある「Hodozip を既定のアプリに設定」から専用ページを直接開くこともできます）。Windows 10 では形式ごとに選ぶか、ファイルを右クリック →「プログラムから開く」→「別のプログラムを選択」→「Hodozip」→「常にこのアプリを使ってファイルを開く」を選びます。
 
 アンインストールは「設定」→「アプリ」→「インストールされているアプリ」から Hodozip を選びます。ユーザー設定（`%LOCALAPPDATA%\Hodozip\settings.json`）は残ります。
 
@@ -332,7 +332,7 @@ MSIX 版は実験的配布です。署名にはローカルテスト用の自己
 
 ### 1. 証明書をインストールする
 
-リポジトリの [`packaging/certs/Hodozip-Test.cer`](https://github.com/Ren9618/Hodozip/raw/v0.7.2/packaging/certs/Hodozip-Test.cer) をダウンロードします。これは公開証明書のみで、秘密鍵は含まれていません。
+リポジトリの [`packaging/certs/Hodozip-Test.cer`](https://github.com/Ren9618/Hodozip/raw/v0.7.3/packaging/certs/Hodozip-Test.cer) をダウンロードします。これは公開証明書のみで、秘密鍵は含まれていません。
 
 管理者権限の PowerShell で、ダウンロードした CER を `LocalMachine\TrustedPeople`（信頼されたユーザー）に登録します。
 
@@ -346,21 +346,21 @@ certutil -addstore -f TrustedPeople .\Hodozip-Test.cer
 
 ### 2. MSIX をインストールする
 
-`Hodozip-0.7.2.msix` をダブルクリックするか、PowerShell で実行します。
+`Hodozip-0.7.3.msix` をダブルクリックするか、PowerShell で実行します。
 
 ```powershell
-Add-AppxPackage -Path .\Hodozip-0.7.2.msix
+Add-AppxPackage -Path .\Hodozip-0.7.3.msix
 ```
 
-インストール後、スタートメニューに「Hodozip」が表示されます。パッケージ ID は `Ren9618.Hodozip_0.7.2.0_x64__ex19z75j0wj0g`、アプリケーション ID は `Ren9618.Hodozip_ex19z75j0wj0g!Hodozip` です。
+インストール後、スタートメニューに「Hodozip」が表示されます。パッケージ ID は `Ren9618.Hodozip_0.7.3.0_x64__ex19z75j0wj0g`、アプリケーション ID は `Ren9618.Hodozip_ex19z75j0wj0g!Hodozip` です。
 
 ### 3. 対応拡張子の既定のアプリに設定する
 
-Windows はファイル関連付けをアプリ側から強制できません。MSIX 版をインストールすると Hodozip は対応拡張子の「プログラムから開く」候補に登録されますが、既定にするにはユーザー操作が必要です。
+Windows はファイル関連付けをアプリ側から強制できません。MSIX 版をインストールすると Hodozip は対応拡張子の「プログラムから開く」候補と「既定のアプリ」一覧に登録されますが、既定にするにはユーザー操作が必要です。
 
 1. Windows の「設定」→「アプリ」→「既定のアプリ」を開きます。
-2. `.zip` などの拡張子を検索するか、一覧から選びます。
-3. 「Hodozip」を選択します。
+2. 一覧から「Hodozip」を選びます。Windows 11 では「既定に設定」で対応形式をまとめて変更できます。
+3. 個別に変更する場合は、`.zip` などの拡張子を検索して「Hodozip」を選択します。
 
 または、ファイルを右クリック →「プログラムから開く」→「別のプログラムを選択」→「Hodozip」→「常にこのアプリを使ってファイルを開く」を選びます。
 
@@ -377,7 +377,7 @@ MSIX 版では従来型 `IContextMenu` は登録できません。詳細は [MSI
 「設定」→「アプリ」→「インストールされているアプリ」から Hodozip をアンインストールします。PowerShell の場合は以下を実行します。
 
 ```powershell
-Remove-AppxPackage Ren9618.Hodozip_0.7.2.0_x64__ex19z75j0wj0g
+Remove-AppxPackage Ren9618.Hodozip_0.7.3.0_x64__ex19z75j0wj0g
 ```
 
 証明書も不要になった場合は、管理者権限の PowerShell で以下を実行します。
@@ -419,7 +419,7 @@ Windows App SDK は self-contained で出力されるため、unpackaged 版の�
 pwsh -File packaging\build-msix.ps1
 New-Item -ItemType Directory -Path artifacts\release\Hodozip -Force | Out-Null
 Copy-Item -Path artifacts\msix\publish\* -Destination artifacts\release\Hodozip -Recurse -Force
-Compress-Archive -Path artifacts\release\Hodozip -DestinationPath Hodozip-0.7.2-win-x64.zip
+Compress-Archive -Path artifacts\release\Hodozip -DestinationPath Hodozip-0.7.3-win-x64.zip
 ```
 
 MSIX を作らずに zip 版だけ作る場合は、publish 後に C++ プロジェクトをビルドして DLL をコピーします。
@@ -428,7 +428,7 @@ MSIX を作らずに zip 版だけ作る場合は、publish 後に C++ プロジ
 dotnet publish src\Hodozip\Hodozip.csproj -c Release -p:Platform=x64 -r win-x64 --self-contained true -o publish\Hodozip
 msbuild src\Hodozip.ContextMenu\Hodozip.ContextMenu.vcxproj /p:Configuration=Release /p:Platform=x64
 Copy-Item src\Hodozip.ContextMenu\bin\x64\Release\Hodozip.ContextMenu.dll publish\Hodozip\
-Compress-Archive -Path publish\Hodozip -DestinationPath Hodozip-0.7.2-win-x64.zip
+Compress-Archive -Path publish\Hodozip -DestinationPath Hodozip-0.7.3-win-x64.zip
 ```
 
 zip のトップレベルには `Hodozip` フォルダが 1 つだけ入ります。
@@ -441,7 +441,7 @@ Inno Setup 6 がインストールされている状態で、以下を実行し�
 pwsh -File packaging\build-installer.ps1
 ```
 
-スクリプトは publish、COM DLL のビルド、インストーラー用アイコンの生成、Inno Setup のコンパイルをまとめて行います。出力は `artifacts\installer\Hodozip-0.7.2-setup.exe` と、その SHA256 ファイルです。
+スクリプトは publish、COM DLL のビルド、インストーラー用アイコンの生成、Inno Setup のコンパイルをまとめて行います。出力は `artifacts\installer\Hodozip-0.7.3-setup.exe` と、その SHA256 ファイルです。
 
 - `-SkipPublish` / `-SkipComBuild` を指定すると、既存の publish 出力や COM DLL を再利用できます。
 - `-InnoCompilerPath` で `ISCC.exe` の場所を明示できます（既定ではユーザー単位インストールの Inno Setup 6 を探します）。
@@ -459,7 +459,7 @@ pwsh -File packaging\build-msix.ps1
 2. `src\Hodozip.ContextMenu` の COM DLL を x64 Release でビルド
 3. publish 出力と COM DLL、生成したアセット画像を `artifacts\msix\staging` にステージング
 4. `packaging\Package.appxmanifest.template` から `AppxManifest.xml` を生成
-5. `makeappx.exe` で `artifacts\msix\Hodozip-0.7.2.msix` を作成
+5. `makeappx.exe` で `artifacts\msix\Hodozip-0.7.3.msix` を作成
 6. 自己署名証明書で `signtool.exe` 署名
 
 証明書は `artifacts\msix\certs\Hodozip-Test.pfx` に作成されます。PFX は秘密鍵を含むため、リポジトリや Release には含めません。
@@ -474,7 +474,7 @@ pwsh -File packaging\build-msix.ps1 -InstallTrustedCertificate
 
 ### バージョン管理
 
-バージョンは `Directory.Build.props` の `HodozipVersion` で管理します。アプリの `AssemblyVersion` / `FileVersion` と MSIX の `PackageVersion`（`0.7.2` → `0.7.2.0`）はこの値から生成されます。
+バージョンは `Directory.Build.props` の `HodozipVersion` で管理します。アプリの `AssemblyVersion` / `FileVersion` と MSIX の `PackageVersion`（`0.7.3` → `0.7.3.0`）はこの値から生成されます。
 
 ## テスト
 
@@ -552,14 +552,14 @@ MSIX の検証は、ビルドしたパッケージを実際にインストール
 certutil -addstore -f TrustedPeople artifacts\msix\certs\Hodozip-Test.cer
 
 # インストール
-Add-AppxPackage -Path artifacts\msix\Hodozip-0.7.2.msix
+Add-AppxPackage -Path artifacts\msix\Hodozip-0.7.3.msix
 
 # スタートメニューと関連付け候補の確認
 Get-StartApps | Where-Object { $_.Name -eq 'Hodozip' }
 Get-ItemProperty 'HKCU:\Software\Classes\.zip\OpenWithProgids'
 
 # アンインストール
-Remove-AppxPackage Ren9618.Hodozip_0.7.2.0_x64__ex19z75j0wj0g
+Remove-AppxPackage Ren9618.Hodozip_0.7.3.0_x64__ex19z75j0wj0g
 ```
 
 インストール後の自動 E2E も用意しています。設定ファイルを共有するため、2 つのスクリプトは同時に実行しないでください。
@@ -584,7 +584,7 @@ pwsh -File tests\e2e\run-contextmenu-e2e.ps1
 
 ```powershell
 # インストール（右クリックメニューと「プログラムから開く」を有効化）
-Start-Process artifacts\installer\Hodozip-0.7.2-setup.exe -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/TASKS="contextmenu,associate"' -Wait
+Start-Process artifacts\installer\Hodozip-0.7.3-setup.exe -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/TASKS="contextmenu,associate"' -Wait
 
 # 登録の確認
 Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\App Paths\Hodozip.exe'

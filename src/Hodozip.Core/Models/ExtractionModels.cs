@@ -29,7 +29,7 @@ public enum ExtractionDestinationMode
 
     /// <summary>
     /// 基準フォルダへ直接解凍する。アーカイブ名フォルダやトップフォルダの
-    /// 重複排除は行わない。複数アーカイブを 1 つのフォルダへまとめるときに使う。
+    /// 重複排除は行わない。フォルダの確保は呼び出し側で行う。
     /// </summary>
     DirectToFolder,
 }
@@ -169,7 +169,7 @@ public sealed class ExtractionRequest
     public ExtractionDestinationMode DestinationMode { get; }
 }
 
-/// <summary>複数のアーカイブを 1 つのフォルダへまとめて解凍する要求。</summary>
+/// <summary>複数のアーカイブを 1 つの親フォルダの下へまとめて解凍する要求。</summary>
 public sealed class MultiArchiveExtractionRequest
 {
     public MultiArchiveExtractionRequest(
@@ -187,7 +187,10 @@ public sealed class MultiArchiveExtractionRequest
 
     public IReadOnlyList<string> ArchivePaths { get; }
 
-    /// <summary>すべてのアーカイブの内容を書き出す共通フォルダ。</summary>
+    /// <summary>
+    /// アーカイブごとのルート フォルダを作成する親フォルダ。
+    /// ルート フォルダ名はアーカイブ名（拡張子なし）になる。
+    /// </summary>
     public string DestinationDirectory { get; }
 
     public ExtractionOptions Options { get; }
@@ -200,7 +203,10 @@ public sealed class ExtractionResult
 
     public bool Cancelled { get; init; }
 
-    /// <summary>実際にファイルを出力したフォルダ。単一ファイルの場合は基準フォルダ。</summary>
+    /// <summary>
+    /// 実際にファイルを出力したフォルダ。単一ファイルの場合は基準フォルダ。
+    /// 一括解凍ではアーカイブごとのルート フォルダを置いた親フォルダ。
+    /// </summary>
     public required string DestinationPath { get; init; }
 
     public int ExtractedFileCount { get; init; }

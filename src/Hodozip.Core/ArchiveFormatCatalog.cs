@@ -60,7 +60,36 @@ public static class ArchiveFormats
         ".zst",
     };
 
+    /// <summary>
+    /// インストーラー / アプリ パッケージの拡張子。
+    /// Hodozip は中身を解凍できるが、シェル統合（関連付け・右クリック メニュー）の
+    /// 対象にはしない。インストーラーを既定で Hodozip が開いてしまう事故を防ぐ。
+    /// </summary>
+    public static IReadOnlyList<string> InstallerPackageExtensions { get; } = new[]
+    {
+        ".msi",
+        ".msix",
+        ".appx",
+        ".msixbundle",
+        ".appxbundle",
+        ".msu",
+        ".msp",
+        ".msm",
+    };
+
     public static IReadOnlyList<string> SupportedExtensions => Extensions;
+
+    /// <summary>指定したパスまたは拡張子がインストーラー / アプリ パッケージか判定する。</summary>
+    public static bool IsInstallerPackageExtension(string pathOrExtension)
+    {
+        var extension = Path.GetExtension(pathOrExtension);
+        if (string.IsNullOrEmpty(extension))
+        {
+            extension = pathOrExtension;
+        }
+
+        return InstallerPackageExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase);
+    }
 
     public static bool IsSupportedExtension(string path)
     {

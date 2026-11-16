@@ -107,7 +107,6 @@ Root: HKCU; Subkey: "Software\Classes\Hodozip.Archive\shell\open\command"; Value
 Root: HKCU; Subkey: "Software\Classes\.zip\OpenWithProgids"; ValueType: string; ValueData: ""; ValueName: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
 Root: HKCU; Subkey: "Software\Classes\.7z\OpenWithProgids"; ValueType: string; ValueData: ""; ValueName: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
 Root: HKCU; Subkey: "Software\Classes\.rar\OpenWithProgids"; ValueType: string; ValueData: ""; ValueName: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
-Root: HKCU; Subkey: "Software\Classes\.msi\OpenWithProgids"; ValueType: string; ValueData: ""; ValueName: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
 Root: HKCU; Subkey: "Software\Classes\.tar\OpenWithProgids"; ValueType: string; ValueData: ""; ValueName: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
 Root: HKCU; Subkey: "Software\Classes\.gz\OpenWithProgids"; ValueType: string; ValueData: ""; ValueName: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
 Root: HKCU; Subkey: "Software\Classes\.tgz\OpenWithProgids"; ValueType: string; ValueData: ""; ValueName: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
@@ -117,6 +116,29 @@ Root: HKCU; Subkey: "Software\Classes\.xz\OpenWithProgids"; ValueType: string; V
 Root: HKCU; Subkey: "Software\Classes\.txz\OpenWithProgids"; ValueType: string; ValueData: ""; ValueName: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
 Root: HKCU; Subkey: "Software\Classes\.zst\OpenWithProgids"; ValueType: string; ValueData: ""; ValueName: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
 Root: HKCU; Subkey: "Software\Classes\.tzst\OpenWithProgids"; ValueType: string; ValueData: ""; ValueName: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
+
+; Windows の「既定のアプリ」一覧に Hodozip を表示する。
+; 既定アプリ自体は Windows が保護しているため、変更は設定画面でのユーザー操作が必要。
+; Windows 11 では Hodozip の専用ページから対応形式をまとめて既定に設定できる。
+Root: HKCU; Subkey: "Software\RegisteredApplications"; ValueType: string; ValueName: "Hodozip"; ValueData: "Software\Hodozip\Capabilities"; Flags: uninsdeletevalue; Tasks: associate
+Root: HKCU; Subkey: "Software\Hodozip\Capabilities"; ValueType: string; ValueName: "ApplicationName"; ValueData: "Hodozip"; Flags: uninsdeletekey; Tasks: associate
+Root: HKCU; Subkey: "Software\Hodozip\Capabilities"; ValueType: string; ValueName: "ApplicationDescription"; ValueData: "An app for extracting ZIP, 7z, RAR, and other archives."; Flags: uninsdeletekey; Tasks: associate
+Root: HKCU; Subkey: "Software\Hodozip\Capabilities\FileAssociations"; ValueType: string; ValueName: ".zip"; ValueData: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
+Root: HKCU; Subkey: "Software\Hodozip\Capabilities\FileAssociations"; ValueType: string; ValueName: ".7z"; ValueData: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
+Root: HKCU; Subkey: "Software\Hodozip\Capabilities\FileAssociations"; ValueType: string; ValueName: ".rar"; ValueData: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
+Root: HKCU; Subkey: "Software\Hodozip\Capabilities\FileAssociations"; ValueType: string; ValueName: ".tar"; ValueData: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
+Root: HKCU; Subkey: "Software\Hodozip\Capabilities\FileAssociations"; ValueType: string; ValueName: ".gz"; ValueData: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
+Root: HKCU; Subkey: "Software\Hodozip\Capabilities\FileAssociations"; ValueType: string; ValueName: ".tgz"; ValueData: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
+Root: HKCU; Subkey: "Software\Hodozip\Capabilities\FileAssociations"; ValueType: string; ValueName: ".bz2"; ValueData: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
+Root: HKCU; Subkey: "Software\Hodozip\Capabilities\FileAssociations"; ValueType: string; ValueName: ".tbz2"; ValueData: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
+Root: HKCU; Subkey: "Software\Hodozip\Capabilities\FileAssociations"; ValueType: string; ValueName: ".xz"; ValueData: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
+Root: HKCU; Subkey: "Software\Hodozip\Capabilities\FileAssociations"; ValueType: string; ValueName: ".txz"; ValueData: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
+Root: HKCU; Subkey: "Software\Hodozip\Capabilities\FileAssociations"; ValueType: string; ValueName: ".zst"; ValueData: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
+Root: HKCU; Subkey: "Software\Hodozip\Capabilities\FileAssociations"; ValueType: string; ValueName: ".tzst"; ValueData: "Hodozip.Archive"; Flags: uninsdeletevalue; Tasks: associate
+
+; インストーラー / アプリ パッケージは関連付け候補から除外する。
+; 旧バージョンが .msi に書き込んだ候補があれば、アップグレード時に削除する。
+Root: HKCU; Subkey: "Software\Classes\.msi\OpenWithProgids"; ValueType: none; ValueName: "Hodozip.Archive"; Flags: deletevalue
 
 ; Allow "Hodozip" to be resolved from the Run dialog and the App Paths lookup.
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\Hodozip.exe"; ValueType: string; ValueName: ""; ValueData: "{app}\Hodozip.exe"; Flags: uninsdeletekey

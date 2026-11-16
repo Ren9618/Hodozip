@@ -3,7 +3,8 @@ namespace Hodozip.Core;
 public sealed partial class SharpCompressExtractor
 {
     /// <summary>
-    /// 複数のアーカイブを 1 つのフォルダへ順番に解凍する。
+    /// 複数のアーカイブを 1 つの親フォルダの下へ、アーカイブごとの
+    /// ルート フォルダを作って順番に解凍する。
     /// 1 つのアーカイブで失敗しても残りは続行し、全体の結果に集約する。
     /// </summary>
     public Task<ExtractionResult> ExtractManyAsync(
@@ -49,6 +50,7 @@ public sealed partial class SharpCompressExtractor
         var skippedFiles = 0;
         var succeededArchives = 0;
         var cancelled = false;
+        var reservedRoots = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         for (var index = 0; index < archivePaths.Count; index++)
         {
@@ -60,6 +62,34 @@ public sealed partial class SharpCompressExtractor
 
             var archivePath = archivePaths[index];
             var archiveName = Path.GetFileName(archivePath);
+
+            // アーカイブ名のルート フォルダを親フォルダの下に確保する。
+            // 既存フォルダや同じバッチ内の同名アーカイブとは衝突しないよう連番を付ける。
+            string archiveDestination;
+            try
+            {
+                archiveDestination = DestinationPlanner.GetUniqueDirectoryPath(
+                    destination,
+                    GetArchiveRootName(archivePath),
+                    reservedRoots);
+                reservedRoots.Add(archiveDestination);
+                LongPath.CreateDirectory(archiveDestination);
+            }
+            catch (Exception ex)
+            {
+                issues.Add(new ExtractionIssue(
+                    ExtractionIssueSeverity.Error,
+                    ExtractionIssueKind.ArchiveError,
+                    string.Empty,
+                    $"解凍先フォルダを作成できません: {ex.Message}")
+                {
+                    ArchivePath = archivePath,
+                    MessageKey = "Issue_DestinationCreateFailed",
+                    MessageArguments = new object?[] { ex.Message },
+                });
+                continue;
+            }
+
             var archiveProgress = request.Options.Progress is { } progress
                 ? new ArchiveProgressReporter(progress, index + 1, archivePaths.Count, archiveName)
                 : null;
@@ -70,7 +100,7 @@ public sealed partial class SharpCompressExtractor
                 ProcessedBytes: 0,
                 TotalBytes: 0,
                 CurrentFile: string.Empty,
-                DestinationPath: destination));
+                DestinationPath: archiveDestination));
 
             var options = CopyOptions(request.Options, archiveProgress);
             ExtractionResult result;
@@ -79,20 +109,21 @@ public sealed partial class SharpCompressExtractor
                 result = await ExtractCoreAsync(
                     new ExtractionRequest(
                         archivePath,
-                        destination,
+                        archiveDestination,
                         options,
                         ExtractionDestinationMode.DirectToFolder),
                     cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
+                TryDeleteEmptyDirectory(archiveDestination);
                 cancelled = true;
                 break;
             }
             catch (Exception ex)
             {
                 result = Failure(
-                    destination,
+                    archiveDestination,
                     ExtractionIssueKind.ArchiveError,
                     $"解凍中にエラーが発生しました: {ex.Message}",
                     archivePath,
@@ -108,6 +139,12 @@ public sealed partial class SharpCompressExtractor
                 issues.Add(issue.ArchivePath is null
                     ? issue with { ArchivePath = archivePath }
                     : issue);
+            }
+
+            if (!result.Success)
+            {
+                // 失敗したアーカイブの空のルート フォルダを残さない。
+                TryDeleteEmptyDirectory(archiveDestination);
             }
 
             if (result.Cancelled)
@@ -133,6 +170,30 @@ public sealed partial class SharpCompressExtractor
             ArchiveCount = archivePaths.Count,
             SucceededArchiveCount = succeededArchives,
         };
+    }
+
+    private static string GetArchiveRootName(string archivePath)
+    {
+        var baseName = ArchiveFormats.GetArchiveBaseName(archivePath);
+        var sanitized = PathSanitizer.Sanitize(baseName).RelativePath;
+        return string.IsNullOrWhiteSpace(sanitized) ? "Hodozip" : sanitized;
+    }
+
+    private static void TryDeleteEmptyDirectory(string path)
+    {
+        try
+        {
+            var fileSystemPath = LongPath.ToFileSystemPath(path);
+            if (Directory.Exists(fileSystemPath)
+                && !Directory.EnumerateFileSystemEntries(fileSystemPath).Any())
+            {
+                Directory.Delete(fileSystemPath);
+            }
+        }
+        catch
+        {
+            // 後片付けに失敗しても解凍結果には影響しない。
+        }
     }
 
     private static ExtractionResult CreateBatchFailure(

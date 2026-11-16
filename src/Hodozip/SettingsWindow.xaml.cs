@@ -320,6 +320,14 @@ public sealed partial class SettingsWindow : Window
         AssociationsPanel.Visibility = supported ? Visibility.Visible : Visibility.Collapsed;
         AssociationsPackagedText.Visibility = supported ? Visibility.Collapsed : Visibility.Visible;
 
+        if (supported)
+        {
+            // 旧バージョンで .msi などに残った候補登録をここで掃除する。
+            AssociationService.RemoveInstallerAssociations();
+            // チェック状態と「既定のアプリ」一覧の登録内容を一致させる。
+            AssociationService.RefreshRegisteredApplication();
+        }
+
         foreach (var extension in AssociationService.Extensions)
         {
             var checkBox = new CheckBox

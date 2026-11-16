@@ -761,6 +761,9 @@ try {
     New-TestZip -ZipPath $folderZip -Scattered
     $compressSource = Join-Path $payload 'compress-source.txt'
     Set-Content -LiteralPath $compressSource -Value 'legacy compress source' -Encoding utf8
+    # インストーラー形式には Hodozip のメニューを出さないことを確認するためのダミー。
+    $installerPath = Join-Path $payload 'legacy-installer.msi'
+    Set-Content -LiteralPath $installerPath -Value 'legacy installer placeholder' -Encoding utf8
 
     Write-Host '=== L0: v0.5.0 の壊れた登録（中かっこなし）からのアップグレード ==='
     Set-StaleRegistration -StaleDllPath 'C:\Program Files\Hodozip-old\Hodozip.ContextMenu.dll'
@@ -791,6 +794,12 @@ try {
     Invoke-Registration -Switch '--register-context-menu'
     Assert-RegistrationLayout
     Write-Host '  OK: 再登録してもレジストリ内容は同一'
+
+    Write-Host '=== L1b: インストーラー形式にはメニューを表示しない ==='
+    Wait-ShellVerbGone -Path $installerPath -VerbName 'Hodozip で解凍' -TimeoutSeconds 10
+    Wait-ShellVerbGone -Path $installerPath -VerbName 'Hodozip でフォルダに解凍' -TimeoutSeconds 10
+    Wait-ShellVerbGone -Path $installerPath -VerbName 'Hodozip で圧縮' -TimeoutSeconds 10
+    Write-Host '  OK: .msi には解凍・圧縮メニューが表示されない'
 
     Write-Host '=== L2: COM サーバーを直接作成し、メニュー項目を検証 ==='
     [int]$commandCount = 0
@@ -859,17 +868,19 @@ try {
 
     $primaryButton.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
 
+    $batchRootA = Join-Path $batchDestination 'legacy-batch-a'
+    $batchRootB = Join-Path $batchDestination 'legacy-batch-b'
     $batchDeadline = [DateTime]::UtcNow.AddSeconds(45)
     while ([DateTime]::UtcNow -lt $batchDeadline) {
-        if ((Test-Path -LiteralPath (Join-Path $batchDestination 'LegacyBatchA\a.txt')) -and
-            (Test-Path -LiteralPath (Join-Path $batchDestination 'LegacyBatchB\b.txt'))) {
+        if ((Test-Path -LiteralPath (Join-Path $batchRootA 'LegacyBatchA\a.txt')) -and
+            (Test-Path -LiteralPath (Join-Path $batchRootB 'LegacyBatchB\b.txt'))) {
             break
         }
         Start-Sleep -Milliseconds 250
     }
 
-    Assert-Content -Path (Join-Path $batchDestination 'LegacyBatchA\a.txt') -Expected 'legacy batch A' -Label 'LegacyBatchA\a.txt'
-    Assert-Content -Path (Join-Path $batchDestination 'LegacyBatchB\b.txt') -Expected 'legacy batch B' -Label 'LegacyBatchB\b.txt'
+    Assert-Content -Path (Join-Path $batchRootA 'LegacyBatchA\a.txt') -Expected 'legacy batch A' -Label 'legacy-batch-a\LegacyBatchA\a.txt'
+    Assert-Content -Path (Join-Path $batchRootB 'LegacyBatchB\b.txt') -Expected 'legacy batch B' -Label 'legacy-batch-b\LegacyBatchB\b.txt'
 
     Stop-Process -Id $batchProcess.ProcessId -Force -ErrorAction SilentlyContinue
     Start-Sleep -Milliseconds 500

@@ -65,6 +65,8 @@
           Hodozip を選ぶまで既定にはならない。ここでは候補として登録する。
           複合拡張子（.tar.gz など）は Windows が末尾拡張子で判定するため、
           実際に登録するのは .gz / .tgz などの単一拡張子のみ。
+          インストーラー / アプリ パッケージ（.msi など）は、Hodozip が
+          既定のアプリとして開いてしまわないよう対象外にする。
         -->
         <uap:Extension Category="windows.fileTypeAssociation">
           <uap:FileTypeAssociation Name="hodozip-archives">
@@ -74,7 +76,6 @@
               <uap:FileType>.zip</uap:FileType>
               <uap:FileType>.7z</uap:FileType>
               <uap:FileType>.rar</uap:FileType>
-              <uap:FileType>.msi</uap:FileType>
               <uap:FileType>.tar</uap:FileType>
               <uap:FileType>.gz</uap:FileType>
               <uap:FileType>.tgz</uap:FileType>
@@ -128,10 +129,6 @@
             <desktop4:ItemType Type=".rar">
               <desktop4:Verb Id="HodozipExtractHereRar" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />
               <desktop4:Verb Id="HodozipExtractFolderRar" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02" />
-            </desktop4:ItemType>
-            <desktop4:ItemType Type=".msi">
-              <desktop4:Verb Id="HodozipExtractHereMsi" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />
-              <desktop4:Verb Id="HodozipExtractFolderMsi" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C02" />
             </desktop4:ItemType>
             <desktop4:ItemType Type=".tar">
               <desktop4:Verb Id="HodozipExtractHereTar" Clsid="4F4C6D2A-71B9-4E4E-9A7D-8D9A0B5E6C01" />

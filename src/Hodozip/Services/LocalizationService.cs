@@ -404,6 +404,7 @@ internal static class Loc
     public static string Settings_AssociationsPackaged => T("Settings_AssociationsPackaged");
     public static string Settings_OpenDefaultApps => T("Settings_OpenDefaultApps");
     public static string Settings_DefaultAppsNote => T("Settings_DefaultAppsNote");
+    public static string Association_ApplicationDescription => T("Association_ApplicationDescription");
     public static string Settings_AssociationEnabled(string extension) => F("Settings_AssociationEnabled", extension);
     public static string Settings_AssociationDisabled(string extension) => F("Settings_AssociationDisabled", extension);
     public static string Settings_AssociationFailed(string extension) => F("Settings_AssociationFailed", extension);

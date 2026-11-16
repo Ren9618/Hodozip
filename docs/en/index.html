@@ -66,7 +66,7 @@
         <a class="btn btn-ghost" href="https://github.com/Ren9618/Hodozip">View on GitHub</a>
       </div>
       <ul class="hero-chips" aria-label="Version and requirements">
-        <li class="chip-accent">Current version v0.7.2</li>
+        <li class="chip-accent">Current version v0.7.3</li>
         <li>Windows 10 (19041+) / Windows 11</li>
         <li>MIT License</li>
       </ul>
@@ -103,7 +103,7 @@
           <svg viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>
         </span>
         <h3>Extract immediately by double-clicking</h3>
-        <p>Double-click a supported archive such as <code>.zip</code>, <code>.7z</code>, <code>.rar</code>, or <code>.msi</code> and extraction starts right away. The familiar feel of classic extraction tools, brought to modern Windows 11.</p>
+        <p>Double-click a supported archive such as <code>.zip</code>, <code>.7z</code>, or <code>.rar</code> and extraction starts right away. The familiar feel of classic extraction tools, brought to modern Windows 11.</p>
       </li>
       <li class="card feature">
         <span class="feature-icon" aria-hidden="true">
@@ -152,7 +152,7 @@
           <svg viewBox="0 0 24 24"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="M13 13l6 6"/></svg>
         </span>
         <h3>Context menu support</h3>
-        <p>Right-click a supported archive to see "Extract with Hodozip", "Extract to folder with Hodozip", and "Compress with Hodozip" together with icons (the MSIX build uses the new Windows 11 menu; the installer build uses the unified classic menu).</p>
+        <p>Right-click a supported archive to see "Extract with Hodozip", "Extract to folder with Hodozip", and "Compress with Hodozip" together with icons (the MSIX build uses the new Windows 11 menu; the installer build uses the unified classic menu). The menu is not shown for installer formats such as <code>.msi</code>. You can still extract an MSI from "Select file" or by dragging it into the app.</p>
       </li>
       <li class="card feature">
         <span class="feature-icon" aria-hidden="true">
@@ -166,7 +166,7 @@
           <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg>
         </span>
         <h3>Manage associations in one place</h3>
-        <p>See all 13 supported formats and choose per format whether Hodozip appears in "Open with". Changes apply immediately; the default app is still chosen in Windows Settings.</p>
+        <p>See all 13 supported formats and choose per format whether Hodozip appears in "Open with". Changes apply immediately, and on Windows 11 you can set all supported formats as default at once from Hodozip's page in Settings.</p>
       </li>
       <li class="card feature">
         <span class="feature-icon" aria-hidden="true">
@@ -233,7 +233,7 @@
           <h3>Installer build</h3>
           <span class="badge">Recommended</span>
         </div>
-        <p class="dl-file">Hodozip-0.7.2-setup.exe</p>
+        <p class="dl-file">Hodozip-0.7.3-setup.exe</p>
         <ul class="dl-list">
           <li>Installs per user into <code>%LOCALAPPDATA%\Programs\Hodozip</code> without administrator rights</li>
           <li>Creates a Start menu shortcut and optionally registers the context menu and "Open with" candidates</li>
@@ -246,7 +246,7 @@
           <h3>zip build</h3>
           <span class="badge">Portable</span>
         </div>
-        <p class="dl-file">Hodozip-0.7.2-win-x64.zip</p>
+        <p class="dl-file">Hodozip-0.7.3-win-x64.zip</p>
         <ul class="dl-list">
           <li>Extract the archive and launch <code>Hodozip.exe</code>; no installation required</li>
           <li>Extract by dragging and dropping an archive or by passing a path</li>
@@ -258,7 +258,7 @@
           <h3>MSIX build</h3>
           <span class="badge badge-warn">Experimental</span>
         </div>
-        <p class="dl-file">Hodozip-0.7.2.msix</p>
+        <p class="dl-file">Hodozip-0.7.3.msix</p>
         <ul class="dl-list">
           <li>Registers file-association candidates for supported archives and the Windows 11 context menu</li>
           <li><strong>Requires registering the self-signed certificate</strong> before installation (see the How to use section)</li>
@@ -295,8 +295,8 @@
       <h3>1. Install and launch</h3>
       <h4>Installer build (recommended)</h4>
       <ol>
-        <li>Download and run <code>Hodozip-0.7.2-setup.exe</code>. It is unsigned; if SmartScreen shows a warning, choose "More info" → "Run".</li>
-        <li>The install location is fixed to <code>%LOCALAPPDATA%\Programs\Hodozip</code>. Under "Shell integration" you can optionally register the context menu and "Open with" candidates (both enabled by default).</li>
+        <li>Download and run <code>Hodozip-0.7.3-setup.exe</code>. It is unsigned; if SmartScreen shows a warning, choose "More info" → "Run".</li>
+        <li>The install location is fixed to <code>%LOCALAPPDATA%\Programs\Hodozip</code>. Under "Shell integration" you can optionally register the context menu and "Open with" candidates / the Windows Default apps list (both enabled by default).</li>
         <li>Launch Hodozip from the Start menu after installation. Uninstall it from Settings → Apps → Installed apps.</li>
       </ol>
       <h4>zip build (no installation)</h4>
@@ -308,26 +308,26 @@
       <h4>MSIX build (experimental)</h4>
       <p>Install the certificate first, then the package. For detailed steps and uninstallation, see "<a class="inline-link" href="https://github.com/Ren9618/Hodozip/blob/main/README.en.md#msix-installation-advanced-experimental">MSIX installation</a>" in the README.</p>
       <ol>
-        <li>Download the public certificate <a class="inline-link" href="https://github.com/Ren9618/Hodozip/raw/v0.7.2/packaging/certs/Hodozip-Test.cer">Hodozip-Test.cer</a>.</li>
+        <li>Download the public certificate <a class="inline-link" href="https://github.com/Ren9618/Hodozip/raw/v0.7.3/packaging/certs/Hodozip-Test.cer">Hodozip-Test.cer</a>.</li>
         <li>Register the certificate in an elevated PowerShell window.</li>
       </ol>
       <pre><code>certutil -addstore -f TrustedPeople .\Hodozip-Test.cer</code></pre>
       <ol start="3">
-        <li>Download <code>Hodozip-0.7.2.msix</code> from GitHub Releases and install it.</li>
+        <li>Download <code>Hodozip-0.7.3.msix</code> from GitHub Releases and install it.</li>
       </ol>
-      <pre><code>Add-AppxPackage -Path .\Hodozip-0.7.2.msix</code></pre>
+      <pre><code>Add-AppxPackage -Path .\Hodozip-0.7.3.msix</code></pre>
       <p class="note">To extract by double-clicking, configure Hodozip as the default app as described in the next section.</p>
     </article>
 
     <article class="howto-block">
       <h3>2. Set Hodozip as the default app for supported archives (extract by double-click)</h3>
-      <p>Windows does not let apps force file associations. Follow these steps to make Hodozip the default for <code>.zip</code> and other supported extensions.</p>
+      <p>Windows does not let apps force file associations. Installing the installer or MSIX build registers Hodozip in "Open with" candidates and the Default apps list. Follow these steps to make it the default.</p>
       <ol>
         <li>Open Windows Settings → Apps → Default apps.</li>
-        <li>Search for <code>zip</code> and select ".zip".</li>
-        <li>Choose "Hodozip" from the list.</li>
+        <li>Select "Hodozip" from the list. On Windows 11, choose "Set default" to change all supported formats at once.</li>
+        <li>To change formats individually, search for <code>zip</code> and select ".zip", then choose "Hodozip" from the list.</li>
       </ol>
-      <p>Alternatively, right-click a <code>.zip</code> file → "Open with" → "Choose another app" → "Hodozip" → "Always use this app". The installer or MSIX build registers itself as an association candidate.</p>
+      <p>Alternatively, right-click a <code>.zip</code> file → "Open with" → "Choose another app" → "Hodozip" → "Always use this app". The "Set Hodozip as the default app" button in Hodozip Settings also opens the Windows Settings page directly.</p>
     </article>
 
     <article class="howto-block">

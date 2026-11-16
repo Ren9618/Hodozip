@@ -54,7 +54,6 @@ namespace
             L".zip",
             L".7z",
             L".rar",
-            L".msi",
             L".tar",
             L".gz",
             L".tgz",
@@ -75,6 +74,74 @@ namespace
         }
 
         return false;
+    }
+
+    // インストーラー / アプリ パッケージには Hodozip のメニューを出さない。
+    // 解凍自体はアプリのファイル選択やドラッグ＆ドロップから利用できる。
+    bool IsInstallerPackagePath(const std::wstring& path)
+    {
+        const wchar_t* extension = PathFindExtensionW(path.c_str());
+        static const wchar_t* installerExtensions[] = {
+            L".msi",
+            L".msix",
+            L".appx",
+            L".msixbundle",
+            L".appxbundle",
+            L".msu",
+            L".msp",
+            L".msm",
+        };
+
+        for (const auto* installer : installerExtensions)
+        {
+            if (_wcsicmp(extension, installer) == 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool AreAllInstallerPackages(IShellItemArray* items)
+    {
+        if (items == nullptr)
+        {
+            return false;
+        }
+
+        DWORD count = 0;
+        if (FAILED(items->GetCount(&count)) || count == 0)
+        {
+            return false;
+        }
+
+        for (DWORD index = 0; index < count; ++index)
+        {
+            IShellItem* item = nullptr;
+            if (FAILED(items->GetItemAt(index, &item)) || item == nullptr)
+            {
+                return false;
+            }
+
+            LPWSTR fileSystemPath = nullptr;
+            const HRESULT result = item->GetDisplayName(SIGDN_FILESYSPATH, &fileSystemPath);
+            item->Release();
+
+            if (FAILED(result) || fileSystemPath == nullptr)
+            {
+                return false;
+            }
+
+            const bool isInstaller = IsInstallerPackagePath(fileSystemPath);
+            CoTaskMemFree(fileSystemPath);
+            if (!isInstaller)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // シェル拡張の表示言語は、アプリ設定ではなく OS の UI 言語だけで決める。
@@ -454,11 +521,19 @@ namespace
             return S_OK;
         }
 
-        IFACEMETHODIMP GetState(IShellItemArray*, BOOL, EXPCMDSTATE* pCmdState) override
+        IFACEMETHODIMP GetState(IShellItemArray* psiItemArray, BOOL, EXPCMDSTATE* pCmdState) override
         {
             if (pCmdState == nullptr)
             {
                 return E_POINTER;
+            }
+
+            // 「*」に登録している圧縮コマンドは、インストーラーだけを選択した
+            // ときは非表示にする。解凍コマンドは拡張子ごとの登録なので対象外。
+            if (_compress && AreAllInstallerPackages(psiItemArray))
+            {
+                *pCmdState = ECS_HIDDEN;
+                return S_OK;
             }
 
             *pCmdState = ECS_ENABLED;
@@ -747,6 +822,7 @@ namespace
             // Direct COM tests (and a few shell hosts) query the menu without
             // Initialize(); show the full archive layout in that case.
             const bool hasArchive = _paths.empty() || HasSupportedArchive();
+            const bool showCompress = !AreOnlyInstallerPackagesSelected();
 
             if (hasArchive)
             {
@@ -767,7 +843,7 @@ namespace
                 }
             }
 
-            if (idCmdFirst + commandCount <= idCmdLast)
+            if (showCompress && idCmdFirst + commandCount <= idCmdLast)
             {
                 const UINT id = idCmdFirst + commandCount;
                 InsertMenuW(hmenu, indexMenu + commandCount, MF_BYPOSITION | MF_STRING, id, CompressMenuText());
@@ -883,6 +959,24 @@ namespace
             }
 
             return false;
+        }
+
+        bool AreOnlyInstallerPackagesSelected() const
+        {
+            if (_paths.empty())
+            {
+                return false;
+            }
+
+            for (const auto& path : _paths)
+            {
+                if (!IsInstallerPackagePath(path))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         LONG _referenceCount = 1;

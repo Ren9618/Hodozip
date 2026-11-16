@@ -62,15 +62,25 @@ internal static class LegacyContextMenuService
 
     public static string DllPath => Path.Combine(AppContext.BaseDirectory, "Hodozip.ContextMenu.dll");
 
-    /// <summary>従来型メニュー登録の対象になる実拡張子（.tar.gz は .gz として登録）。</summary>
+    /// <summary>
+    /// 従来型メニュー登録の対象になる実拡張子（.tar.gz は .gz として登録）。
+    /// インストーラー / アプリ パッケージは対象外。
+    /// </summary>
     public static IReadOnlyList<string> Extensions =>
         ArchiveFormats.SupportedExtensions
             .Select(x => Path.GetExtension(x))
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .Select(x => x!)
+            .Where(x => !ArchiveFormats.IsInstallerPackageExtension(x))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
             .ToList();
+
+    /// <summary>旧バージョンで登録したが、現在は対象外にした拡張子。残骸の掃除に使う。</summary>
+    private static readonly string[] RetiredExtensions = { ".msi" };
+
+    private static IEnumerable<string> ExtensionsForCleanup =>
+        Extensions.Concat(RetiredExtensions);
 
     public static LegacyContextMenuStatus GetStatus()
     {
@@ -268,7 +278,7 @@ internal static class LegacyContextMenuService
     /// <summary>拡張子ごとの旧解凍ハンドラー、旧圧縮ハンドラー、旧圧縮 CLSID を削除する。</summary>
     private static void CleanupOldLayout()
     {
-        foreach (var extension in Extensions)
+        foreach (var extension in ExtensionsForCleanup)
         {
             DeleteHandlerKey(
                 $@"Software\Classes\SystemFileAssociations\{extension}\shellex\ContextMenuHandlers\Hodozip");
@@ -321,7 +331,7 @@ internal static class LegacyContextMenuService
             return true;
         }
 
-        return Extensions.Any(extension => KeyExists(
+        return ExtensionsForCleanup.Any(extension => KeyExists(
             $@"Software\Classes\SystemFileAssociations\{extension}\shellex\ContextMenuHandlers\Hodozip"));
     }
 

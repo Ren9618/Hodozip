@@ -36,8 +36,8 @@
   <data name="Main_UnsupportedTitle" xml:space="preserve"><value>Unsupported format</value></data>
   <data name="Main_UnsupportedDropMessage" xml:space="preserve"><value>Drop an archive such as ZIP / 7z / RAR / MSI / TAR / GZ / BZ2 / XZ / ZST.</value></data>
   <data name="Batch_Title" xml:space="preserve"><value>Extract multiple archives</value></data>
-  <data name="Batch_Message" xml:space="preserve"><value>Extract {0} archives into a single folder.</value></data>
-  <data name="Batch_Note" xml:space="preserve"><value>The folder structure inside each archive is preserved. Files with the same name are handled according to your overwrite setting.</value></data>
+  <data name="Batch_Message" xml:space="preserve"><value>Extract {0} archives into a folder for each archive.</value></data>
+  <data name="Batch_Note" xml:space="preserve"><value>Hodozip creates a folder named after each archive under the destination. If a folder with the same name exists, a number is added, and the folder structure inside each archive is preserved.</value></data>
   <data name="Batch_Destination" xml:space="preserve"><value>Destination folder</value></data>
   <data name="Batch_DestinationRequired" xml:space="preserve"><value>Choose a destination folder.</value></data>
   <data name="Batch_DestinationIsFile" xml:space="preserve"><value>A file with this name already exists. Choose a folder.</value></data>
@@ -327,10 +327,11 @@
   <data name="Settings_SkipNewer" xml:space="preserve"><value>Do not ask when the existing file is newer</value></data>
   <data name="Settings_SkipNewerNote" xml:space="preserve"><value>When overwrite confirmation is set to Ask, entries whose existing file is newer than the archive entry are skipped automatically and counted in the skipped total.</value></data>
   <data name="Settings_Associations" xml:space="preserve"><value>Associations (Open with)</value></data>
-  <data name="Settings_AssociationsNote" xml:space="preserve"><value>Checked formats are added as "Open with" candidates. Windows protects the default app choice, so choose Hodozip as the default in Windows Settings.</value></data>
+  <data name="Settings_AssociationsNote" xml:space="preserve"><value>Checked formats are added as "Open with" candidates. On Windows 11, use the button below to open Hodozip's page in Settings and choose "Set default" to change them together. On Windows 10, choose each format individually.</value></data>
   <data name="Settings_AssociationsPackaged" xml:space="preserve"><value>Associations are managed by the package manifest in the MSIX version and cannot be changed here.</value></data>
-  <data name="Settings_OpenDefaultApps" xml:space="preserve"><value>Open Windows default apps settings</value></data>
-  <data name="Settings_DefaultAppsNote" xml:space="preserve"><value>Hodozip cannot change the default app (UserChoice). Choose it per format in Windows Settings.</value></data>
+  <data name="Settings_OpenDefaultApps" xml:space="preserve"><value>Set Hodozip as the default app</value></data>
+  <data name="Settings_DefaultAppsNote" xml:space="preserve"><value>Windows protects default apps, so Hodozip cannot change them directly. Use the button below to open Windows Settings and select Hodozip.</value></data>
+  <data name="Association_ApplicationDescription" xml:space="preserve"><value>An app for extracting ZIP, 7z, RAR, and other archives.</value></data>
   <data name="Settings_AssociationEnabled" xml:space="preserve"><value>Added {0} to "Open with".</value></data>
   <data name="Settings_AssociationDisabled" xml:space="preserve"><value>Removed {0} from "Open with".</value></data>
   <data name="Settings_AssociationFailed" xml:space="preserve"><value>Could not create the association key for {0}.</value></data>

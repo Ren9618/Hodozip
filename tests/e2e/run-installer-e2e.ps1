@@ -166,6 +166,39 @@ function Assert-InstalledRegistration {
     Write-Host '  OK: CLSID の InprocServer32 はインストール先 DLL を指す'
 }
 
+function Assert-InstallerAssociationsExcluded {
+    $msiValue = Get-RegValue -Path 'Software\Classes\.msi\OpenWithProgids' -Name 'Hodozip.Archive'
+    if ($null -ne $msiValue) {
+        throw '.msi の「プログラムから開く」候補に Hodozip.Archive が残っています。'
+    }
+    $zipValue = Get-RegValue -Path 'Software\Classes\.zip\OpenWithProgids' -Name 'Hodozip.Archive'
+    if ($null -eq $zipValue) {
+        throw '.zip の「プログラムから開く」候補に Hodozip.Archive がありません。'
+    }
+    Write-Host '  OK: .msi は関連付け候補から除外され、.zip は登録されている'
+}
+
+function Assert-DefaultAppsRegistration {
+    Assert-Equal 'RegisteredApplications の Hodozip' `
+        (Get-RegValue -Path 'Software\RegisteredApplications' -Name 'Hodozip') `
+        'Software\Hodozip\Capabilities'
+    Assert-Equal 'Capabilities の ApplicationName' `
+        (Get-RegValue -Path 'Software\Hodozip\Capabilities' -Name 'ApplicationName') `
+        'Hodozip'
+    $description = Get-RegValue -Path 'Software\Hodozip\Capabilities' -Name 'ApplicationDescription'
+    if ([string]::IsNullOrWhiteSpace($description)) {
+        throw 'Capabilities の ApplicationDescription が空です。'
+    }
+    Assert-Equal 'FileAssociations の .zip' `
+        (Get-RegValue -Path 'Software\Hodozip\Capabilities\FileAssociations' -Name '.zip') `
+        'Hodozip.Archive'
+    $msiValue = Get-RegValue -Path 'Software\Hodozip\Capabilities\FileAssociations' -Name '.msi'
+    if ($null -ne $msiValue) {
+        throw '既定のアプリ候補に .msi が含まれています。'
+    }
+    Write-Host '  OK: 既定のアプリ一覧に Hodozip が登録され、.msi は含まれていない'
+}
+
 function Invoke-InstalledApp {
     param([string]$Arguments, [string]$Label)
     $process = Start-Process -FilePath $installedExe -ArgumentList $Arguments -PassThru
@@ -201,7 +234,13 @@ try {
         '/TASKS="contextmenu,associate"',
         "/LOG=`"$logPath`""
     )
-    $setup = Start-Process -FilePath $setupPath -ArgumentList $arguments -PassThru -Wait
+    # -Wait は Explorer 再起動など setup の子プロセスまで待ってしまうため、
+    # setup 本体の終了だけを待つ。
+    $setup = Start-Process -FilePath $setupPath -ArgumentList $arguments -PassThru
+    if (-not $setup.WaitForExit(600000)) {
+        try { $setup.Kill() } catch { }
+        throw "setup.exe が 10 分以内に完了しませんでした。ログ: $logPath"
+    }
     if ($setup.ExitCode -ne 0) {
         throw "setup.exe が終了コード $($setup.ExitCode) で失敗しました。ログ: $logPath"
     }
@@ -238,12 +277,17 @@ try {
 
     Write-Host '=== I3: インストーラーが書いた登録内容を検証 ==='
     Assert-InstalledRegistration
+    Assert-InstallerAssociationsExcluded
+    Assert-DefaultAppsRegistration
 
     $installerSnapshot = Get-RegistrationSnapshot
 
     Write-Host '=== I4: アプリの --unregister-context-menu ==='
     Invoke-InstalledApp -Arguments '--unregister-context-menu' -Label '--unregister-context-menu'
     Assert-NoRegistrationLeftovers
+    # 右クリックメニューの解除は「プログラムから開く」と既定アプリ登録に影響しない。
+    Assert-DefaultAppsRegistration
+    Assert-InstallerAssociationsExcluded
 
     Write-Host '=== I5: アプリの --register-context-menu と installer の一致 ==='
     Invoke-InstalledApp -Arguments '--register-context-menu' -Label '--register-context-menu'

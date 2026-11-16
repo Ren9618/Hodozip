@@ -12,12 +12,24 @@ internal static class AssociationService
 {
     public const string ProgId = "Hodozip.Archive";
 
-    /// <summary>実際に登録できる単一拡張子（.tar.gz は .gz として扱う）。</summary>
+    /// <summary>Windows の「既定のアプリ」一覧に表示するときのアプリ名。</summary>
+    public const string RegisteredApplicationName = "Hodozip";
+
+    private const string RegisteredApplicationsKeyPath = @"Software\RegisteredApplications";
+    private const string CapabilitiesKeyPath = @"Software\Hodozip\Capabilities";
+    private const string FileAssociationsKeyPath = CapabilitiesKeyPath + @"\FileAssociations";
+
+    /// <summary>
+    /// 実際に登録できる単一拡張子（.tar.gz は .gz として扱う）。
+    /// インストーラー / アプリ パッケージは、Hodozip が既定のアプリとして
+    /// 開いてしまわないよう候補から除外する。
+    /// </summary>
     public static IReadOnlyList<string> Extensions =>
         ArchiveFormats.SupportedExtensions
             .Select(x => Path.GetExtension(x))
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .Select(x => x!)
+            .Where(x => !ArchiveFormats.IsInstallerPackageExtension(x))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -51,6 +63,8 @@ internal static class AssociationService
 
         try
         {
+            RemoveInstallerAssociations();
+
             if (enabled)
             {
                 EnsureProgId();
@@ -81,6 +95,8 @@ internal static class AssociationService
                 return false;
             }
 
+            // チェック状態に合わせて「既定のアプリ」一覧への表示を更新する。
+            RefreshRegisteredApplication();
             NotifyShell();
             message = enabled
                 ? Loc.Settings_AssociationEnabled(extension)
@@ -94,12 +110,141 @@ internal static class AssociationService
         }
     }
 
+    /// <summary>
+    /// 旧バージョンで登録したインストーラー形式の「プログラムから開く」候補を削除する。
+    /// 現在は設定画面に表示しないが、アップグレード後に登録が残らないようにする。
+    /// </summary>
+    public static void RemoveInstallerAssociations()
+    {
+        if (!IsSupported)
+        {
+            return;
+        }
+
+        var changed = false;
+        foreach (var extension in ArchiveFormats.InstallerPackageExtensions)
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(
+                    $@"Software\Classes\{extension}\OpenWithProgids",
+                    writable: true);
+                if (key is null
+                    || !key.GetValueNames().Any(x => string.Equals(x, ProgId, StringComparison.OrdinalIgnoreCase)))
+                {
+                    continue;
+                }
+
+                key.DeleteValue(ProgId, throwOnMissingValue: false);
+                changed = true;
+            }
+            catch
+            {
+                // 削除できなくても他の拡張子の処理は続ける。
+            }
+        }
+
+        if (changed)
+        {
+            NotifyShell();
+        }
+    }
+
+    /// <summary>
+    /// Windows の「既定のアプリ」一覧に Hodozip を表示するための登録
+    /// （RegisteredApplications / Capabilities）を、現在チェックされている
+    /// 拡張子に合わせて更新する。既定アプリ自体は変更できない。
+    /// </summary>
+    public static void RefreshRegisteredApplication()
+    {
+        if (!IsSupported)
+        {
+            return;
+        }
+
+        try
+        {
+            var enabledExtensions = Extensions.Where(IsEnabled).ToList();
+            if (enabledExtensions.Count == 0)
+            {
+                RemoveRegisteredApplication();
+                return;
+            }
+
+            using (var capabilities = Registry.CurrentUser.CreateSubKey(CapabilitiesKeyPath, writable: true))
+            {
+                if (capabilities is null)
+                {
+                    return;
+                }
+
+                capabilities.SetValue("ApplicationName", RegisteredApplicationName);
+                capabilities.SetValue("ApplicationDescription", Loc.Association_ApplicationDescription);
+            }
+
+            using (var fileAssociations = Registry.CurrentUser.CreateSubKey(FileAssociationsKeyPath, writable: true))
+            {
+                if (fileAssociations is null)
+                {
+                    return;
+                }
+
+                // 解除された拡張子が残らないよう、いったん全値を消してから作り直す。
+                foreach (var valueName in fileAssociations.GetValueNames())
+                {
+                    fileAssociations.DeleteValue(valueName, throwOnMissingValue: false);
+                }
+
+                foreach (var extension in enabledExtensions)
+                {
+                    fileAssociations.SetValue(extension, ProgId, RegistryValueKind.String);
+                }
+            }
+
+            using var registered = Registry.CurrentUser.CreateSubKey(RegisteredApplicationsKeyPath, writable: true);
+            registered?.SetValue(RegisteredApplicationName, CapabilitiesKeyPath, RegistryValueKind.String);
+        }
+        catch
+        {
+            // 「既定のアプリ」一覧への登録は補助機能。
+            // 失敗しても「プログラムから開く」の関連付け自体は維持する。
+        }
+    }
+
     /// <summary>設定画面から Windows の「既定のアプリ」画面を開く。</summary>
     public static bool OpenDefaultAppsSettings()
     {
+        var uri = GetDefaultAppsSettingsUri();
+        if (TryOpenSettings(uri))
+        {
+            return true;
+        }
+
+        return uri != "ms-settings:defaultapps" && TryOpenSettings("ms-settings:defaultapps");
+    }
+
+    /// <summary>
+    /// Windows 11 では Hodozip 専用の既定アプリ ページを開き、
+    /// Windows 10 では既定アプリの一覧ページを開く URI を返す。
+    /// </summary>
+    internal static string GetDefaultAppsSettingsUri()
+    {
+        if (IsSupported
+            && Environment.OSVersion.Version.Build >= 22000
+            && IsRegisteredApplicationPresent())
+        {
+            return "ms-settings:defaultapps?registeredAppUser="
+                + Uri.EscapeDataString(RegisteredApplicationName);
+        }
+
+        return "ms-settings:defaultapps";
+    }
+
+    private static bool TryOpenSettings(string uri)
+    {
         try
         {
-            Process.Start(new ProcessStartInfo("ms-settings:defaultapps")
+            Process.Start(new ProcessStartInfo(uri)
             {
                 UseShellExecute = true,
             });
@@ -108,6 +253,42 @@ internal static class AssociationService
         catch
         {
             return false;
+        }
+    }
+
+    private static bool IsRegisteredApplicationPresent()
+    {
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(RegisteredApplicationsKeyPath);
+            return key?.GetValue(RegisteredApplicationName) is string path
+                && string.Equals(path, CapabilitiesKeyPath, StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static void RemoveRegisteredApplication()
+    {
+        try
+        {
+            using (var registered = Registry.CurrentUser.OpenSubKey(
+                RegisteredApplicationsKeyPath,
+                writable: true))
+            {
+                registered?.DeleteValue(RegisteredApplicationName, throwOnMissingValue: false);
+            }
+
+            using var capabilitiesParent = Registry.CurrentUser.OpenSubKey(
+                @"Software\Hodozip",
+                writable: true);
+            capabilitiesParent?.DeleteSubKeyTree("Capabilities", throwOnMissingSubKey: false);
+        }
+        catch
+        {
+            // 表示用の登録を消せなくても、関連付けの解除は完了している。
         }
     }
 

@@ -9,8 +9,8 @@ using Hodozip.Services;
 namespace Hodozip.Dialogs;
 
 /// <summary>
-/// 複数アーカイブを 1 つのフォルダへまとめて解凍するときの解凍先入力ダイアログ。
-/// 指定したフォルダはそのまま使う（アーカイブ名のサブフォルダは作らない）。
+/// 複数アーカイブをまとめて解凍するときの解凍先入力ダイアログ。
+/// 指定したフォルダの下に、アーカイブごとのルート フォルダを作る。
 /// </summary>
 internal static class BatchExtractionDialog
 {
