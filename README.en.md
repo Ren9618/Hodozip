@@ -7,7 +7,7 @@
 Hodozip is a free, open-source archive extractor for Windows that carries the usability of classic Japanese extraction tools into a modern implementation. Drag and drop ZIP, 7z, RAR, MSI, TAR, GZ, BZ2, XZ, and ZST archives; Hodozip chooses the destination folder automatically and extracts them.
 
 - Product name: Hodozip
-- Version: 0.7.3
+- Version: 0.7.4
 - License: MIT
 - Supported OS: Windows 11 (primary) / Windows 10 version 19041 or later
 - Implementation: C# / .NET 8 / WinUI 3 (Windows App SDK)
@@ -17,10 +17,10 @@ Hodozip is a free, open-source archive extractor for Windows that carries the us
 
 Download the latest release from [GitHub Releases](https://github.com/Ren9618/Hodozip/releases).
 
-- Latest: [Hodozip v0.7.3](https://github.com/Ren9618/Hodozip/releases/tag/v0.7.3)
-- `Hodozip-0.7.3-setup.exe` (installer, recommended): installs per user into `%LOCALAPPDATA%\Programs\Hodozip` without administrator rights. It creates a Start menu shortcut and lets you choose at install time whether to register the legacy context menu and the "Open with" / Default apps list entries. See [Installer installation](#installer-installation-recommended).
-- `Hodozip-0.7.3-win-x64.zip` (unpackaged): unzip it and run `Hodozip.exe`. No installation is required.
-- `Hodozip-0.7.3.msix` (MSIX, experimental): registers Hodozip as a candidate for supported archive types and adds Windows 11 context-menu entries. It uses a self-signed certificate, so the certificate must be trusted before installation. See [MSIX installation](#msix-installation-advanced-experimental).
+- Latest: [Hodozip v0.7.4](https://github.com/Ren9618/Hodozip/releases/tag/v0.7.4)
+- `Hodozip-0.7.4-setup.exe` (installer, recommended): installs per user into `%LOCALAPPDATA%\Programs\Hodozip` without administrator rights. It creates a Start menu shortcut and lets you choose at install time whether to register the legacy context menu and the "Open with" / Default apps list entries. See [Installer installation](#installer-installation-recommended).
+- `Hodozip-0.7.4-win-x64.zip` (unpackaged): unzip it and run `Hodozip.exe`. No installation is required.
+- `Hodozip-0.7.4.msix` (MSIX, experimental): registers Hodozip as a candidate for supported archive types and adds Windows 11 context-menu entries. It uses a self-signed certificate, so the certificate must be trusted before installation. See [MSIX installation](#msix-installation-advanced-experimental).
 
 Note for the installer and unpackaged build: they are unsigned, so Windows SmartScreen may show a warning. Choose "More info" → "Run" to start them.
 
@@ -312,9 +312,9 @@ If you pass multiple archive paths, the main window opens the batch extraction d
 
 ## Installer installation (recommended)
 
-`Hodozip-0.7.3-setup.exe` is an Inno Setup installer. It does not require administrator rights and installs for the current user.
+`Hodozip-0.7.4-setup.exe` is an Inno Setup installer. It does not require administrator rights and installs for the current user.
 
-1. Download and run `Hodozip-0.7.3-setup.exe`. It is unsigned; if Windows SmartScreen shows a warning, choose "More info" → "Run".
+1. Download and run `Hodozip-0.7.4-setup.exe`. It is unsigned; if Windows SmartScreen shows a warning, choose "More info" → "Run".
 2. The install location is fixed to `%LOCALAPPDATA%\Programs\Hodozip`; no directory page is shown.
 3. Under "Shell integration" you can choose the following (both optional and checked by default on a new install):
    - **Register the right-click menu (recommended)**: adds "Extract with Hodozip", "Extract to folder with Hodozip", and "Compress with Hodozip" to Explorer's context menu (current user only).
@@ -335,7 +335,7 @@ The MSIX build is experimental. It is signed with a local test self-signed certi
 
 ### 1. Install the certificate
 
-Download [`packaging/certs/Hodozip-Test.cer`](https://github.com/Ren9618/Hodozip/raw/v0.7.3/packaging/certs/Hodozip-Test.cer) from the repository. This is the public certificate only; it contains no private key.
+Download [`packaging/certs/Hodozip-Test.cer`](https://github.com/Ren9618/Hodozip/raw/v0.7.4/packaging/certs/Hodozip-Test.cer) from the repository. This is the public certificate only; it contains no private key.
 
 In an administrator PowerShell, add the downloaded CER to `LocalMachine\TrustedPeople`.
 
@@ -349,13 +349,13 @@ The certificate thumbprint is `FC9B386931023BA678348E4076E05402809358CE`. You ca
 
 ### 2. Install the MSIX
 
-Double-click `Hodozip-0.7.3.msix`, or run it from PowerShell.
+Double-click `Hodozip-0.7.4.msix`, or run it from PowerShell.
 
 ```powershell
-Add-AppxPackage -Path .\Hodozip-0.7.3.msix
+Add-AppxPackage -Path .\Hodozip-0.7.4.msix
 ```
 
-After installation, "Hodozip" appears in the Start menu. The package ID is `Ren9618.Hodozip_0.7.3.0_x64__ex19z75j0wj0g`, and the application ID is `Ren9618.Hodozip_ex19z75j0wj0g!Hodozip`.
+After installation, "Hodozip" appears in the Start menu. The package ID is `Ren9618.Hodozip_0.7.4.0_x64__ex19z75j0wj0g`, and the application ID is `Ren9618.Hodozip_ex19z75j0wj0g!Hodozip`.
 
 ### 3. Set Hodozip as the default app for supported extensions
 
@@ -380,7 +380,7 @@ After installation or an update, restarting Explorer helps the menu appear.
 Uninstall Hodozip from Settings → Apps → Installed apps. From PowerShell:
 
 ```powershell
-Remove-AppxPackage Ren9618.Hodozip_0.7.3.0_x64__ex19z75j0wj0g
+Remove-AppxPackage Ren9618.Hodozip_0.7.4.0_x64__ex19z75j0wj0g
 ```
 
 If you no longer need the certificate, remove it from an administrator PowerShell:
@@ -422,7 +422,7 @@ To use the legacy context menu, `Hodozip.ContextMenu.dll` must be included in th
 pwsh -File packaging\build-msix.ps1
 New-Item -ItemType Directory -Path artifacts\release\Hodozip -Force | Out-Null
 Copy-Item -Path artifacts\msix\publish\* -Destination artifacts\release\Hodozip -Recurse -Force
-Compress-Archive -Path artifacts\release\Hodozip -DestinationPath Hodozip-0.7.3-win-x64.zip
+Compress-Archive -Path artifacts\release\Hodozip -DestinationPath Hodozip-0.7.4-win-x64.zip
 ```
 
 To create only the zip build without the MSIX, publish and then build the C++ project to copy the DLL.
@@ -431,7 +431,7 @@ To create only the zip build without the MSIX, publish and then build the C++ pr
 dotnet publish src\Hodozip\Hodozip.csproj -c Release -p:Platform=x64 -r win-x64 --self-contained true -o publish\Hodozip
 msbuild src\Hodozip.ContextMenu\Hodozip.ContextMenu.vcxproj /p:Configuration=Release /p:Platform=x64
 Copy-Item src\Hodozip.ContextMenu\bin\x64\Release\Hodozip.ContextMenu.dll publish\Hodozip\
-Compress-Archive -Path publish\Hodozip -DestinationPath Hodozip-0.7.3-win-x64.zip
+Compress-Archive -Path publish\Hodozip -DestinationPath Hodozip-0.7.4-win-x64.zip
 ```
 
 The zip contains exactly one top-level `Hodozip` folder.
@@ -444,7 +444,7 @@ With Inno Setup 6 installed, run:
 pwsh -File packaging\build-installer.ps1
 ```
 
-The script publishes the app, builds the COM DLL, generates the installer icon, and compiles the Inno Setup script. The output is `artifacts\installer\Hodozip-0.7.3-setup.exe` plus its SHA256 file.
+The script publishes the app, builds the COM DLL, generates the installer icon, and compiles the Inno Setup script. The output is `artifacts\installer\Hodozip-0.7.4-setup.exe` plus its SHA256 file.
 
 - `-SkipPublish` / `-SkipComBuild` reuse an existing publish output or COM DLL.
 - `-InnoCompilerPath` specifies the location of `ISCC.exe` (by default the per-user Inno Setup 6 installation is used).
@@ -462,7 +462,7 @@ The script performs the following:
 2. Build the COM DLL in `src\Hodozip.ContextMenu` for x64 Release
 3. Stage the publish output, COM DLL, and generated asset images in `artifacts\msix\staging`
 4. Generate `AppxManifest.xml` from `packaging\Package.appxmanifest.template`
-5. Create `artifacts\msix\Hodozip-0.7.3.msix` with `makeappx.exe`
+5. Create `artifacts\msix\Hodozip-0.7.4.msix` with `makeappx.exe`
 6. Sign with `signtool.exe` using the self-signed certificate
 
 The certificate is created at `artifacts\msix\certs\Hodozip-Test.pfx`. The PFX contains a private key and is never committed or included in a release.
@@ -477,7 +477,7 @@ Use `-RecreateCertificate` to recreate the certificate. The Publisher (`CN=Ren96
 
 ### Versioning
 
-The version is managed by `HodozipVersion` in `Directory.Build.props`. The app's `AssemblyVersion` / `FileVersion` and the MSIX `PackageVersion` (`0.7.3` → `0.7.3.0`) are generated from this value.
+The version is managed by `HodozipVersion` in `Directory.Build.props`. The app's `AssemblyVersion` / `FileVersion` and the MSIX `PackageVersion` (`0.7.4` → `0.7.4.0`) are generated from this value.
 
 ## Testing
 
@@ -555,14 +555,14 @@ MSIX validation installs the built package for real.
 certutil -addstore -f TrustedPeople artifacts\msix\certs\Hodozip-Test.cer
 
 # Install
-Add-AppxPackage -Path artifacts\msix\Hodozip-0.7.3.msix
+Add-AppxPackage -Path artifacts\msix\Hodozip-0.7.4.msix
 
 # Check the Start menu and association candidates
 Get-StartApps | Where-Object { $_.Name -eq 'Hodozip' }
 Get-ItemProperty 'HKCU:\Software\Classes\.zip\OpenWithProgids'
 
 # Uninstall
-Remove-AppxPackage Ren9618.Hodozip_0.7.3.0_x64__ex19z75j0wj0g
+Remove-AppxPackage Ren9618.Hodozip_0.7.4.0_x64__ex19z75j0wj0g
 ```
 
 Automated post-install E2E is also available. The two scripts share the settings file, so do not run them concurrently.
@@ -587,7 +587,7 @@ Install the built installer and verify the registrations and cleanup after unins
 
 ```powershell
 # Install (enable the legacy menu and "Open with" candidates)
-Start-Process artifacts\installer\Hodozip-0.7.3-setup.exe -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/TASKS="contextmenu,associate"' -Wait
+Start-Process artifacts\installer\Hodozip-0.7.4-setup.exe -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/TASKS="contextmenu,associate"' -Wait
 
 # Check the registrations
 Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\App Paths\Hodozip.exe'
