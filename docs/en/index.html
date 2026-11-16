@@ -236,7 +236,7 @@
         <p class="dl-file">Hodozip-0.7.3-setup.exe</p>
         <ul class="dl-list">
           <li>Installs per user into <code>%LOCALAPPDATA%\Programs\Hodozip</code> without administrator rights</li>
-          <li>Creates a Start menu shortcut and optionally registers the context menu and "Open with" candidates</li>
+          <li>Creates a Start menu shortcut and lets you choose at install time whether to register the context menu and "Open with" / Default apps list entries</li>
           <li>Uninstall from Windows Settings → Apps</li>
         </ul>
         <a class="btn btn-primary" href="https://github.com/Ren9618/Hodozip/releases/latest">Get it from Releases</a>
@@ -296,9 +296,16 @@
       <h4>Installer build (recommended)</h4>
       <ol>
         <li>Download and run <code>Hodozip-0.7.3-setup.exe</code>. It is unsigned; if SmartScreen shows a warning, choose "More info" → "Run".</li>
-        <li>The install location is fixed to <code>%LOCALAPPDATA%\Programs\Hodozip</code>. Under "Shell integration" you can optionally register the context menu and "Open with" candidates / the Windows Default apps list (both enabled by default).</li>
+        <li>The install location is fixed to <code>%LOCALAPPDATA%\Programs\Hodozip</code>. Under "Shell integration" you can choose the following (both optional and enabled by default on a new install):
+          <ul>
+            <li><strong>Context menu</strong> — adds "Extract with Hodozip", "Extract to folder with Hodozip", and "Compress with Hodozip" to Explorer's right-click menu (current user only).</li>
+            <li><strong>"Open with" and Default apps list</strong> — adds supported archives as "Open with" candidates and to the Windows Default apps list. It does not change the default app itself.</li>
+          </ul>
+          On upgrades, these options are initially off so the current registration is left unchanged. Check them to register again.
+        </li>
         <li>Launch Hodozip from the Start menu after installation. Uninstall it from Settings → Apps → Installed apps.</li>
       </ol>
+      <p class="note">If the context-menu DLL is in use by Explorer, the installer asks before restarting Explorer. Choose "Yes" to restart Explorer and continue, or "No" to cancel Setup. Open File Explorer windows will be closed.</p>
       <h4>zip build (no installation)</h4>
       <ol>
         <li>Extract the downloaded zip file.</li>

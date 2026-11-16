@@ -66,12 +66,24 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [CustomMessages]
 japanese.ShellIntegration=シェル統合:
 english.ShellIntegration=Shell integration:
-japanese.RegisterContextMenu=従来型の右クリックメニューを登録する（このユーザーのみ）
-english.RegisterContextMenu=Register the classic right-click menu (current user only)
-japanese.RegisterAssociations=対応アーカイブを「プログラムから開く」に追加する
-english.RegisterAssociations=Add supported archives to "Open with"
+japanese.RegisterContextMenu=右クリックメニューを登録する（推奨）
+english.RegisterContextMenu=Register the right-click menu (recommended)
+japanese.RegisterAssociations=「プログラムから開く」と既定のアプリ一覧に登録する（推奨）
+english.RegisterAssociations=Add to "Open with" and the Default apps list (recommended)
 japanese.ContextMenuRegisterFailed=従来型の右クリック メニューを登録できませんでした。セットアップを続行できません。%n%nHodozip を起動し、設定画面の「従来型コンテキストメニュー」から登録し直してください。
 english.ContextMenuRegisterFailed=The classic right-click menu could not be registered. Setup cannot continue.%n%nStart Hodozip and register it again from "Classic context menu" in Settings.
+japanese.RestartExplorerConfirm=Hodozip の右クリックメニュー用ファイルがエクスプローラーで使用中です。%n%nインストールを続けるには、エクスプローラーを再起動する必要があります。開いているエクスプローラーのウィンドウは閉じられます。%n%nエクスプローラーを再起動して続行しますか？
+english.RestartExplorerConfirm=Hodozip's context-menu file is in use by Explorer.%n%nExplorer must be restarted to continue the installation. Any open File Explorer windows will be closed.%n%nRestart Explorer and continue?
+japanese.RestartExplorerDeclined=インストールを中止しました。%n%nエクスプローラーを再起動するか、Windows を再起動してから、もう一度セットアップを実行してください。
+english.RestartExplorerDeclined=Setup was cancelled.%n%nRestart Explorer or Windows, then run Setup again.
+
+[Messages]
+japanese.WizardSelectTasks=シェル統合と追加の設定
+japanese.SelectTasksDesc=エクスプローラーから Hodozip を使いやすくするための設定です。%n右クリックメニューと「プログラムから開く」は、後から Hodozip の設定画面でも変更できます。既定のアプリは自動では変更されません。
+japanese.SelectTasksLabel2=登録する項目を選んでください。
+english.WizardSelectTasks=Shell integration and additional tasks
+english.SelectTasksDesc=Choose how Hodozip integrates with Explorer. You can change the right-click menu and "Open with" options later in Hodozip Settings. The default app is not changed automatically.
+english.SelectTasksLabel2=Choose the items to register.
 
 [Tasks]
 Name: "contextmenu"; Description: "{cm:RegisterContextMenu}"; GroupDescription: "{cm:ShellIntegration}"; Flags: checkedonce
@@ -173,6 +185,17 @@ var
 begin
   if not IsFileLocked(DllPath) then
     Exit;
+
+  // サイレント インストールでは確認できないため、従来どおり自動で再起動する。
+  if not WizardSilent then
+  begin
+    if MsgBox(ExpandConstant('{cm:RestartExplorerConfirm}'), mbConfirmation, MB_YESNO) <> IDYES then
+    begin
+      Log('User declined the Explorer restart; aborting installation.');
+      MsgBox(ExpandConstant('{cm:RestartExplorerDeclined}'), mbInformation, MB_OK);
+      Abort;
+    end;
+  end;
 
   Log('Context menu DLL is locked; restarting Explorer before install.');
   if not Exec(ExpandConstant('{sys}\taskkill.exe'), '/f /im explorer.exe', '',

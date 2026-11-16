@@ -18,7 +18,7 @@ Hodozip is a free, open-source archive extractor for Windows that carries the us
 Download the latest release from [GitHub Releases](https://github.com/Ren9618/Hodozip/releases).
 
 - Latest: [Hodozip v0.7.3](https://github.com/Ren9618/Hodozip/releases/tag/v0.7.3)
-- `Hodozip-0.7.3-setup.exe` (installer, recommended): installs per user into `%LOCALAPPDATA%\Programs\Hodozip` without administrator rights. It creates a Start menu shortcut and optionally registers the legacy context menu and "Open with" candidates. See [Installer installation](#installer-installation-recommended).
+- `Hodozip-0.7.3-setup.exe` (installer, recommended): installs per user into `%LOCALAPPDATA%\Programs\Hodozip` without administrator rights. It creates a Start menu shortcut and lets you choose at install time whether to register the legacy context menu and the "Open with" / Default apps list entries. See [Installer installation](#installer-installation-recommended).
 - `Hodozip-0.7.3-win-x64.zip` (unpackaged): unzip it and run `Hodozip.exe`. No installation is required.
 - `Hodozip-0.7.3.msix` (MSIX, experimental): registers Hodozip as a candidate for supported archive types and adds Windows 11 context-menu entries. It uses a self-signed certificate, so the certificate must be trusted before installation. See [MSIX installation](#msix-installation-advanced-experimental).
 
@@ -316,13 +316,16 @@ If you pass multiple archive paths, the main window opens the batch extraction d
 
 1. Download and run `Hodozip-0.7.3-setup.exe`. It is unsigned; if Windows SmartScreen shows a warning, choose "More info" → "Run".
 2. The install location is fixed to `%LOCALAPPDATA%\Programs\Hodozip`; no directory page is shown.
-3. Under "Shell integration" you can optionally enable (both are checked by default):
-   - Register the classic right-click menu (current user only)
-   - Add supported archives to "Open with" and the Windows Default apps list
-4. "Create a desktop icon" is off by default.
-5. After installation, "Hodozip" appears in the Start menu.
+3. Under "Shell integration" you can choose the following (both optional and checked by default on a new install):
+   - **Register the right-click menu (recommended)**: adds "Extract with Hodozip", "Extract to folder with Hodozip", and "Compress with Hodozip" to Explorer's context menu (current user only).
+   - **Add to "Open with" and the Default apps list (recommended)**: adds supported archives as "Open with" candidates and to the Windows Default apps list. It does not change the default app itself.
+4. On upgrades, these options are initially off so the current registration is left unchanged. Check them to register again.
+5. "Create a desktop icon" is off by default.
+6. After installation, "Hodozip" appears in the Start menu.
 
 The installer adds Hodozip to the "Open with" candidates and the Windows Default apps list, but it does not change the default app itself. On Windows 11, open Settings → Apps → Default apps, select Hodozip, and choose "Set default" to change all supported formats together (the "Set Hodozip as the default app" button in Hodozip Settings opens the app's page directly). On Windows 10, choose each format individually, or right-click a file → "Open with" → "Choose another app" → "Hodozip" → "Always use this app to open these files".
+
+If the context-menu DLL is in use by Explorer, the installer asks before restarting Explorer. Choose "Yes" to restart Explorer and continue, or "No" to cancel Setup. Open File Explorer windows will be closed. Silent installs restart Explorer automatically when needed without prompting.
 
 To uninstall, open Settings → Apps → Installed apps and select Hodozip. User settings (`%LOCALAPPDATA%\Hodozip\settings.json`) are preserved.
 
