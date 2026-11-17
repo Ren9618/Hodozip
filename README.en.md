@@ -648,6 +648,14 @@ Hodozip is free and open source. Support is used for ongoing development and mai
 - GitHub Sponsors: <https://github.com/sponsors/Ren9618>
 - Stripe: <https://buy.stripe.com/5kQ9AU8Xva8T7tAbnj67S00>
 
+## More by Rayno Works
+
+Hodozip is made by Rayno Works, a one-person software studio. You may also like:
+
+- **Yohaku** — a disk usage viewer for Windows that shows what is filling your drives, grouped by game and purpose (one-time purchase, 7-day free trial): https://ren9618.github.io/Yohaku/en/
+- **Megrab Studio** — a video downloader for YouTube, Niconico, Bilibili and TikTok (Windows / macOS / Android): https://megrab.mikumiku.online
+- All software: https://ren9618.github.io/
+
 ## Known limitations
 
 - The MSIX build cannot register the legacy context menu because of Windows packaged-app shell-extension restrictions. The MSIX build only has the new Windows 11 context menu. See [Why the legacy menu is unavailable in the MSIX build](#why-the-legacy-menu-is-unavailable-in-the-msix-build).

@@ -648,6 +648,14 @@ Hodozip は無料・オープンソースです。支援は今後の開発とメ
 - GitHub Sponsors: <https://github.com/sponsors/Ren9618>
 - Stripe: <https://buy.stripe.com/5kQ9AU8Xva8T7tAbnj67S00>
 
+## 同じ開発者のソフト
+
+Hodozip は個人開発ブランド「レイノワークス（Rayno Works）」のソフトです。他のソフトもどうぞ。
+
+- **Yohaku（よはく）** — ドライブの中身をゲーム名や用途ごとに把握できる、Windows 向けディスク使用量ビューアー（買い切り・7日間無料トライアル）： https://ren9618.github.io/Yohaku/
+- **Megrab Studio** — YouTube／ニコニコ動画／BiliBili／TikTok 対応の動画ダウンローダー（Windows／macOS／Android）： https://megrab.mikumiku.online
+- ソフト一覧： https://ren9618.github.io/
+
 ## 既知の制限
 
 - MSIX 版では、Windows のパッケージ アプリ向けシェル拡張の制約により従来型コンテキストメニューを登録できません。MSIX 版は Windows 11 の新しい右クリックメニューのみになります。理由は [MSIX 版で従来型メニューが使えない理由](#msix-版で従来型メニューが使えない理由) を参照してください。
